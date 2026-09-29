@@ -12,14 +12,14 @@ describe('queue API', () => {
   });
 
   it('maps issue ticket inputs to the database RPC contract', async () => {
-    rpc.mockResolvedValue({ data: [{ id: 't1', sequence_number: 8, ticket_number: 'C008', service_type_id: 'type1', service_type_name: 'Conserto', status: 'waiting', created_at: '2026-01-01T12:00:00Z' }], error: null });
-    await expect(issueTicket({ typeId: 'type1', customerName: 'João' })).resolves.toMatchObject({ ticketNumber: 'C008', customerName: null });
+    rpc.mockResolvedValue({ data: [{ id: 't1', sequence_number: 8, ticket_number: 'C-008', service_type_id: 'type1', service_type_name: 'Conserto', status: 'waiting', created_at: '2026-01-01T12:00:00Z' }], error: null });
+    await expect(issueTicket({ typeId: 'type1', customerName: 'João' })).resolves.toMatchObject({ ticketNumber: 'C-008', customerName: null });
     expect(rpc).toHaveBeenCalledWith('issue_ticket', { p_type_id: 'type1', p_customer_name: 'João' });
     expect(signInAnonymously).toHaveBeenCalledOnce();
   });
 
   it('maps queue actions to their RPCs and parameters', async () => {
-    rpc.mockResolvedValue({ data: [{ id: 'event1', ticket_number: 'C001', service_type_id: 'type2', service_type_name: 'Conserto', counter_label: 'Balcão 3', called_at: '2026-01-01T12:00:00Z' }], error: null });
+    rpc.mockResolvedValue({ data: [{ id: 'event1', ticket_number: 'C-001', service_type_id: 'type2', service_type_name: 'Conserto', counter_label: 'Balcão 3', called_at: '2026-01-01T12:00:00Z' }], error: null });
     await callNextTicket('type2', 'Balcão 3');
     await repeatTicketCall('ticket1');
     await transitionTicket('ticket2', 'serving');
