@@ -97,13 +97,34 @@ function Build-TicketBytes($Job) {
   }
 
   $ticketNumber = [string]$Job.ticket_number
-  if ($ticketNumber -match '^([A-Za-z]+)-?(\d+)
-  Add-Bytes ([byte[]](0x1B,0x64,[byte]$feedLines))
-  if ($cutMode -eq 'full') {
-    Add-Bytes ([byte[]](0x1D,0x56,0x00))
-  } else {
-    Add-Bytes ([byte[]](0x1D,0x56,0x01))
+  if ($ticketNumber -match '^([A-Za-z]+)-?(\d+)$') {
+    $ticketNumber = $matches[1].ToUpper() + '-' + $matches[2]
   }
+
+  Add-Bytes ([byte[]](0x1B,0x40))
+  Add-Bytes ([byte[]](0x1B,0x61,0x01))
+
+  Add-Bytes ([byte[]](0x1B,0x45,0x01))
+  Add-Line 'FILA DE ATENDIMENTO'
+  Add-Bytes ([byte[]](0x1B,0x45,0x00))
+
+  Add-Line 'Aguarde sua chamada na tela.'
+  Add-Line ([string]$Job.service_type_name).ToUpperInvariant()
+
+  Add-Bytes ([byte[]](0x1B,0x45,0x01))
+  Add-Bytes ([byte[]](0x1D,0x21,0x22))
+  Add-Line $ticketNumber
+  Add-Bytes ([byte[]](0x1D,0x21,0x00))
+  Add-Bytes ([byte[]](0x1B,0x45,0x00))
+
+  $issued = [DateTimeOffset]::Parse([string]$Job.issued_at).ToLocalTime()
+  Add-Line ("Emitida em {0:dd/MM/yyyy HH:mm}" -f $issued)
+
+  # A própria i9 avança somente até a posição necessária para o corte.
+  # 65 = corte completo; 66 = corte parcial.
+  $cutCommand = if ($cutMode -eq 'full') { [byte]0x41 } else { [byte]0x42 }
+  Add-Bytes ([byte[]](0x1D,0x56,$cutCommand,0x00))
+
   return $bytes.ToArray()
 }
 
