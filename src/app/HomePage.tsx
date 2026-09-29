@@ -30,7 +30,7 @@ export function HomePage() {
   return (
     <div className="home-page">
       <header className="topbar">
-        <Link className="brand" to="/" aria-label="Fila Artvideo, página inicial">
+        <Link className="brand" to="/" aria-label="Página inicial">
           <BrandLogo />
         </Link>
         <span className="system-chip"><span /> Sistema de atendimento</span>
