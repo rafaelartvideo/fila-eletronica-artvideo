@@ -1,0 +1,127 @@
+:root { font-family: Poppins, ui-sans-serif, system-ui, sans-serif; }
+body { font-size: 15px; }
+button, input { font-family: inherit; }
+
+/* The display keeps the video dominant and the live calls legible across the room. */
+.public-display { display: flex; flex-direction: column; min-height: 100vh; background: #0b172b; }
+.display-topbar { min-height: 76px; }
+.display-brand strong { font-size: 16px; letter-spacing: .035em; }
+.display-brand small { font-size: 10px; }
+.display-connection { font-size: 12px; }
+.display-content { width: min(1920px, calc(100% - 48px)); flex: 1; display: flex; flex-direction: column; padding: 22px 0 16px; }
+.display-headline { margin-bottom: 16px; }
+.display-headline h1 { font-size: clamp(26px, 2.5vw, 39px); }
+.display-main-grid { flex: 1; min-height: min(680px, calc(100vh - 215px)); grid-template-columns: minmax(0, 2.25fr) minmax(330px, 1fr); gap: 16px; }
+.display-media { min-height: 0; grid-template-rows: 48px minmax(0, 1fr) 48px; border-color: #30425e; border-radius: 20px; }
+.display-media-heading, .display-media-caption { padding: 0 18px; }
+.display-media-heading > span { font-size: 12px; }
+.display-media-caption strong { font-size: 13px; }
+.display-media-caption small { font-size: 11px; }
+.display-media-empty { color: #bed0e7; font-size: 15px; text-align: center; }
+.display-queue-column { grid-template-rows: minmax(235px, .95fr) minmax(250px, 1.05fr); gap: 16px; }
+.display-callout { min-height: 0; display: flex; flex-direction: column; padding: 20px 22px; border-color: #38506e; border-radius: 20px; background: linear-gradient(150deg, #1c3555, #122743); }
+.display-callout-head > span { font-size: 13px; }
+.voice-toggle small { font-size: 11px; }
+.display-current-call { min-height: 0; flex: 1; flex-direction: column; justify-content: center; align-items: flex-start; gap: 12px; padding: 12px 0; }
+.display-current-call > strong { color: #ffcb54; font-size: clamp(75px, 7vw, 138px); line-height: 1; letter-spacing: -.055em; overflow-wrap: anywhere; }
+.display-current-call > div { gap: 7px; }
+.display-current-call span { font-size: clamp(18px, 1.65vw, 29px); }
+.display-current-call small { color: #d5e1ef; font-size: clamp(16px, 1.35vw, 23px); font-weight: 600; }
+.display-no-call { min-height: 0; flex: 1; font-size: 20px; }
+.display-recent { min-height: 0; overflow: hidden; padding: 19px; border-color: #30425e; border-radius: 20px; background: #132741; }
+.display-recent .section-kicker { font-size: 11px; }
+.display-recent h2 { font-size: 18px; }
+.recent-call-list { grid-template-columns: 1fr; gap: 8px; max-height: min(480px, 50vh); overflow: auto; margin-top: 14px; }
+.recent-call { display: grid; grid-template-columns: minmax(95px, .7fr) minmax(0, 1fr); align-items: center; gap: 2px 8px; min-height: 63px; padding: 10px 13px; border-color: #324963; border-radius: 11px; background: #1a3350; }
+.recent-call strong { grid-row: span 2; color: #ffcb54; font-size: clamp(22px, 2.2vw, 34px); }
+.recent-call span { color: #f4f7fb; font-size: 12px; }
+.recent-call small { color: #b8cce2; font-size: 12px; }
+.recent-empty { font-size: 14px; }
+.display-footer { font-size: 12px; }
+
+/* Larger touch targets and type across the customer and team screens. */
+.topbar, .staff-topbar, .kiosk-topbar { min-height: 78px; }
+.brand-copy strong, .staff-brand strong, .kiosk-brand { font-size: 15px; }
+.brand-copy small, .staff-brand small { font-size: 10px; }
+.welcome-copy p, .staff-heading p, .kiosk-welcome p, .issued-ticket-screen > p { font-size: 16px; }
+.entry-card { min-height: 145px; }
+.entry-card-copy strong { font-size: 17px; }
+.entry-card-copy small { font-size: 13px; line-height: 1.4; }
+.section-heading h2 { font-size: 26px; }
+.section-kicker, .eyebrow { font-size: 11px; }
+.primary-link, .auth-submit, .blue-button { min-height: 52px; font-size: 15px; }
+.staff-main { width: min(1400px, calc(100% - 48px)); }
+.staff-heading h1 { font-size: clamp(30px, 3vw, 42px); }
+.staff-metric { min-height: 98px; }
+.staff-metric small, .queue-count { font-size: 13px; }
+.staff-metric strong { font-size: 30px; }
+.staff-tabs > button:not(.refresh-button), .staff-logout, .refresh-button, .subtle-button { min-height: 44px; font-size: 13px; }
+.queue-card-head h2 { font-size: 19px; }
+.queue-ticket { min-height: 76px; }
+.ticket-number-small { font-size: 19px; }
+.queue-grid { grid-template-columns: repeat(auto-fit, minmax(min(100%, 345px), 1fr)); gap: 18px; }
+.kiosk-content { width: min(960px, calc(100% - 40px)); padding-top: clamp(32px, 7vh, 90px); }
+.kiosk-welcome h1 { font-size: clamp(34px, 5vw, 55px); }
+.kiosk-service-card { min-height: 125px; padding: 24px; }
+.kiosk-service-icon { width: 58px; height: 58px; }
+.kiosk-service-card strong { font-size: 18px; }
+.kiosk-service-card small, .kiosk-small-print { font-size: 13px; }
+.kiosk-step-card { width: min(620px, 100%); padding: 32px; }
+.selected-service strong { font-size: 18px; }
+.kiosk-name-label { font-size: 15px; }
+.kiosk-name-input { height: 58px; font-size: 17px; }
+.kiosk-privacy { font-size: 12px; }
+.kiosk-generate-button, .kiosk-print-button, .whatsapp-button { min-height: 58px; font-size: 16px; }
+.kiosk-new-button { min-height: 50px; font-size: 14px; }
+.print-ticket { width: min(410px, 100%); }
+.print-ticket-number { font-size: clamp(65px, 15vw, 88px); }
+.kiosk-controls { width: min(410px, 100%); }
+.whatsapp-button { width: 100%; display: inline-flex; justify-content: center; align-items: center; gap: 9px; padding: 12px; border-radius: 12px; color: #fff; background: #168451; font-weight: 700; text-align: center; }
+.whatsapp-button:hover { background: #0c6b3f; }
+.phone-error { display: block; color: #a33b36; font-size: 13px; }
+.issue-overlay { position: fixed; z-index: 20; inset: 0; display: grid; place-items: center; padding: 20px; background: rgb(5 19 38 / 65%); }
+.issue-dialog { position: relative; width: min(520px, 100%); display: grid; gap: 16px; padding: 34px; border-radius: 23px; background: #fff; box-shadow: 0 30px 85px rgb(0 0 0 / 23%); }
+.issue-dialog .section-kicker { color: #57728f; }
+.issue-dialog h2 { margin: 0; font-size: 29px; }
+.issue-dialog p { margin: 0; color: #61718a; font-size: 14px; line-height: 1.55; }
+.issue-dialog label { font-size: 14px; font-weight: 700; }
+.issue-dialog input { height: 56px; padding: 0 15px; border: 1px solid #ced9e8; border-radius: 12px; font-size: 16px; }
+.issue-dialog .kiosk-new-button { width: 100%; }
+.issue-close { position: absolute; top: 20px; right: 20px; display: grid; place-items: center; width: 38px; height: 38px; border: 0; border-radius: 10px; background: #f0f4f8; cursor: pointer; }
+.issue-result { color: #164b8b; font-size: clamp(56px, 12vw, 85px); line-height: 1.1; }
+
+@media (max-width: 900px) {
+  .display-main-grid { min-height: 0; grid-template-columns: minmax(0, 1.5fr) minmax(270px, 1fr); }
+  .display-current-call > strong { font-size: clamp(54px, 8vw, 95px); }
+  .display-queue-column { grid-template-rows: minmax(230px, auto) minmax(260px, auto); }
+}
+@media (max-width: 700px) {
+  .display-content { width: calc(100% - 28px); }
+  .display-main-grid { display: flex; flex-direction: column; }
+  .display-media { order: 2; min-height: 0; aspect-ratio: 16 / 11; grid-template-rows: 40px 1fr 40px; }
+  .display-queue-column { order: 1; display: flex; flex-direction: column; }
+  .display-current-call { flex-direction: row; align-items: center; }
+  .display-current-call > strong { font-size: clamp(58px, 17vw, 96px); }
+  .display-recent { min-height: 0; }
+  .recent-call-list { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .recent-call { grid-template-columns: 1fr; }
+  .recent-call strong { grid-row: auto; }
+  .kiosk-service-grid, .staff-metrics, .entry-grid { grid-template-columns: 1fr; }
+  .staff-heading { align-items: flex-start; flex-direction: column; }
+  .staff-tabs { flex-wrap: wrap; }
+  .staff-tabs .refresh-button { margin-left: 0; }
+  .counter-field { width: 100%; }
+  .kiosk-help { display: none; }
+}
+@media (max-width: 420px) {
+  .display-brand strong { font-size: 12px; }
+  .display-connection span { display: none; }
+  .recent-call-list { grid-template-columns: 1fr; }
+  .recent-call { grid-template-columns: 90px 1fr; }
+  .recent-call strong { grid-row: span 2; }
+  .kiosk-brand strong { font-size: 11px; }
+  .kiosk-step-card { padding: 20px; }
+}
+@media print {
+  .whatsapp-button, .phone-error, .issue-overlay { display: none !important; }
+}

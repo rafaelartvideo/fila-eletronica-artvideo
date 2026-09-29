@@ -16,8 +16,8 @@ export function DisplayPage() {
     <div className="display-content">
       <div className="display-headline"><div><span className="section-kicker">PAINEL DE SENHAS</span><h1>Acompanhe sua chamada</h1></div><span className="display-live"><i /> AO VIVO</span></div>
       <div className="display-main-grid">
-        <div className="display-queue-column"><CallAnnouncement call={currentCall} /><section className="display-recent"><header><div><span className="section-kicker">AGORA HÁ POUCO</span><h2>Chamadas recentes</h2></div><MonitorPlay size={19} /></header>{recentCalls.length ? <div className="recent-call-list">{recentCalls.map((call) => <div key={call.id} className="recent-call"><strong>{call.ticketNumber}</strong><span>{call.serviceTypeName}</span><small>{call.counterLabel || 'Balcão'}</small></div>)}</div> : <div className="recent-empty">As últimas chamadas aparecerão aqui.</div>}</section></div>
         <MediaPlayer items={media} />
+        <div className="display-queue-column"><CallAnnouncement call={currentCall} /><section className="display-recent"><header><div><span className="section-kicker">AGORA HÁ POUCO</span><h2>Chamadas recentes</h2></div><MonitorPlay size={19} /></header>{recentCalls.length ? <div className="recent-call-list">{recentCalls.map((call) => <div key={call.id} className="recent-call"><strong>{call.ticketNumber}</strong><span>{call.serviceTypeName}</span><small>{call.counterLabel || 'Balcão'}</small></div>)}</div> : <div className="recent-empty">As últimas chamadas aparecerão aqui.</div>}</section></div>
       </div>
       <footer className="display-footer"><span>Eletrônica Artvideo</span><i /> Por favor, dirija-se ao balcão indicado quando sua senha for chamada.</footer>
     </div>

@@ -1,7 +1,8 @@
 import { useCallback, useEffect, useState } from 'react';
-import { Activity, CalendarDays, Clapperboard, LogOut, RefreshCw, Settings2, TicketCheck, Wrench } from 'lucide-react';
+import { Activity, CalendarDays, Clapperboard, LogOut, MessageCircle, RefreshCw, Settings2, TicketCheck, Wrench, X } from 'lucide-react';
 import { Link } from 'react-router';
 import type { QueueTicket, TicketStatus, TicketType } from '../../domain/queue';
+import { ticketWhatsAppUrl } from '../../domain/whatsapp';
 import { callNextTicket, issueTicket, listQueueTickets, listTicketTypes, repeatTicketCall, transitionTicket } from '../../lib/supabase/queue-api';
 import { useAuth } from '../auth/AuthProvider';
 import { AdminBadge } from '../auth/RequireAdmin';
@@ -24,6 +25,9 @@ export function StaffPage() {
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState('');
   const [counter, setCounter] = useState('Balcão 1');
+  const [issueType, setIssueType] = useState<TicketType | null>(null);
+  const [issuePhone, setIssuePhone] = useState('');
+  const [issuedTicket, setIssuedTicket] = useState<QueueTicket | null>(null);
   const [day, setDay] = useState(todayInSaoPaulo);
 
   useEffect(() => {
@@ -58,6 +62,19 @@ export function StaffPage() {
     try { await signOut(); } catch (cause) { setError(cause instanceof Error ? cause.message : 'Não foi possível encerrar a sessão.'); }
   }
 
+  async function issueFromStaff() {
+    if (!issueType) return;
+    setBusy(true); setError('');
+    try {
+      const issued = await issueTicket({ typeId: issueType.id });
+      setIssuedTicket(issued);
+      await refresh();
+    } catch (cause) { setError(cause instanceof Error ? cause.message : 'Não foi possível gerar a senha.'); }
+    finally { setBusy(false); }
+  }
+
+  function closeIssue() { setIssueType(null); setIssuePhone(''); setIssuedTicket(null); setError(''); }
+
   const waiting = tickets.filter((ticket) => ticket.status === 'waiting').length;
   const serving = tickets.filter((ticket) => ticket.status === 'serving' || ticket.status === 'called').length;
   const served = tickets.filter((ticket) => ticket.status === 'completed').length;
@@ -84,10 +101,16 @@ export function StaffPage() {
         <button className="refresh-button" aria-label="Atualizar fila" onClick={() => void refresh()} disabled={busy}><RefreshCw size={16} /> Atualizar</button>
       </nav>
       {error && <div className="staff-error" role="alert">{error}<button onClick={() => void refresh()}>Tentar novamente</button></div>}
-      {tab === 'queue' && <div className="queue-grid">{types.length === 0 ? <div className="empty-services"><Wrench size={22} /><h2>Nenhum atendimento ativo</h2><p>Cadastre um tipo de atendimento para começar a receber senhas.</p><button className="blue-button" onClick={() => setTab('services')}>Configurar atendimentos</button></div> : types.map((type) => <QueueColumn key={type.id} type={type} tickets={tickets.filter((ticket) => ticket.serviceTypeId === type.id)} busy={busy} onCall={() => void runAction(() => callNextTicket(type.id, counter))} onIssue={() => void runAction(() => issueTicket({ typeId: type.id, customerName: null }))} onRepeat={(id) => void runAction(() => repeatTicketCall(id))} onTransition={(id, status) => void transition(id, status)} />)}</div>}
+      {tab === 'queue' && <div className="queue-grid">{types.length === 0 ? <div className="empty-services"><Wrench size={22} /><h2>Nenhum atendimento ativo</h2><p>Cadastre um tipo de atendimento para começar a receber senhas.</p><button className="blue-button" onClick={() => setTab('services')}>Configurar atendimentos</button></div> : types.map((type) => <QueueColumn key={type.id} type={type} tickets={tickets.filter((ticket) => ticket.serviceTypeId === type.id)} busy={busy} onCall={() => void runAction(() => callNextTicket(type.id, counter))} onIssue={() => { setIssueType(type); setIssuedTicket(null); }} onRepeat={(id) => void runAction(() => repeatTicketCall(id))} onTransition={(id, status) => void transition(id, status)} />)}</div>}
       {tab === 'services' && <ServiceTypeSettings onChanged={() => void refresh()} />}
       {tab === 'media' && <MediaSettings onChanged={() => void refresh()} />}
     </section>
+    {issueType && <div className="issue-overlay" onMouseDown={(event) => { if (event.target === event.currentTarget) closeIssue(); }}><section className="issue-dialog" role="dialog" aria-modal="true" aria-labelledby="issue-title">
+      <button className="issue-close" aria-label="Fechar" onClick={closeIssue}><X size={20} /></button>
+      <span className="section-kicker">GERAR SENHA</span>
+      <h2 id="issue-title">{issuedTicket ? 'Senha gerada' : issueType.name}</h2>
+      {issuedTicket ? <><strong className="issue-result">{issuedTicket.ticketNumber}</strong><p>Entregue ou informe a senha ao cliente.</p>{issuePhone && ticketWhatsAppUrl(issuePhone, issuedTicket) ? <a className="whatsapp-button" href={ticketWhatsAppUrl(issuePhone, issuedTicket)!} target="_blank" rel="noopener noreferrer"><MessageCircle size={20} /> Enviar pelo WhatsApp</a> : issuePhone && <small className="phone-error">Número inválido. Use DDD + número brasileiro.</small>}<button className="kiosk-new-button" onClick={closeIssue}>Fechar</button></> : <><p>O número do WhatsApp é opcional. O envio será confirmado no aplicativo após a emissão.</p><label htmlFor="staff-phone">WhatsApp do cliente</label><input id="staff-phone" type="tel" inputMode="tel" placeholder="(11) 91234-5678" autoComplete="tel" maxLength={20} value={issuePhone} onChange={(event) => setIssuePhone(event.target.value)} /><button className="kiosk-generate-button" disabled={busy} onClick={() => void issueFromStaff()}>{busy ? 'Gerando…' : 'Confirmar e gerar'}</button></>}
+    </section></div>}
     <footer className="staff-footer">ARTVIDEO <span>•</span> Senhas do dia reiniciam automaticamente às 00h em São Paulo.</footer>
   </main>;
 }

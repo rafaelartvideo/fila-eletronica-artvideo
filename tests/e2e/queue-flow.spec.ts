@@ -9,7 +9,11 @@ test('staff can issue a walk-in ticket, call it and complete service', async ({ 
   await page.getByLabel('Senha').fill('secure-test-password');
   await page.getByRole('button', { name: /entrar no painel/i }).click();
   await expect(page.getByRole('heading', { name: 'Fila de atendimento' })).toBeVisible();
-  await page.getByRole('button', { name: /emitir senha manual/i }).click();
+  await page.getByRole('button', { name: /gerar senha/i }).click();
+  await page.getByLabel(/WhatsApp do cliente/i).fill('11912345678');
+  await page.getByRole('button', { name: /confirmar e gerar/i }).click();
+  await expect(page.getByRole('link', { name: /enviar pelo WhatsApp/i })).toHaveAttribute('href', /wa.me\/5511912345678/);
+  await page.getByRole('button', { name: /fechar/i }).click();
   await expect(page.getByText('C001')).toBeVisible();
   await page.getByRole('button', { name: /chamar próxima/i }).click();
   await page.getByRole('button', { name: 'Iniciar C001' }).click();
@@ -21,9 +25,10 @@ test('kiosk issues and prints a ticket without staff controls', async ({ page })
   await mockBackend(page);
   await page.goto('/totem');
   await page.getByRole('button', { name: /conserto/i }).click();
-  await page.getByLabel(/seu nome/i).fill('Joana');
-  await page.getByRole('button', { name: /gerar minha senha/i }).click();
+  await page.getByLabel(/WhatsApp do cliente/i).fill('11912345678');
+  await page.getByRole('button', { name: /gerar senha/i }).click();
   await expect(page.getByText('C001')).toBeVisible();
+  await expect(page.getByRole('link', { name: /enviar pelo WhatsApp/i })).toHaveAttribute('href', /wa.me\/5511912345678/);
   await page.evaluate(() => { (window as unknown as { __printed?: boolean }).__printed = false; window.print = () => { (window as unknown as { __printed: boolean }).__printed = true; }; });
   await page.getByRole('button', { name: /imprimir senha/i }).click();
   expect(await page.evaluate(() => (window as unknown as { __printed: boolean }).__printed)).toBe(true);

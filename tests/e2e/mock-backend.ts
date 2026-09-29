@@ -33,7 +33,7 @@ export async function mockBackend(page: Page) {
     if (url.pathname === '/rest/v1/rpc/issue_ticket') {
       const body = request.postDataJSON() as { p_type_id: string; p_customer_name: string | null };
       const sequence = tickets.filter((ticket) => ticket.service_type_id === body.p_type_id).length + 1;
-      const ticket: Ticket = { id: `ticket-${sequence}`, business_date: '2026-09-29', service_type_id: body.p_type_id, sequence_number: sequence, ticket_number: `C${String(sequence).padStart(3, '0')}`, customer_name: body.p_customer_name, status: 'waiting', counter_label: null, created_at: new Date().toISOString(), called_at: null, started_at: null, completed_at: null, cancelled_at: null };
+      const ticket: Ticket = { id: `ticket-${sequence}`, business_date: '2026-09-29', service_type_id: body.p_type_id, sequence_number: sequence, ticket_number: `C${String(sequence).padStart(3, '0')}`, customer_name: body.p_customer_name ?? null, status: 'waiting', counter_label: null, created_at: new Date().toISOString(), called_at: null, started_at: null, completed_at: null, cancelled_at: null };
       tickets.push(ticket);
       return json([{ id: ticket.id, business_date: ticket.business_date, sequence_number: sequence, ticket_number: ticket.ticket_number, service_type_id: service.id, service_type_name: service.name, status: ticket.status, created_at: ticket.created_at }]);
     }

@@ -11,8 +11,8 @@ const destinations = [
   },
   {
     to: '/totem',
-    label: 'Autoatendimento',
-    description: 'Emita sua senha escolhendo o atendimento.',
+    label: 'Gerar senha',
+    description: 'Escolha o atendimento e receba sua senha.',
     icon: TicketCheck,
     tone: 'gold',
   },
