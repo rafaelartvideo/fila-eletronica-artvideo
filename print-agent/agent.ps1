@@ -20,7 +20,7 @@ foreach ($required in @('supabaseUrl','supabaseKey','agentSlug','agentToken','pr
 }
 
 $pollMs = if ($config.pollIntervalMs) { [Math]::Max(500, [int]$config.pollIntervalMs) } else { 1000 }
-$feedLines = if ($config.feedLines) { [Math]::Max(0, [Math]::Min(3, [int]$config.feedLines)) } else { 3 }
+$feedLines = if ($config.feedLines) { [Math]::Max(4, [Math]::Min(15, [int]$config.feedLines)) } else { 10 }
 
 if (-not ('RawPrinter.Artvideo' -as [type])) {
 Add-Type -TypeDefinition @"
@@ -124,7 +124,7 @@ function Build-TicketBytes($Job) {
   $issued = [DateTimeOffset]::Parse([string]$Job.issued_at).ToLocalTime()
   Add-Line ("Emitida em {0:dd/MM/yyyy HH:mm}" -f $issued)
 
-  # Avanço curto apenas para posicionar o papel na serrilha de destaque manual.
+  # Avanço final para levar toda a senha além da serrilha de destaque manual.
   # Esta impressora não possui guilhotina; não enviamos comandos ESC/POS de corte.
   for ($i = 0; $i -lt $feedLines; $i++) {
     Add-Line ''
