@@ -20,8 +20,7 @@ foreach ($required in @('supabaseUrl','supabaseKey','agentSlug','agentToken','pr
 }
 
 $pollMs = if ($config.pollIntervalMs) { [Math]::Max(500, [int]$config.pollIntervalMs) } else { 1000 }
-$feedLines = if ($config.feedLines) { [Math]::Max(1, [Math]::Min(20, [int]$config.feedLines)) } else { 7 }
-$cutMode = if ($config.cutMode) { [string]$config.cutMode } else { 'partial' }
+$feedLines = if ($config.feedLines) { [Math]::Max(0, [Math]::Min(3, [int]$config.feedLines)) } else { 3 }
 
 if (-not ('RawPrinter.Artvideo' -as [type])) {
 Add-Type -TypeDefinition @"
@@ -125,16 +124,10 @@ function Build-TicketBytes($Job) {
   $issued = [DateTimeOffset]::Parse([string]$Job.issued_at).ToLocalTime()
   Add-Line ("Emitida em {0:dd/MM/yyyy HH:mm}" -f $issued)
 
-  # Força o avanço com quebras de linha reais antes do corte.
-  # Na Elgin i9 em modo RAW, isso é mais previsível do que ESC d n.
+  # Avanço curto apenas para posicionar o papel na serrilha de destaque manual.
+  # Esta impressora não possui guilhotina; não enviamos comandos ESC/POS de corte.
   for ($i = 0; $i -lt $feedLines; $i++) {
     Add-Line ''
-  }
-
-  if ($cutMode -eq 'full') {
-    Add-Bytes ([byte[]](0x1D,0x56,0x00))
-  } else {
-    Add-Bytes ([byte[]](0x1D,0x56,0x01))
   }
 
   return $bytes.ToArray()
