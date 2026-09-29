@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from 'react';
-import { Activity, CalendarDays, Clapperboard, LogOut, MessageCircle, Settings2, TicketCheck, Wrench, X } from 'lucide-react';
+import { Activity, CalendarDays, Clapperboard, LogOut, MessageCircle, Moon, Settings2, Sun, TicketCheck, Wrench, X } from 'lucide-react';
 import { Link } from 'react-router';
 import type { QueueTicket, TicketStatus, TicketType } from '../../domain/queue';
 import { ticketWhatsAppUrl } from '../../domain/whatsapp';
@@ -18,6 +18,7 @@ function todayInSaoPaulo() {
 
 export function StaffPage() {
   const { signOut } = useAuth();
+  const [theme, setTheme] = useState<'dark' | 'light'>(() => document.documentElement.dataset.theme === 'light' ? 'light' : 'dark');
   const [tab, setTab] = useState<Tab>('queue');
   const [types, setTypes] = useState<TicketType[]>([]);
   const [tickets, setTickets] = useState<QueueTicket[]>([]);
@@ -28,6 +29,12 @@ export function StaffPage() {
   const [issuePhone, setIssuePhone] = useState('');
   const [issuedTicket, setIssuedTicket] = useState<QueueTicket | null>(null);
   const [day, setDay] = useState(todayInSaoPaulo);
+
+  useEffect(() => {
+    const syncTheme = () => setTheme(document.documentElement.dataset.theme === 'light' ? 'light' : 'dark');
+    window.addEventListener('storage', syncTheme);
+    return () => window.removeEventListener('storage', syncTheme);
+  }, []);
 
   useEffect(() => {
     const timer = window.setInterval(() => {
@@ -67,6 +74,14 @@ export function StaffPage() {
     finally { setBusy(false); }
   }
 
+  function toggleTheme() {
+    const nextTheme = theme === 'dark' ? 'light' : 'dark';
+    setTheme(nextTheme);
+    document.documentElement.dataset.theme = nextTheme;
+    document.documentElement.style.colorScheme = nextTheme;
+    try { window.localStorage.setItem('fila-theme', nextTheme); } catch {}
+  }
+
   async function logout() {
     try { await signOut(); } catch (cause) { setError(cause instanceof Error ? cause.message : 'Não foi possível encerrar a sessão.'); }
   }
@@ -92,7 +107,7 @@ export function StaffPage() {
   return <main className="staff-app">
     <header className="staff-topbar">
       <Link to="/" className="staff-brand" aria-label="Página inicial"><span className="staff-brand-icon"><TicketCheck size={19} /></span><span><strong>PAINEL DE ATENDIMENTO</strong><small>GESTÃO DA FILA</small></span></Link>
-      <div className="staff-top-actions"><button className="staff-logout" onClick={() => void logout()}><LogOut size={16} /> Sair</button></div>
+      <div className="staff-top-actions"><button className="staff-theme-toggle" type="button" onClick={toggleTheme} aria-label={theme === 'dark' ? 'Ativar tema claro' : 'Ativar tema escuro'} title={theme === 'dark' ? 'Ativar tema claro' : 'Ativar tema escuro'}>{theme === 'dark' ? <Sun size={16} /> : <Moon size={16} />}<span>{theme === 'dark' ? 'Claro' : 'Escuro'}</span></button><button className="staff-logout" onClick={() => void logout()}><LogOut size={16} /> Sair</button></div>
     </header>
 
     <section className="staff-main">
