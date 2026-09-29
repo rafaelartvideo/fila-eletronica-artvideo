@@ -126,7 +126,6 @@ button, input { font-family: inherit; }
   .whatsapp-button, .phone-error, .issue-overlay { display: none !important; }
 }
 
-
 /* Fit the queue display to the screen and keep its scrolling notices visible. */
 .public-display { height: 100vh; height: 100dvh; min-height: 0; overflow: hidden; }
 .display-topbar { flex: 0 0 clamp(58px, 9vh, 78px); min-height: 0; padding-inline: clamp(12px, 3vw, 48px); }
@@ -191,7 +190,6 @@ button, input { font-family: inherit; }
   .display-current-call > strong { font-size: clamp(29px, 8vw, 44px); }
   .display-callout-head > span svg { display: none; }
 }
-
 
 /* Unified dark interface */
 :root {
@@ -362,7 +360,6 @@ body { background: radial-gradient(circle at 80% 5%, #132f50 0, transparent 34%)
   .display-weather span { font-size: 12px; }
 }
 
-
 /* Queue controls and stronger dark text palette */
 body, button, input, label { color: #f5f8fc; }
 input::placeholder { color: #71859c; opacity: 1; }
@@ -461,42 +458,6 @@ input::placeholder { color: #71859c; opacity: 1; }
 .selected-service > div:first-child { min-width: 0; display: grid; flex: 1; gap: 4px; }
 .selected-service small { font-size: 10px; }
 .selected-service strong { font-size: 19px; }
-.kiosk-selection-active {
-  height: 100vh;
-  height: 100dvh;
-  min-height: 0;
-  overflow: hidden;
-}
-.kiosk-selection-active .kiosk-topbar { flex: 0 0 78px; min-height: 0; }
-.kiosk-selection-active .system-footer { flex: 0 0 auto; position: static; }
-.kiosk-selection-active .kiosk-content {
-  min-height: 0;
-  width: min(760px, calc(100% - 36px));
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  padding: clamp(10px, 2.2vh, 24px) 0;
-  overflow: hidden;
-}
-.kiosk-selection-active .kiosk-welcome {
-  flex: 0 0 auto;
-  margin-bottom: clamp(10px, 1.8vh, 18px);
-}
-.kiosk-selection-active .kiosk-welcome .section-kicker { font-size: 10px; }
-.kiosk-selection-active .kiosk-welcome h1 {
-  margin: 7px 0 5px;
-  font-size: clamp(29px, 4.3vw, 46px);
-}
-.kiosk-selection-active .kiosk-welcome p { font-size: clamp(12px, 1.4vw, 15px); }
-.kiosk-selection-active .kiosk-step-card {
-  width: min(590px, 100%);
-  padding: clamp(16px, 2.1vh, 25px);
-}
-.kiosk-selection-active .kiosk-name-label { margin: clamp(12px, 1.8vh, 18px) 0 7px; }
-.kiosk-selection-active .kiosk-name-input { height: clamp(44px, 6vh, 54px); }
-.kiosk-selection-active .kiosk-privacy { margin: clamp(8px, 1.4vh, 13px) 0; line-height: 1.45; }
-.kiosk-selection-active .kiosk-generate-button { min-height: clamp(46px, 6.5vh, 56px); }
-
 @media (max-width: 900px) {
   .service-type-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 }
@@ -505,5 +466,4 @@ input::placeholder { color: #71859c; opacity: 1; }
   .service-form { grid-template-columns: 1fr; }
   .service-form .blue-button { height: 48px; min-height: 48px; }
   .staff-tabs .counter-field { margin-left: 0; }
-  .kiosk-selection-active .kiosk-topbar { flex-basis: 68px; }
 }
