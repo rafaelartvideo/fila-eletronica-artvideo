@@ -1,12 +1,17 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import type { Session } from '@supabase/supabase-js';
-import { isQueueAdmin } from '../../lib/supabase/queue-api';
+import { getCurrentQueueAccess, type QueueAccess } from './auth-api';
 import { requireSupabase, supabase } from '../../lib/supabase/client';
 
 interface AuthState {
   session: Session | null;
   loading: boolean;
   isAdmin: boolean;
+  access: QueueAccess | null;
+  permissions: string[];
+  roleName: string;
+  userName: string;
+  hasPermission: (permission: string) => boolean;
   signOut: () => Promise<void>;
   refresh: () => Promise<void>;
 }
@@ -16,12 +21,12 @@ const AuthContext = createContext<AuthState | null>(null);
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [session, setSession] = useState<Session | null>(null);
   const [loading, setLoading] = useState(true);
-  const [isAdmin, setIsAdmin] = useState(false);
+  const [access, setAccess] = useState<QueueAccess | null>(null);
   const sessionUserIdRef = useRef<string | null>(null);
 
-  const verifyAdmin = useCallback(async (current: Session | null) => {
-    if (!current) { setIsAdmin(false); return; }
-    try { setIsAdmin(await isQueueAdmin()); } catch { setIsAdmin(false); }
+  const verifyAccess = useCallback(async (current: Session | null) => {
+    if (!current) { setAccess(null); return; }
+    try { setAccess(await getCurrentQueueAccess()); } catch { setAccess(null); }
   }, []);
 
   useEffect(() => {
@@ -36,12 +41,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         if (!active) return;
         sessionUserIdRef.current = data.session?.user.id ?? null;
         setSession(data.session);
-        await verifyAdmin(data.session);
+        await verifyAccess(data.session);
       } catch {
         if (active) {
           sessionUserIdRef.current = null;
           setSession(null);
-          setIsAdmin(false);
+          setAccess(null);
         }
       } finally {
         if (active) setLoading(false);
@@ -50,29 +55,24 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
     const { data: { subscription } } = client.auth.onAuthStateChange((event, next) => {
       if (!active) return;
-
       const nextUserId = next?.user.id ?? null;
       const sameUser = Boolean(nextUserId && sessionUserIdRef.current === nextUserId);
       sessionUserIdRef.current = nextUserId;
       setSession(next);
 
       if (!next) {
-        setIsAdmin(false);
+        setAccess(null);
         setLoading(false);
         return;
       }
 
-      // Supabase can emit SIGNED_IN/TOKEN_REFRESHED again when a browser tab
-      // becomes active. Keep the current screen mounted for the same user.
-      if (sameUser && (event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED' || event === 'INITIAL_SESSION')) {
-        return;
-      }
+      if (sameUser && (event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED' || event === 'INITIAL_SESSION')) return;
 
       const blockUi = !sameUser;
       if (blockUi) setLoading(true);
       window.setTimeout(() => {
         if (!active) return;
-        void verifyAdmin(next).finally(() => {
+        void verifyAccess(next).finally(() => {
           if (active && blockUi) setLoading(false);
         });
       }, 0);
@@ -80,14 +80,30 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
     void bootstrap();
     return () => { active = false; subscription.unsubscribe(); };
-  }, [verifyAdmin]);
+  }, [verifyAccess]);
 
   const signOut = useCallback(async () => {
     const { error } = await requireSupabase().auth.signOut();
     if (error) throw error;
   }, []);
 
-  const value = useMemo(() => ({ session, loading, isAdmin, signOut, refresh: () => verifyAdmin(session) }), [session, loading, isAdmin, signOut, verifyAdmin]);
+  const permissions = access?.permissions ?? [];
+  const permissionSet = useMemo(() => new Set(permissions), [permissions]);
+  const hasPermission = useCallback((permission: string) => permissionSet.has('system.admin') || permissionSet.has(permission), [permissionSet]);
+
+  const value = useMemo(() => ({
+    session,
+    loading,
+    isAdmin: Boolean(access),
+    access,
+    permissions,
+    roleName: access?.roleName ?? '',
+    userName: access?.fullName || access?.username || '',
+    hasPermission,
+    signOut,
+    refresh: () => verifyAccess(session),
+  }), [session, loading, access, permissions, hasPermission, signOut, verifyAccess]);
+
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 }
 
