@@ -27,7 +27,7 @@ try {
   await db.query(`insert into auth.users (id) values ($1)`, [adminId]);
   await db.query(`insert into private.admin_users (user_id) values ($1)`, [adminId]);
   await db.query(`insert into public.ticket_types (id, name, prefix) values ($1, 'Conserto', 'C')`, [serviceId]);
-  await db.query(`insert into public.ticket_types (id, name, prefix) values ($1, 'Retirada', 'R')`, [kioskServiceId]);
+  await db.query(`insert into public.ticket_types (id, name, prefix, priority) values ($1, 'Retirada', 'R', 'urgent')`, [kioskServiceId]);
   await db.exec(`set role anon`);
   const publicTypes = await db.query(`select name from public.ticket_types order by name`);
   assert.deepEqual(publicTypes.rows.map(({ name }) => name), ['Conserto', 'Retirada'], 'anonymous kiosk can list active service types without private schema access');
@@ -60,8 +60,11 @@ try {
     'unknown/inactive service is rejected',
   );
 
+  const urgentCalled = await db.query(`select * from public.call_next_waiting_ticket('Balcão 1')`);
+  assert.equal(urgentCalled.rows[0].ticket_number, 'R-001', 'urgent priority jumps older normal tickets');
+
   const called = await db.query(`select * from public.call_next_waiting_ticket('Balcão 1')`);
-  assert.equal(called.rows[0].ticket_number, 'C-001', 'global queue calls the oldest waiting ticket regardless of service type');
+  assert.equal(called.rows[0].ticket_number, 'C-001', 'tickets with the same priority keep arrival order');
   assert.equal(called.rows[0].counter_label, 'Balcão 1');
   const serving = await db.query(`select * from public.transition_ticket($1, 'serving')`, [first.rows[0].id]);
   assert.equal(serving.rows[0].status, 'serving');
