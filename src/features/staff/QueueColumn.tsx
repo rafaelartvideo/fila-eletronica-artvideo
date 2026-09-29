@@ -1,4 +1,4 @@
-import { Check, ChevronRight, Megaphone, Plus, RotateCcw, X } from 'lucide-react';
+import { Check, ChevronRight, CircleOff, Megaphone, RotateCcw, TicketPlus, X } from 'lucide-react';
 import type { QueueTicket, TicketType } from '../../domain/queue';
 
 interface Props {
@@ -22,9 +22,9 @@ export function QueueColumn({ type, tickets, busy, onCall, onIssue, onRepeat, on
         <span className="queue-total">{tickets.length}</span>
       </header>
       <button className="call-next-button" onClick={onCall} disabled={busy || waiting.length === 0}>
-        <Megaphone size={17} /> Chamar próxima <ChevronRight size={17} />
+        {waiting.length === 0 ? <><CircleOff size={17} /> Fila vazia</> : <><Megaphone size={17} /> Chamar próxima <ChevronRight size={17} /></>}
       </button>
-      <button className="issue-walkin-button" onClick={onIssue} disabled={busy}><Plus size={18} /> Gerar senha</button>
+      <button className="issue-walkin-button" onClick={onIssue} disabled={busy}><TicketPlus size={18} /> Gerar senha</button>
       <div className="queue-list">
         {active.map((ticket) => <article key={ticket.id} className={`queue-ticket ${ticket.status}`}>
           <div className="ticket-number-small">{ticket.ticketNumber}</div>

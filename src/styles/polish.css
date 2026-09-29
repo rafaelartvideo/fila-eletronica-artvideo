@@ -361,3 +361,149 @@ body { background: radial-gradient(circle at 80% 5%, #132f50 0, transparent 34%)
   .display-weather strong { font-size: 14px; }
   .display-weather span { font-size: 12px; }
 }
+
+
+/* Queue controls and stronger dark text palette */
+body, button, input, label { color: #f5f8fc; }
+input::placeholder { color: #71859c; opacity: 1; }
+.auth-card label,
+.service-form label,
+.media-form label,
+.ticker-form label,
+.kiosk-name-label,
+.issue-dialog label,
+.counter-field { color: #f2f6fb; }
+.setting-row strong,
+.media-row-copy strong,
+.ticket-person strong,
+.selected-service strong,
+.kiosk-service-card strong,
+.queue-history summary,
+.staff-metric strong,
+.staff-metric small { color: #f7f9fc; }
+.setting-row small,
+.media-row-copy small,
+.ticket-person small,
+.selected-service small,
+.kiosk-service-card small,
+.kiosk-name-label span,
+.kiosk-privacy,
+.queue-count { color: #b3c1d0; }
+
+.staff-tabs .counter-field { margin-left: auto; }
+.issue-walkin-button {
+  width: calc(100% - 36px);
+  min-height: 40px;
+  margin: 0 18px 14px;
+  justify-content: center;
+  color: #dce9f8;
+  border-color: #35516f;
+  background: #132b47;
+  font-size: 11px;
+}
+.issue-walkin-button:hover:not(:disabled) { border-color: #4c7199; background: #173758; }
+.call-next-button:disabled {
+  color: #91a3b7;
+  background: #182739;
+  border: 1px solid #2b4056;
+}
+
+.service-form { grid-template-columns: minmax(0, 2fr) minmax(120px, .65fr) minmax(130px, .65fr); }
+.service-form .blue-button {
+  width: 100%;
+  min-width: 0;
+  height: 43px;
+  min-height: 43px;
+  padding: 0 16px;
+}
+.service-type-grid {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+}
+.service-type-card {
+  min-height: 86px;
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  grid-template-rows: 1fr auto;
+  align-items: center;
+  column-gap: 11px;
+  row-gap: 8px;
+  padding: 15px;
+  border: 1px solid #2d435d;
+  border-radius: 13px;
+  background: #0c1d31;
+}
+.service-type-card .service-dot { grid-row: 1; }
+.service-type-card > div:nth-child(2) { grid-row: 1; }
+.service-type-card .subtle-button {
+  grid-column: 1 / -1;
+  width: 100%;
+  min-height: 36px;
+}
+.service-type-card:last-child { border-bottom: 1px solid #2d435d; }
+
+/* Kiosk: cleaner service icons and no-scroll selected state */
+.kiosk-service-icon {
+  width: 42px;
+  height: 42px;
+  color: #bcd8f6;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+}
+.kiosk-service-card { min-height: 108px; }
+.selected-service {
+  gap: 12px;
+  padding: 0 0 16px;
+  border-bottom: 1px solid #2d435d;
+  background: transparent !important;
+}
+.selected-service > div:first-child { min-width: 0; display: grid; flex: 1; gap: 4px; }
+.selected-service small { font-size: 10px; }
+.selected-service strong { font-size: 19px; }
+.kiosk-selection-active {
+  height: 100vh;
+  height: 100dvh;
+  min-height: 0;
+  overflow: hidden;
+}
+.kiosk-selection-active .kiosk-topbar { flex: 0 0 78px; min-height: 0; }
+.kiosk-selection-active .system-footer { flex: 0 0 auto; position: static; }
+.kiosk-selection-active .kiosk-content {
+  min-height: 0;
+  width: min(760px, calc(100% - 36px));
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding: clamp(10px, 2.2vh, 24px) 0;
+  overflow: hidden;
+}
+.kiosk-selection-active .kiosk-welcome {
+  flex: 0 0 auto;
+  margin-bottom: clamp(10px, 1.8vh, 18px);
+}
+.kiosk-selection-active .kiosk-welcome .section-kicker { font-size: 10px; }
+.kiosk-selection-active .kiosk-welcome h1 {
+  margin: 7px 0 5px;
+  font-size: clamp(29px, 4.3vw, 46px);
+}
+.kiosk-selection-active .kiosk-welcome p { font-size: clamp(12px, 1.4vw, 15px); }
+.kiosk-selection-active .kiosk-step-card {
+  width: min(590px, 100%);
+  padding: clamp(16px, 2.1vh, 25px);
+}
+.kiosk-selection-active .kiosk-name-label { margin: clamp(12px, 1.8vh, 18px) 0 7px; }
+.kiosk-selection-active .kiosk-name-input { height: clamp(44px, 6vh, 54px); }
+.kiosk-selection-active .kiosk-privacy { margin: clamp(8px, 1.4vh, 13px) 0; line-height: 1.45; }
+.kiosk-selection-active .kiosk-generate-button { min-height: clamp(46px, 6.5vh, 56px); }
+
+@media (max-width: 900px) {
+  .service-type-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+@media (max-width: 700px) {
+  .service-type-grid { grid-template-columns: 1fr; }
+  .service-form { grid-template-columns: 1fr; }
+  .service-form .blue-button { height: 48px; min-height: 48px; }
+  .staff-tabs .counter-field { margin-left: 0; }
+  .kiosk-selection-active .kiosk-topbar { flex-basis: 68px; }
+}

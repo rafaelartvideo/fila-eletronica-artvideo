@@ -47,6 +47,6 @@ export function ServiceTypeSettings({ onChanged }: { onChanged: () => void }) {
       <button className="blue-button" disabled={busy}><Plus size={16} /> Adicionar</button>
     </form>
     {error && <div role="alert" className="form-error">{error}</div>}
-    <div className="settings-list">{types.map((type) => <div key={type.id} className="setting-row"><div className={`service-dot ${type.isActive ? 'on' : ''}`}></div><div><strong>{type.name}</strong><small>Prefixo {type.prefix}</small></div><button className="subtle-button" disabled={busy} onClick={() => void toggle(type)}><Power size={15} /> {type.isActive ? 'Desativar' : 'Ativar'}</button></div>)}</div>
+    <div className="settings-list service-type-grid">{types.map((type) => <div key={type.id} className="setting-row service-type-card"><div className={`service-dot ${type.isActive ? 'on' : ''}`}></div><div><strong>{type.name}</strong><small>Prefixo {type.prefix}</small></div><button className="subtle-button" disabled={busy} onClick={() => void toggle(type)}><Power size={15} /> {type.isActive ? 'Desativar' : 'Ativar'}</button></div>)}</div>
   </section>;
 }
