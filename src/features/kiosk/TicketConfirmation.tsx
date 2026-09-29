@@ -1,9 +1,38 @@
+import { useState } from 'react';
 import { Check, MessageCircle, Printer, RotateCcw, TicketCheck } from 'lucide-react';
 import type { QueueTicket } from '../../domain/queue';
 import { ticketWhatsAppUrl } from '../../domain/whatsapp';
+import { getPrintJobStatus, requestTicketPrint } from '../../lib/supabase/queue-api';
 
 export function TicketConfirmation({ ticket, phone = '', onNewTicket }: { ticket: QueueTicket; phone?: string; onNewTicket: () => void }) {
   const whatsappUrl = phone ? ticketWhatsAppUrl(phone, ticket) : null;
+  const [printState, setPrintState] = useState<'idle' | 'sending' | 'waiting' | 'printed' | 'error'>('idle');
+  const [printMessage, setPrintMessage] = useState('');
+
+  async function printDirect() {
+    setPrintState('sending');
+    setPrintMessage('');
+    try {
+      const job = await requestTicketPrint(ticket.id);
+      setPrintState('waiting');
+      for (let attempt = 0; attempt < 12; attempt += 1) {
+        await new Promise((resolve) => window.setTimeout(resolve, 700));
+        const status = await getPrintJobStatus(job.id);
+        if (status.status === 'printed') {
+          setPrintState('printed');
+          setPrintMessage('Senha impressa.');
+          return;
+        }
+        if (status.status === 'error') {
+          throw new Error(status.errorMessage || 'A impressora não concluiu a impressão.');
+        }
+      }
+      setPrintMessage('Pedido enviado. A impressão sairá assim que o agente estiver conectado.');
+    } catch (cause) {
+      setPrintState('error');
+      setPrintMessage(cause instanceof Error ? cause.message : 'Não foi possível enviar para a impressora.');
+    }
+  }
   return <section className="issued-ticket-screen" aria-live="polite">
     <div className="ticket-success-mark"><Check size={25} /></div>
     <span className="section-kicker">SENHA EMITIDA</span>
@@ -20,7 +49,9 @@ export function TicketConfirmation({ ticket, phone = '', onNewTicket }: { ticket
     <div className="kiosk-controls no-print" data-testid="kiosk-controls">
       {whatsappUrl && <a className="whatsapp-button" href={whatsappUrl} target="_blank" rel="noopener noreferrer"><MessageCircle size={20} /> Enviar pelo WhatsApp</a>}
       {phone && !whatsappUrl && <small className="phone-error">Número inválido. Use DDD + número brasileiro para enviar pelo WhatsApp.</small>}
-      <button className="kiosk-print-button" onClick={() => window.print()}><Printer size={19} /> Imprimir senha</button>
+      <button className="kiosk-print-button" onClick={() => void printDirect()} disabled={printState === 'sending' || printState === 'waiting' || printState === 'printed'}><Printer size={19} /> {printState === 'sending' ? 'Enviando…' : printState === 'waiting' ? 'Aguardando impressora…' : printState === 'printed' ? 'Senha impressa' : 'Imprimir senha'}</button>
+      {printMessage && <small className={'print-status ' + printState}>{printMessage}</small>}
+      {printState === 'error' && <button className="kiosk-new-button" onClick={() => window.print()}><Printer size={17} /> Usar impressão do navegador</button>}
       <button className="kiosk-new-button" onClick={onNewTicket}><RotateCcw size={17} /> Emitir outra senha</button>
     </div>
   </section>;

@@ -11,6 +11,9 @@ type QueueRow = {
 type ApiRow = Record<string, unknown>;
 export type QueueRealtimeResource = 'tickets' | 'ticket_types' | 'display_media';
 export type DisplayNotice = { id: string; text: string; sortOrder: number; isActive: boolean };
+export type PrintAgent = { id: string; slug: string; name: string; isActive: boolean; createdAt: string; lastSeenAt: string | null };
+export type CreatedPrintAgent = PrintAgent & { token: string };
+export type PrintJobStatus = 'pending' | 'processing' | 'printed' | 'error';
 
 const displayNoticeUrlPrefix = 'https://ticker.artvideo.local/';
 
@@ -280,4 +283,50 @@ export function subscribeToDisplayCalls(onChange: () => void, onStatus: (status:
   return requireSupabase().channel('public-display-calls')
     .on('postgres_changes', { event: '*', schema: 'public', table: 'display_calls' }, onChange)
     .subscribe((status) => onStatus(status));
+}
+
+
+function mapPrintAgent(row: ApiRow): PrintAgent {
+  return {
+    id: String(row.id),
+    slug: String(row.slug),
+    name: String(row.name),
+    isActive: Boolean(row.is_active),
+    createdAt: String(row.created_at),
+    lastSeenAt: row.last_seen_at ? String(row.last_seen_at) : null,
+  };
+}
+
+export async function listPrintAgents(): Promise<PrintAgent[]> {
+  const { data, error } = await requireSupabase().rpc('list_print_agents');
+  return (unwrap(data as ApiRow[] | null, error) as ApiRow[]).map(mapPrintAgent);
+}
+
+export async function createPrintAgent(name: string, slug = 'reception'): Promise<CreatedPrintAgent> {
+  const { data, error } = await requireSupabase().rpc('create_print_agent', {
+    p_name: name.trim(),
+    p_slug: slug.trim(),
+  });
+  const row = unwrap((data as ApiRow[] | null)?.[0] ?? null, error);
+  return { ...mapPrintAgent(row), token: String(row.token) };
+}
+
+export async function requestTicketPrint(ticketId: string, agentSlug = 'reception'): Promise<{ id: string; status: PrintJobStatus }> {
+  const { data, error } = await requireSupabase().rpc('request_ticket_print', {
+    p_ticket_id: ticketId,
+    p_agent_slug: agentSlug,
+  });
+  const row = unwrap((data as ApiRow[] | null)?.[0] ?? null, error);
+  return { id: String(row.id), status: String(row.status) as PrintJobStatus };
+}
+
+export async function getPrintJobStatus(jobId: string): Promise<{ id: string; status: PrintJobStatus; errorMessage: string | null; completedAt: string | null }> {
+  const { data, error } = await requireSupabase().rpc('get_print_job_status', { p_job_id: jobId });
+  const row = unwrap((data as ApiRow[] | null)?.[0] ?? null, error);
+  return {
+    id: String(row.id),
+    status: String(row.status) as PrintJobStatus,
+    errorMessage: row.error_message ? String(row.error_message) : null,
+    completedAt: row.completed_at ? String(row.completed_at) : null,
+  };
 }

@@ -8,8 +8,9 @@ import { useAuth } from '../auth/AuthProvider';
 import { QueueColumn } from './QueueColumn';
 import { ServiceTypeSettings } from './ServiceTypeSettings';
 import { MediaSettings } from './MediaSettings';
+import { PrinterSettings } from './PrinterSettings';
 
-type Tab = 'queue' | 'services' | 'media';
+type Tab = 'queue' | 'services' | 'media' | 'printer';
 function todayInSaoPaulo() {
   const parts = new Intl.DateTimeFormat('en-CA', { timeZone: 'America/Sao_Paulo', year: 'numeric', month: '2-digit', day: '2-digit' }).formatToParts(new Date());
   const value = Object.fromEntries(parts.map(({ type, value }) => [type, value]));
@@ -121,12 +122,14 @@ export function StaffPage() {
         <button className={tab === 'queue' ? 'selected' : ''} onClick={() => setTab('queue')}><TicketCheck size={16} /> Fila</button>
         <button className={tab === 'services' ? 'selected' : ''} onClick={() => setTab('services')}><Settings2 size={16} /> Atendimentos</button>
         <button className={tab === 'media' ? 'selected' : ''} onClick={() => setTab('media')}><Clapperboard size={16} /> Conteúdo do display</button>
+        <button className={tab === 'printer' ? 'selected' : ''} onClick={() => setTab('printer')}><Printer size={16} /> Impressora</button>
         {tab === 'queue' && <label className="counter-field">Balcão<input aria-label="Balcão de atendimento" value={counter} onChange={(event) => setCounter(event.target.value)} maxLength={40} /></label>}
       </nav>
       {error && <div className="staff-error" role="alert">{error}<button onClick={() => void refresh()}>Tentar novamente</button></div>}
       {tab === 'queue' && <div className="queue-grid">{types.length === 0 ? <div className="empty-services"><Wrench size={22} /><h2>Nenhum atendimento ativo</h2><p>Cadastre um tipo de atendimento para começar a receber senhas.</p><button className="blue-button" onClick={() => setTab('services')}>Configurar atendimentos</button></div> : types.map((type) => <QueueColumn key={type.id} type={type} tickets={tickets.filter((ticket) => ticket.serviceTypeId === type.id)} busy={busy} onCall={() => void runAction(() => callNextTicket(type.id, counter))} onIssue={() => { setIssueType(type); setIssuedTicket(null); }} onRepeat={(id) => void runAction(() => repeatTicketCall(id))} onTransition={(id, status) => void transition(id, status)} />)}</div>}
       {tab === 'services' && <ServiceTypeSettings onChanged={() => void refresh()} />}
       {tab === 'media' && <MediaSettings onChanged={() => void refresh()} />}
+      {tab === 'printer' && <PrinterSettings />}
     </section>
 
     {issueType && <div className="issue-overlay" onMouseDown={(event) => { if (event.target === event.currentTarget) closeIssue(); }}><section className="issue-dialog" role="dialog" aria-modal="true" aria-labelledby="issue-title">

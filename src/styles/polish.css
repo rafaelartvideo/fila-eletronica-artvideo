@@ -809,3 +809,64 @@ html[data-theme='light'] .display-ticker-track i { background: #c68b0a; }
   .staff-theme-toggle { width: 42px; padding: 0; }
   .staff-theme-toggle span { display: none; }
 }
+
+
+/* Direct thermal printer agent */
+.printer-settings header { align-items: center; }
+.printer-agent-form {
+  display: grid;
+  grid-template-columns: minmax(0, 1.25fr) minmax(180px, .75fr) auto;
+  align-items: end;
+  gap: 11px;
+  margin: 18px 0;
+}
+.printer-agent-form label { display: grid; gap: 7px; color: #f2f6fb; font-size: 12px; font-weight: 700; }
+.printer-agent-form input {
+  width: 100%;
+  height: 43px;
+  padding: 0 12px;
+  border: 1px solid #304660;
+  border-radius: 10px;
+  outline: none;
+  color: #eef5fd;
+  background: #0b1a2d;
+}
+.printer-key-card {
+  display: grid;
+  gap: 12px;
+  margin: 14px 0 18px;
+  padding: 16px;
+  border: 1px solid #35516f;
+  border-radius: 13px;
+  background: #0c1d31;
+}
+.printer-key-card > div { display: grid; gap: 4px; }
+.printer-key-card small { color: #a7b8ca; }
+.printer-key-card code {
+  overflow-wrap: anywhere;
+  padding: 11px 12px;
+  border-radius: 9px;
+  color: #d8eaff;
+  background: #081522;
+  font-size: 11px;
+}
+.printer-key-card .blue-button { justify-self: start; padding-inline: 15px; }
+.printer-status-dot {
+  width: 38px;
+  height: 38px;
+  display: grid;
+  place-items: center;
+  border-radius: 11px;
+  color: #91a3b7;
+  background: #16273a;
+}
+.printer-status-dot.online { color: #80e8ba; background: rgb(54 211 153 / 12%); }
+.printer-empty { padding: 18px; color: #9aacbf; text-align: center; }
+.print-status { display: block; padding: 2px 4px; color: #a9bdd2; font-size: 11px; line-height: 1.4; text-align: center; }
+.print-status.printed { color: #75e8b2; }
+.print-status.error { color: #ffb0b0; }
+
+@media (max-width: 760px) {
+  .printer-agent-form { grid-template-columns: 1fr; }
+  .printer-agent-form .blue-button { width: 100%; }
+}

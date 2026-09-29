@@ -88,6 +88,18 @@ try {
   const saoPauloDate = await db.query(`select private.business_date('2026-01-02 02:59:59+00')::text as before, private.business_date('2026-01-02 03:00:00+00')::text as after`);
   assert.deepEqual(saoPauloDate.rows[0], { before: '2026-01-01', after: '2026-01-02' }, 'business date rolls over at Sao Paulo midnight');
 
+  const agent = await db.query(`select * from public.create_print_agent('Recepção', 'reception')`);
+  assert.equal(agent.rows[0].slug, 'reception', 'admin can provision print agent');
+  assert.equal(agent.rows[0].token.length, 64, 'print agent receives a high-entropy one-time token');
+  const printRequest = await db.query(`select * from public.request_ticket_print($1, 'reception')`, [kioskTicket.rows[0].id]);
+  assert.equal(printRequest.rows[0].status, 'pending', 'kiosk can queue ticket print');
+  const claimedPrint = await db.query(`select * from public.claim_next_print_job('reception', $1)`, [agent.rows[0].token]);
+  assert.equal(claimedPrint.rows[0].ticket_number, 'R-001', 'print agent can claim the queued ticket');
+  const completedPrint = await db.query(`select public.complete_print_job('reception', $1, $2, true, null) as ok`, [agent.rows[0].token, claimedPrint.rows[0].job_id]);
+  assert.equal(completedPrint.rows[0].ok, true, 'print agent can mark the job as printed');
+  const printStatus = await db.query(`select * from public.get_print_job_status($1)`, [claimedPrint.rows[0].job_id]);
+  assert.equal(printStatus.rows[0].status, 'printed', 'requester can read print completion status');
+
   console.log('Database contract passed: public service access, kiosk Auth, sequence, transitions, sanitized calls, São Paulo midnight.');
 } finally {
   await db.close();
