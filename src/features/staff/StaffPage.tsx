@@ -4,7 +4,7 @@ import { Link } from 'react-router';
 import { BrandLogo } from '../../components/BrandLogo';
 import type { QueueTicket, TicketStatus, TicketType } from '../../domain/queue';
 import { ticketWhatsAppUrl } from '../../domain/whatsapp';
-import { callNextTicket, issueTicket, listQueueTickets, listTicketTypes, repeatTicketCall, transitionTicket } from '../../lib/supabase/queue-api';
+import { callNextTicket, issueTicket, listQueueTickets, listTicketTypes, repeatTicketCall, subscribeToQueueChanges, transitionTicket } from '../../lib/supabase/queue-api';
 import { useAuth } from '../auth/AuthProvider';
 import { AdminBadge } from '../auth/RequireAdmin';
 import { QueueColumn } from './QueueColumn';
@@ -50,7 +50,21 @@ export function StaffPage() {
     }
   }, [day]);
 
-  useEffect(() => { void refresh(); const timer = window.setInterval(() => void refresh(), 30_000); return () => window.clearInterval(timer); }, [refresh]);
+  useEffect(() => {
+    let active = true;
+    void refresh();
+    let channel: { unsubscribe: () => Promise<unknown> | unknown } | undefined;
+    try {
+      channel = subscribeToQueueChanges(['tickets', 'ticket_types'], () => {
+        if (active) void refresh();
+      }, (status) => {
+        if (active && status === 'SUBSCRIBED') void refresh();
+      });
+    } catch {
+      // The initial fetch above still keeps the panel usable if Realtime is unavailable.
+    }
+    return () => { active = false; void channel?.unsubscribe(); };
+  }, [refresh]);
 
   async function runAction(action: () => Promise<unknown>) {
     setBusy(true); setError('');
