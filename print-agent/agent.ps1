@@ -96,25 +96,89 @@ function Build-TicketBytes($Job) {
     $bytes.Add([byte]0x0A)
   }
 
+  $ticketNumber = [string]$Job.ticket_number
+  if ($ticketNumber -match '^([A-Za-z]+)-?(\d+)
+  Add-Bytes ([byte[]](0x1B,0x64,[byte]$feedLines))
+  if ($cutMode -eq 'full') {
+    Add-Bytes ([byte[]](0x1D,0x56,0x00))
+  } else {
+    Add-Bytes ([byte[]](0x1D,0x56,0x01))
+  }
+  return $bytes.ToArray()
+}
+
+function Rpc([string]$Name, [hashtable]$Payload) {
+  $headers = @{
+    apikey = [string]$config.supabaseKey
+    'Content-Type' = 'application/json'
+  }
+  if ([string]$config.supabaseKey -match '^eyJ') {
+    $headers.Authorization = "Bearer $($config.supabaseKey)"
+  }
+  $uri = "$($config.supabaseUrl.TrimEnd('/'))/rest/v1/rpc/$Name"
+  return Invoke-RestMethod -Uri $uri -Method Post -Headers $headers -Body ($Payload | ConvertTo-Json -Compress -Depth 5) -TimeoutSec 15
+}
+
+function Complete-Job([string]$JobId, [bool]$Success, [string]$ErrorMessage = $null) {
+  [void](Rpc 'complete_print_job' @{
+    p_agent_slug = [string]$config.agentSlug
+    p_agent_token = [string]$config.agentToken
+    p_job_id = $JobId
+    p_success = $Success
+    p_error_message = $ErrorMessage
+  })
+}
+
+Write-AgentLog "Artvideo Print iniciado. Impressora: $($config.printerName)"
+
+while ($true) {
+  try {
+    $result = Rpc 'claim_next_print_job' @{
+      p_agent_slug = [string]$config.agentSlug
+      p_agent_token = [string]$config.agentToken
+    }
+    $job = @($result) | Select-Object -First 1
+    if ($job -and $job.job_id) {
+      try {
+        Write-AgentLog "Imprimindo $($job.ticket_number)..."
+        $payload = Build-TicketBytes $job
+        [RawPrinter.Artvideo]::Send([string]$config.printerName, $payload)
+        Complete-Job ([string]$job.job_id) $true
+        Write-AgentLog "Impresso: $($job.ticket_number)"
+      } catch {
+        $message = $_.Exception.Message
+        try { Complete-Job ([string]$job.job_id) $false $message } catch {}
+        Write-AgentLog "Erro ao imprimir $($job.ticket_number): $message"
+      }
+      continue
+    }
+  } catch {
+    Write-AgentLog "Conexão/consulta: $($_.Exception.Message)"
+  }
+  Start-Sleep -Milliseconds $pollMs
+}
+) {
+    $ticketNumber = $matches[1].ToUpper() + '-' + $matches[2]
+  }
+
   Add-Bytes ([byte[]](0x1B,0x40))
   Add-Bytes ([byte[]](0x1B,0x61,0x01))
   Add-Bytes ([byte[]](0x1B,0x45,0x01))
   Add-Line 'FILA DE ATENDIMENTO'
   Add-Bytes ([byte[]](0x1B,0x45,0x00))
+  Add-Line 'Aguarde sua chamada na tela.'
   Add-Line ''
   Add-Line ([string]$Job.service_type_name).ToUpperInvariant()
   Add-Line ''
   Add-Bytes ([byte[]](0x1B,0x45,0x01))
   Add-Bytes ([byte[]](0x1D,0x21,0x22))
-  Add-Line ([string]$Job.ticket_number)
+  Add-Line $ticketNumber
   Add-Bytes ([byte[]](0x1D,0x21,0x00))
   Add-Bytes ([byte[]](0x1B,0x45,0x00))
   Add-Line ''
   $issued = [DateTimeOffset]::Parse([string]$Job.issued_at).ToLocalTime()
   Add-Line ("Emitida em {0:dd/MM/yyyy HH:mm}" -f $issued)
   Add-Line ''
-  Add-Line '--------------------------------'
-  Add-Line 'Aguarde sua chamada na tela.'
   Add-Bytes ([byte[]](0x1B,0x64,[byte]$feedLines))
   if ($cutMode -eq 'full') {
     Add-Bytes ([byte[]](0x1D,0x56,0x00))
