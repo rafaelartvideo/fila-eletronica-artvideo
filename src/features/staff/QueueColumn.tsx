@@ -6,12 +6,14 @@ interface Props {
   type: TicketType;
   tickets: QueueTicket[];
   busy: boolean;
+  canIssue: boolean;
+  canServe: boolean;
   onIssue: () => void;
   onOpen: (ticketId: string) => void;
   onTransition: (ticketId: string, status: 'serving' | 'completed' | 'cancelled') => void;
 }
 
-export function QueueColumn({ type, tickets, busy, onIssue, onOpen, onTransition }: Props) {
+export function QueueColumn({ type, tickets, busy, canIssue, canServe, onIssue, onOpen, onTransition }: Props) {
   const waiting = tickets.filter((ticket) => ticket.status === 'waiting');
   const active = tickets.filter((ticket) => ['called', 'serving'].includes(ticket.status));
   const completed = tickets.filter((ticket) => ['completed', 'cancelled'].includes(ticket.status));
@@ -23,7 +25,7 @@ export function QueueColumn({ type, tickets, busy, onIssue, onOpen, onTransition
         <span className="queue-total">{tickets.length}</span>
       </header>
 
-      <button className="issue-walkin-button" onClick={onIssue} disabled={busy}><TicketPlus size={18} /> Gerar senha</button>
+      {canIssue && <button className="issue-walkin-button" onClick={onIssue} disabled={busy}><TicketPlus size={18} /> Gerar senha</button>}
 
       <div className="queue-list">
         {active.map((ticket) => <button
@@ -45,7 +47,7 @@ export function QueueColumn({ type, tickets, busy, onIssue, onOpen, onTransition
         {waiting.map((ticket) => <article key={ticket.id} className="queue-ticket waiting">
           <div className="ticket-number-small">{ticket.ticketNumber}</div>
           <div className="ticket-person"><strong>{ticket.serviceTypeName}</strong><small>Na fila · Prioridade {ticketPriorityLabel(type.priority)}</small></div>
-          <div className="ticket-actions"><button title="Cancelar senha" aria-label={`Cancelar ${ticket.ticketNumber}`} disabled={busy} onClick={() => onTransition(ticket.id, 'cancelled')}><X size={16} /></button></div>
+          {canServe && <div className="ticket-actions"><button title="Cancelar senha" aria-label={`Cancelar ${ticket.ticketNumber}`} disabled={busy} onClick={() => onTransition(ticket.id, 'cancelled')}><X size={16} /></button></div>}
         </article>)}
 
         {active.length === 0 && waiting.length === 0 && <div className="queue-empty"><Check size={20} /> Nenhuma senha pendente</div>}
