@@ -1658,3 +1658,44 @@ end
 $$;
 
 notify pgrst, 'reload schema';
+
+
+-- Users with read-only access can resolve role labels without gaining role-management access.
+drop policy if exists "queue roles view" on public.queue_roles;
+create policy "queue roles view" on public.queue_roles for select to authenticated
+using (
+  private.has_queue_permission('roles.view')
+  or private.has_queue_permission('roles.manage')
+  or private.has_queue_permission('users.view')
+  or private.has_queue_permission('users.manage')
+  or id = (select role_id from public.queue_users where user_id = auth.uid())
+);
+
+create or replace function public.list_queue_roles()
+returns table (id uuid, name text, description text, is_system boolean, is_active boolean, permissions text[])
+language plpgsql
+stable
+security definer
+set search_path = ''
+as $$
+begin
+  if not (
+    private.has_queue_permission('roles.view')
+    or private.has_queue_permission('roles.manage')
+    or private.has_queue_permission('users.view')
+    or private.has_queue_permission('users.manage')
+  ) then
+    raise exception using errcode = 'P0001', message = 'Permission denied: roles.view';
+  end if;
+  return query
+    select role.id, role.name, role.description, role.is_system, role.is_active,
+           coalesce(array_agg(role_permission.permission_key order by role_permission.permission_key)
+             filter (where role_permission.permission_key is not null), array[]::text[])
+    from public.queue_roles as role
+    left join public.queue_role_permissions as role_permission on role_permission.role_id = role.id
+    group by role.id
+    order by role.name;
+end
+$$;
+
+notify pgrst, 'reload schema';
