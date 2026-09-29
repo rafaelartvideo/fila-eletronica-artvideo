@@ -1,5 +1,6 @@
 import { Check, MessageCircle, Printer, RotateCcw, TicketCheck } from 'lucide-react';
 import type { QueueTicket } from '../../domain/queue';
+import { BrandLogo } from '../../components/BrandLogo';
 import { ticketWhatsAppUrl } from '../../domain/whatsapp';
 
 export function TicketConfirmation({ ticket, phone = '', onNewTicket }: { ticket: QueueTicket; phone?: string; onNewTicket: () => void }) {
@@ -10,7 +11,7 @@ export function TicketConfirmation({ ticket, phone = '', onNewTicket }: { ticket
     <h1>Pronto, sua vez está garantida.</h1>
     <p>Aguarde a chamada no painel de senhas.</p>
     <article className="print-ticket" aria-label="Sua senha">
-      <div className="print-ticket-brand"><span className="staff-brand-icon"><TicketCheck size={18} /></span><strong>ELETRÔNICA ARTVIDEO</strong></div>
+      <div className="print-ticket-brand"><BrandLogo /></div>
       <span className="print-service-label">{ticket.serviceTypeName}</span>
       <strong className="print-ticket-number">{ticket.ticketNumber}</strong>
       <span className="print-ticket-date">Senha emitida · {new Intl.DateTimeFormat('pt-BR', { timeZone: 'America/Sao_Paulo', dateStyle: 'short', timeStyle: 'short' }).format(new Date(ticket.createdAt || Date.now()))}</span>

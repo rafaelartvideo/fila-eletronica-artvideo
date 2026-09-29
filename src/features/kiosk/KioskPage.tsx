@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { ArrowLeft, ArrowRight, CircleHelp, Wrench } from 'lucide-react';
 import { Link } from 'react-router';
+import { BrandLogo } from '../../components/BrandLogo';
 import type { QueueTicket, TicketType } from '../../domain/queue';
 import { issueTicket, listTicketTypes } from '../../lib/supabase/queue-api';
 import { TicketConfirmation } from './TicketConfirmation';
@@ -33,7 +34,7 @@ export function KioskPage() {
   function reset() { setSelectedType(null); setPhone(''); setTicket(null); setError(''); }
 
   return <main className="kiosk-page">
-    <header className="kiosk-topbar no-print"><Link to="/" className="auth-back"><ArrowLeft size={17} /> Voltar</Link><div className="kiosk-brand"><span className="staff-brand-icon"><Wrench size={18} /></span><strong>ELETRÔNICA ARTVIDEO</strong></div><span className="kiosk-help"><CircleHelp size={16} /> Precisa de ajuda? Chame nossa equipe</span></header>
+    <header className="kiosk-topbar no-print"><Link to="/" className="auth-back"><ArrowLeft size={17} /> Voltar</Link><div className="kiosk-brand"><BrandLogo /></div><span className="kiosk-help"><CircleHelp size={16} /> Precisa de ajuda? Chame nossa equipe</span></header>
     <div className="kiosk-content">
       {ticket ? <TicketConfirmation ticket={ticket} phone={phone} onNewTicket={reset} /> : <>
         <div className="kiosk-welcome"><span className="section-kicker">GERAR SENHA</span><h1>{selectedType ? 'Confirme seu atendimento' : 'Como podemos ajudar?'}</h1><p>{selectedType ? `Você selecionou ${selectedType.name}. Seu WhatsApp é opcional.` : 'Escolha o atendimento para gerar sua senha.'}</p></div>
@@ -48,6 +49,6 @@ export function KioskPage() {
         {!selectedType && !loading && !error && <p className="kiosk-small-print">O atendimento será realizado por ordem de chegada.</p>}
       </>}
     </div>
-    <footer className="kiosk-footer no-print"><span>Eletrônica Artvideo</span><i /> Atendimento organizado, do seu jeito.</footer>
+    <footer className="kiosk-footer no-print"><BrandLogo /><i /> Atendimento organizado, do seu jeito.</footer>
   </main>;
 }

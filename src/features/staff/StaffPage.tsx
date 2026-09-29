@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useState } from 'react';
 import { Activity, CalendarDays, Clapperboard, LogOut, MessageCircle, RefreshCw, Settings2, TicketCheck, Wrench, X } from 'lucide-react';
 import { Link } from 'react-router';
+import { BrandLogo } from '../../components/BrandLogo';
 import type { QueueTicket, TicketStatus, TicketType } from '../../domain/queue';
 import { ticketWhatsAppUrl } from '../../domain/whatsapp';
 import { callNextTicket, issueTicket, listQueueTickets, listTicketTypes, repeatTicketCall, transitionTicket } from '../../lib/supabase/queue-api';
@@ -82,7 +83,7 @@ export function StaffPage() {
 
   return <main className="staff-app">
     <header className="staff-topbar">
-      <Link to="/" className="staff-brand"><span className="staff-brand-icon"><Wrench size={19} /></span><span><strong>ARTVIDEO</strong><small>PAINEL DA EQUIPE</small></span></Link>
+      <Link to="/" className="staff-brand" aria-label="Página inicial"><BrandLogo /></Link>
       <div className="staff-top-actions"><AdminBadge /><button className="staff-logout" onClick={() => void logout()}><LogOut size={16} /> Sair</button></div>
     </header>
 
@@ -111,6 +112,6 @@ export function StaffPage() {
       <h2 id="issue-title">{issuedTicket ? 'Senha gerada' : issueType.name}</h2>
       {issuedTicket ? <><strong className="issue-result">{issuedTicket.ticketNumber}</strong><p>Entregue ou informe a senha ao cliente.</p>{issuePhone && ticketWhatsAppUrl(issuePhone, issuedTicket) ? <a className="whatsapp-button" href={ticketWhatsAppUrl(issuePhone, issuedTicket)!} target="_blank" rel="noopener noreferrer"><MessageCircle size={20} /> Enviar pelo WhatsApp</a> : issuePhone && <small className="phone-error">Número inválido. Use DDD + número brasileiro.</small>}<button className="kiosk-new-button" onClick={closeIssue}>Fechar</button></> : <><p>O número do WhatsApp é opcional. O envio será confirmado no aplicativo após a emissão.</p><label htmlFor="staff-phone">WhatsApp do cliente</label><input id="staff-phone" type="tel" inputMode="tel" placeholder="(11) 91234-5678" autoComplete="tel" maxLength={20} value={issuePhone} onChange={(event) => setIssuePhone(event.target.value)} /><button className="kiosk-generate-button" disabled={busy} onClick={() => void issueFromStaff()}>{busy ? 'Gerando…' : 'Confirmar e gerar'}</button></>}
     </section></div>}
-    <footer className="staff-footer">ARTVIDEO <span>•</span> Senhas do dia reiniciam automaticamente às 00h em São Paulo.</footer>
+    <footer className="staff-footer"><BrandLogo /> <span>•</span> Senhas do dia reiniciam automaticamente às 00h em São Paulo.</footer>
   </main>;
 }

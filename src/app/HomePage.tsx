@@ -1,5 +1,6 @@
 import { ArrowUpRight, MonitorPlay, MonitorSmartphone, TicketCheck, Wrench } from 'lucide-react';
 import { Link } from 'react-router';
+import { BrandLogo } from '../components/BrandLogo';
 
 const destinations = [
   {
@@ -30,11 +31,7 @@ export function HomePage() {
     <div className="home-page">
       <header className="topbar">
         <Link className="brand" to="/" aria-label="Fila Artvideo, página inicial">
-          <span className="brand-mark"><Wrench size={20} strokeWidth={2.4} /></span>
-          <span className="brand-copy">
-            <strong>ARTVIDEO</strong>
-            <small>ELETRÔNICA</small>
-          </span>
+          <BrandLogo />
         </Link>
         <span className="system-chip"><span /> Sistema de atendimento</span>
       </header>
@@ -85,7 +82,7 @@ export function HomePage() {
         </section>
       </main>
 
-      <footer className="home-footer"><span>Artvideo <i>•</i> Eletrônica e tecnologia</span><span>Fila de atendimento</span></footer>
+      <footer className="home-footer"><BrandLogo /><span>Fila de atendimento</span></footer>
     </div>
   );
 }

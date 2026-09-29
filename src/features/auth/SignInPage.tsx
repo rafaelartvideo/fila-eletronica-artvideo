@@ -1,6 +1,7 @@
 import { useState, type FormEvent } from 'react';
 import { ArrowLeft, LockKeyhole, Wrench } from 'lucide-react';
 import { Link, Navigate, useLocation } from 'react-router';
+import { BrandLogo } from '../../components/BrandLogo';
 import { useAuth } from './AuthProvider';
 import { requireSupabase, supabase } from '../../lib/supabase/client';
 
@@ -30,7 +31,7 @@ export function SignInPage() {
     <main className="auth-page">
       <Link to="/" className="auth-back"><ArrowLeft size={16} /> Voltar ao início</Link>
       <section className="auth-card">
-        <div className="auth-logo"><Wrench size={22} /></div>
+        <div className="auth-logo"><BrandLogo /></div>
         <span className="section-kicker">ÁREA RESTRITA</span>
         <h1>Bem-vindo de volta</h1>
         <p>Entre com sua conta da equipe para gerenciar a fila.</p>
@@ -42,7 +43,7 @@ export function SignInPage() {
           {error && <div role="alert" className="form-error">{error}</div>}
           <button className="auth-submit" type="submit" disabled={busy || !supabase}>{busy ? 'Entrando…' : <><LockKeyhole size={16} /> Entrar no painel</>}</button>
         </form>
-        <small>Acesso exclusivo para administradores da Eletrônica Artvideo.</small>
+        <small>Acesso exclusivo para administradores.</small>
       </section>
     </main>
   );

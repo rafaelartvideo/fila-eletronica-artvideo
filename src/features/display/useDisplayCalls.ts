@@ -11,7 +11,7 @@ export function useDisplayCalls(): { currentCall: DisplayCall | null; recentCall
   const alive = useRef(true);
 
   const refresh = useCallback(async () => {
-    try { const rows = await listDisplayCalls(6); if (alive.current) setCalls(rows); }
+    try { const rows = await listDisplayCalls(5); if (alive.current) setCalls(rows); }
     catch { if (alive.current) setConnection('reconnecting'); }
   }, []);
 
@@ -34,5 +34,5 @@ export function useDisplayCalls(): { currentCall: DisplayCall | null; recentCall
     return () => { alive.current = false; void channel?.unsubscribe(); };
   }, [refresh]);
 
-  return { currentCall: calls[0] ?? null, recentCalls: calls.slice(1, 6), connection };
+  return { currentCall: calls[0] ?? null, recentCalls: calls.slice(1, 5), connection };
 }
