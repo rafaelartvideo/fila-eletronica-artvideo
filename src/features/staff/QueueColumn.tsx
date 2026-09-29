@@ -1,5 +1,6 @@
 import { Check, ChevronRight, TicketPlus, X } from 'lucide-react';
 import type { QueueTicket, TicketType } from '../../domain/queue';
+import { ticketPriorityLabel } from '../../domain/queue';
 
 interface Props {
   type: TicketType;
@@ -18,7 +19,7 @@ export function QueueColumn({ type, tickets, busy, onIssue, onOpen, onTransition
   return (
     <section className="queue-card">
       <header className="queue-card-head">
-        <div><span className="queue-count">{waiting.length} aguardando</span><h2>{type.name}</h2></div>
+        <div><span className="queue-count">{waiting.length} aguardando</span><h2>{type.name}</h2><span className={`priority-badge ${type.priority}`}>{ticketPriorityLabel(type.priority)}</span></div>
         <span className="queue-total">{tickets.length}</span>
       </header>
 
@@ -43,7 +44,7 @@ export function QueueColumn({ type, tickets, busy, onIssue, onOpen, onTransition
 
         {waiting.map((ticket) => <article key={ticket.id} className="queue-ticket waiting">
           <div className="ticket-number-small">{ticket.ticketNumber}</div>
-          <div className="ticket-person"><strong>{ticket.serviceTypeName}</strong><small>Na fila</small></div>
+          <div className="ticket-person"><strong>{ticket.serviceTypeName}</strong><small>Na fila · Prioridade {ticketPriorityLabel(type.priority)}</small></div>
           <div className="ticket-actions"><button title="Cancelar senha" aria-label={`Cancelar ${ticket.ticketNumber}`} disabled={busy} onClick={() => onTransition(ticket.id, 'cancelled')}><X size={16} /></button></div>
         </article>)}
 
