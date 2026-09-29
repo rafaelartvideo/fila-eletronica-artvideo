@@ -6,7 +6,7 @@ type QueueRow = {
   id: string; business_date: string; service_type_id: string; sequence_number: number;
   ticket_number: string; customer_name: string | null; status: TicketStatus; counter_label: string | null;
   created_at: string; called_at: string | null; started_at: string | null; completed_at: string | null;
-  cancelled_at: string | null; ticket_types?: { name: string; priority?: string } | null;
+  cancelled_at: string | null; tracking_token?: string | null; customer_request?: string | null; ticket_types?: { name: string; priority?: string } | null;
 };
 type ApiRow = Record<string, unknown>;
 export type QueueRealtimeResource = 'tickets' | 'ticket_types' | 'display_media';
@@ -14,6 +14,17 @@ export type DisplayNotice = { id: string; text: string; sortOrder: number; isAct
 export type PrintAgent = { id: string; slug: string; name: string; isActive: boolean; createdAt: string; lastSeenAt: string | null };
 export type CreatedPrintAgent = PrintAgent & { token: string };
 export type PrintJobStatus = 'pending' | 'processing' | 'printed' | 'error';
+export type TicketTracking = {
+  ticketNumber: string;
+  serviceTypeName: string;
+  servicePriority: TicketPriority;
+  status: TicketStatus;
+  counterLabel: string | null;
+  createdAt: string;
+  calledAt: string | null;
+  updatedAt: string;
+  queueAhead: number;
+};
 
 const displayNoticeUrlPrefix = 'https://ticker.artvideo.local/';
 
@@ -153,7 +164,9 @@ function mapTicket(row: QueueRow, serviceTypeName = row.ticket_types?.name ?? ''
   return {
     id: row.id, ticketNumber: formatTicketNumber(row.ticket_number), sequenceNumber: row.sequence_number,
     businessDate: row.business_date, serviceTypeId: row.service_type_id, serviceTypeName,
-    servicePriority: normalizePriority(row.ticket_types?.priority), customerName: row.customer_name, status: row.status, counterLabel: row.counter_label,
+    servicePriority: normalizePriority(row.ticket_types?.priority), customerName: row.customer_name,
+    customerRequest: row.customer_request ?? null, trackingToken: row.tracking_token ?? null,
+    status: row.status, counterLabel: row.counter_label,
     createdAt: row.created_at, calledAt: row.called_at, servingAt: row.started_at,
     completedAt: row.completed_at, cancelledAt: row.cancelled_at,
   };
@@ -171,11 +184,22 @@ export async function issueTicket(input: { typeId: string; customerName?: string
     const { error: signInError } = await client.auth.signInAnonymously();
     if (signInError) throw new Error(explainError(signInError.message));
   }
-  const { data, error } = await client.rpc('issue_ticket', {
-    p_type_id: input.typeId, p_customer_name: input.customerName?.trim() || null,
-  });
-  const row = unwrap((data as ApiRow[] | null)?.[0] ?? null, error);
-  const ticket = mapTicket({ ...row, customer_name: null, ticket_types: { name: String(row.service_type_name) } } as unknown as QueueRow);
+  const params = { p_type_id: input.typeId, p_customer_name: input.customerName?.trim() || null };
+  let result = await client.rpc('issue_ticket_v2', params);
+  if (result.error && /issue_ticket_v2|PGRST202|could not find the function/i.test(result.error.message)) {
+    result = await client.rpc('issue_ticket', params);
+  }
+  const row = unwrap((result.data as ApiRow[] | null)?.[0] ?? null, result.error);
+  const ticket = mapTicket({
+    ...row,
+    customer_name: null,
+    customer_request: null,
+    tracking_token: row.tracking_token ? String(row.tracking_token) : null,
+    ticket_types: {
+      name: String(row.service_type_name),
+      priority: row.service_priority ? String(row.service_priority) : 'normal',
+    },
+  } as unknown as QueueRow);
   announceQueueChange('tickets');
   return ticket;
 }
@@ -210,6 +234,37 @@ export async function listTicketTypes(): Promise<TicketType[]> {
 export async function listQueueTickets(businessDate: string): Promise<QueueTicket[]> {
   const { data, error } = await requireSupabase().from('tickets').select('*, ticket_types(name,priority)').eq('business_date', businessDate).order('created_at', { ascending: true });
   return (unwrap(data, error) as unknown as QueueRow[]).map((row) => mapTicket(row));
+}
+
+export async function saveTicketCustomerRequest(ticketId: string, customerRequest: string): Promise<void> {
+  const normalized = customerRequest.trim();
+  const { error } = await requireSupabase()
+    .from('tickets')
+    .update({ customer_request: normalized || null, updated_at: new Date().toISOString() })
+    .eq('id', ticketId);
+  if (error) throw new Error(explainError(error.message));
+  announceQueueChange('tickets');
+}
+
+export async function getTicketTracking(token: string): Promise<TicketTracking> {
+  if (!/^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(token)) {
+    throw new Error('Link de acompanhamento inválido.');
+  }
+  const { data, error } = await requireSupabase().rpc('get_ticket_tracking', { p_token: token });
+  if (error) throw new Error(explainError(error.message));
+  const row = (data as ApiRow[] | null)?.[0];
+  if (!row) throw new Error('Esta senha não foi encontrada ou não está mais disponível.');
+  return {
+    ticketNumber: formatTicketNumber(String(row.ticket_number)),
+    serviceTypeName: String(row.service_type_name),
+    servicePriority: normalizePriority(row.service_priority),
+    status: String(row.status) as TicketStatus,
+    counterLabel: row.counter_label ? String(row.counter_label) : null,
+    createdAt: String(row.created_at),
+    calledAt: row.called_at ? String(row.called_at) : null,
+    updatedAt: String(row.updated_at),
+    queueAhead: Number(row.queue_ahead ?? 0),
+  };
 }
 
 export async function isQueueAdmin(): Promise<boolean> {

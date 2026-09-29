@@ -30,6 +30,8 @@ export interface QueueTicket {
   serviceTypeName: string;
   servicePriority: TicketPriority;
   customerName: string | null;
+  customerRequest: string | null;
+  trackingToken: string | null;
   status: TicketStatus;
   counterLabel: string | null;
   createdAt: string;
@@ -59,6 +61,5 @@ export function formatTicketNumber(sequence: number): string {
   if (!Number.isSafeInteger(sequence) || sequence < 1) {
     throw new RangeError('O número da senha precisa ser um inteiro positivo.');
   }
-
   return String(sequence).padStart(3, '0');
 }

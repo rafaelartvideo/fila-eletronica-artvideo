@@ -3,10 +3,11 @@ import { Activity, CalendarDays, Clapperboard, LogOut, Megaphone, MessageCircle,
 import { Link } from 'react-router';
 import type { QueueTicket, TicketStatus, TicketType } from '../../domain/queue';
 import { ticketWhatsAppUrl } from '../../domain/whatsapp';
-import { callNextTicket, issueTicket, listQueueTickets, listTicketTypes, repeatTicketCall, subscribeToQueueChanges, transitionTicket } from '../../lib/supabase/queue-api';
+import { callNextTicket, issueTicket, listQueueTickets, listTicketTypes, repeatTicketCall, saveTicketCustomerRequest, subscribeToQueueChanges, transitionTicket } from '../../lib/supabase/queue-api';
 import { useAuth } from '../auth/AuthProvider';
 import { QueueColumn } from './QueueColumn';
 import { CurrentServicePanel } from './CurrentServicePanel';
+import { TicketTrackingQr } from '../tracking/TicketTrackingQr';
 import { ServiceTypeSettings } from './ServiceTypeSettings';
 import { MediaSettings } from './MediaSettings';
 import { PrinterSettings } from './PrinterSettings';
@@ -163,6 +164,18 @@ export function StaffPage() {
     }
   }
 
+  async function saveCurrentRequest(ticketId: string, value: string) {
+    setBusy(true); setError('');
+    try {
+      await saveTicketCustomerRequest(ticketId, value);
+      await refresh();
+    } catch (cause) {
+      setError(cause instanceof Error ? cause.message : 'Não foi possível salvar o motivo do atendimento.');
+    } finally {
+      setBusy(false);
+    }
+  }
+
   function openCurrentTicket(ticketId: string) {
     setActiveTicketId(ticketId);
     setServicePanelMinimized(false);
@@ -220,13 +233,14 @@ export function StaffPage() {
       onStart={() => void changeTicketStatus(currentTicket.id, 'serving')}
       onComplete={() => void changeTicketStatus(currentTicket.id, 'completed')}
       onCancel={() => void changeTicketStatus(currentTicket.id, 'cancelled')}
+      onSaveRequest={(value) => void saveCurrentRequest(currentTicket.id, value)}
     />}
 
     {issueType && <div className="issue-overlay" onMouseDown={(event) => { if (event.target === event.currentTarget) closeIssue(); }}><section className="issue-dialog" role="dialog" aria-modal="true" aria-labelledby="issue-title">
       <button className="issue-close" aria-label="Fechar" onClick={closeIssue}><X size={20} /></button>
       <span className="section-kicker">GERAR SENHA</span>
       <h2 id="issue-title">{issuedTicket ? 'Senha gerada' : issueType.name}</h2>
-      {issuedTicket ? <><strong className="issue-result">{issuedTicket.ticketNumber}</strong><p>Entregue ou informe a senha ao cliente.</p>{issuePhone && ticketWhatsAppUrl(issuePhone, issuedTicket) ? <a className="whatsapp-button" href={ticketWhatsAppUrl(issuePhone, issuedTicket)!} target="_blank" rel="noopener noreferrer"><MessageCircle size={20} /> Enviar pelo WhatsApp</a> : issuePhone && <small className="phone-error">Número inválido. Use DDD + número brasileiro.</small>}<button className="kiosk-new-button" onClick={closeIssue}>Fechar</button></> : <><p>O número do WhatsApp é opcional. O envio será confirmado no aplicativo após a emissão.</p><label htmlFor="staff-phone">WhatsApp do cliente</label><input id="staff-phone" type="tel" inputMode="tel" placeholder="(11) 91234-5678" autoComplete="tel" maxLength={20} value={issuePhone} onChange={(event) => setIssuePhone(event.target.value)} /><button className="kiosk-generate-button" disabled={busy} onClick={() => void issueFromStaff()}>{busy ? 'Gerando…' : 'Confirmar e gerar'}</button></>}
+      {issuedTicket ? <><strong className="issue-result">{issuedTicket.ticketNumber}</strong>{issuedTicket.trackingToken && <TicketTrackingQr token={issuedTicket.trackingToken} compact />}<p>Entregue ou informe a senha ao cliente.</p>{issuePhone && ticketWhatsAppUrl(issuePhone, issuedTicket) ? <a className="whatsapp-button" href={ticketWhatsAppUrl(issuePhone, issuedTicket)!} target="_blank" rel="noopener noreferrer"><MessageCircle size={20} /> Enviar pelo WhatsApp</a> : issuePhone && <small className="phone-error">Número inválido. Use DDD + número brasileiro.</small>}<button className="kiosk-new-button" onClick={closeIssue}>Fechar</button></> : <><p>O número do WhatsApp é opcional. O envio será confirmado no aplicativo após a emissão.</p><label htmlFor="staff-phone">WhatsApp do cliente</label><input id="staff-phone" type="tel" inputMode="tel" placeholder="(11) 91234-5678" autoComplete="tel" maxLength={20} value={issuePhone} onChange={(event) => setIssuePhone(event.target.value)} /><button className="kiosk-generate-button" disabled={busy} onClick={() => void issueFromStaff()}>{busy ? 'Gerando…' : 'Confirmar e gerar'}</button></>}
     </section></div>}
 
     <footer className="system-footer">• Senhas do dia reiniciam automaticamente às 00h em São Paulo.</footer>
