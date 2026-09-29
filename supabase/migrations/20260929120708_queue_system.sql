@@ -334,7 +334,7 @@ set search_path = ''
 as $$
 declare
   v_token text;
-  v_agent private.print_agents%rowtype;
+  v_agent record;
 begin
   if not private.is_queue_admin() then raise exception using errcode = 'P0001', message = 'Admin access required'; end if;
   if p_name is null or char_length(pg_catalog.btrim(p_name)) < 2 then raise exception using errcode = 'P0001', message = 'Print agent name is required'; end if;
@@ -365,10 +365,10 @@ returns table (id uuid, status text)
 language plpgsql security definer set search_path = ''
 as $$
 declare
-  v_ticket public.tickets%rowtype;
-  v_agent private.print_agents%rowtype;
+  v_ticket record;
+  v_agent record;
   v_service_name text;
-  v_job private.print_jobs%rowtype;
+  v_job record;
 begin
   if auth.uid() is null then raise exception using errcode = 'P0001', message = 'Authentication required'; end if;
   if not private.is_queue_admin() and coalesce(auth.jwt() ->> 'is_anonymous', 'false') <> 'true' then
@@ -392,7 +392,7 @@ returns table (id uuid, status text, error_message text, completed_at timestampt
 language plpgsql security definer set search_path = ''
 as $$
 declare
-  v_job private.print_jobs%rowtype;
+  v_job record;
 begin
   if auth.uid() is null then raise exception using errcode = 'P0001', message = 'Authentication required'; end if;
   select * into v_job from private.print_jobs as job where job.id = p_job_id;
@@ -408,8 +408,8 @@ returns table (job_id uuid, ticket_number text, service_type_name text, issued_a
 language plpgsql security definer set search_path = ''
 as $$
 declare
-  v_agent private.print_agents%rowtype;
-  v_job private.print_jobs%rowtype;
+  v_agent record;
+  v_job record;
 begin
   select * into v_agent from private.print_agents as agent
     where agent.slug = p_agent_slug and agent.agent_token = p_agent_token and agent.is_active;
@@ -439,7 +439,7 @@ returns boolean
 language plpgsql security definer set search_path = ''
 as $$
 declare
-  v_agent private.print_agents%rowtype;
+  v_agent record;
 begin
   select * into v_agent from private.print_agents as agent
     where agent.slug = p_agent_slug and agent.agent_token = p_agent_token and agent.is_active;
