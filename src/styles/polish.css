@@ -1172,3 +1172,18 @@ html[data-theme='light'] .service-action.danger { color: #a04343; border-color: 
   .service-action { width: 100%; }
   .service-session-dock { right: 16px; bottom: 16px; }
 }
+
+
+/* Printer agent update controls */
+.printer-header-actions { display: flex; align-items: center; justify-content: flex-end; gap: 8px; flex-wrap: wrap; }
+.printer-header-actions .subtle-button { text-decoration: none; }
+.printer-update-notice { margin: 0 0 18px; padding: 12px 14px; border: 1px solid #2b4056; border-radius: 10px; color: #b9c7d8; background: #0c1b2e; font-size: 12px; line-height: 1.55; }
+.printer-update-notice strong { color: #f4f7fb; }
+.printer-update-notice code { padding: 1px 5px; border-radius: 5px; background: #172a41; color: #dce8f7; font-size: .95em; }
+html[data-theme='light'] .printer-update-notice { border-color: #d8e2ed; color: #607089; background: #f5f8fc; }
+html[data-theme='light'] .printer-update-notice strong { color: #16233a; }
+html[data-theme='light'] .printer-update-notice code { background: #e7eef6; color: #24374f; }
+@media (max-width: 760px) {
+  .printer-settings header { align-items: flex-start; }
+  .printer-header-actions { width: 100%; justify-content: flex-start; }
+}
