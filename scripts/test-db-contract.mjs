@@ -60,8 +60,8 @@ try {
     'unknown/inactive service is rejected',
   );
 
-  const called = await db.query(`select * from public.call_next_ticket($1, 'Balcão 1')`, [serviceId]);
-  assert.equal(called.rows[0].ticket_number, 'C-001');
+  const called = await db.query(`select * from public.call_next_waiting_ticket('Balcão 1')`);
+  assert.equal(called.rows[0].ticket_number, 'C-001', 'global queue calls the oldest waiting ticket regardless of service type');
   assert.equal(called.rows[0].counter_label, 'Balcão 1');
   const serving = await db.query(`select * from public.transition_ticket($1, 'serving')`, [first.rows[0].id]);
   assert.equal(serving.rows[0].status, 'serving');
@@ -72,6 +72,8 @@ try {
   );
   const completed = await db.query(`select * from public.transition_ticket($1, 'completed')`, [first.rows[0].id]);
   assert.equal(completed.rows[0].status, 'completed');
+  const nextGlobal = await db.query(`select * from public.call_next_waiting_ticket('Balcão 1')`);
+  assert.equal(nextGlobal.rows[0].ticket_number, 'C-002', 'global queue preserves arrival order across service types');
 
   const columns = await db.query(`
     select column_name from information_schema.columns

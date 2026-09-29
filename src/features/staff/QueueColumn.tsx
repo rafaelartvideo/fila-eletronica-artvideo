@@ -1,17 +1,16 @@
-import { Check, ChevronRight, CircleOff, Megaphone, RotateCcw, TicketPlus, X } from 'lucide-react';
+import { Check, ChevronRight, RotateCcw, TicketPlus, X } from 'lucide-react';
 import type { QueueTicket, TicketType } from '../../domain/queue';
 
 interface Props {
   type: TicketType;
   tickets: QueueTicket[];
   busy: boolean;
-  onCall: () => void;
   onIssue: () => void;
   onRepeat: (ticketId: string) => void;
   onTransition: (ticketId: string, status: 'serving' | 'completed' | 'cancelled') => void;
 }
 
-export function QueueColumn({ type, tickets, busy, onCall, onIssue, onRepeat, onTransition }: Props) {
+export function QueueColumn({ type, tickets, busy, onIssue, onRepeat, onTransition }: Props) {
   const waiting = tickets.filter((ticket) => ticket.status === 'waiting');
   const active = tickets.filter((ticket) => ['called', 'serving'].includes(ticket.status));
   const completed = tickets.filter((ticket) => ['completed', 'cancelled'].includes(ticket.status));
@@ -21,9 +20,6 @@ export function QueueColumn({ type, tickets, busy, onCall, onIssue, onRepeat, on
         <div><span className="queue-count">{waiting.length} aguardando</span><h2>{type.name}</h2></div>
         <span className="queue-total">{tickets.length}</span>
       </header>
-      <button className="call-next-button" onClick={onCall} disabled={busy || waiting.length === 0}>
-        {waiting.length === 0 ? <><CircleOff size={17} /> Fila vazia</> : <><Megaphone size={17} /> Chamar próxima <ChevronRight size={17} /></>}
-      </button>
       <button className="issue-walkin-button" onClick={onIssue} disabled={busy}><TicketPlus size={18} /> Gerar senha</button>
       <div className="queue-list">
         {active.map((ticket) => <article key={ticket.id} className={`queue-ticket ${ticket.status}`}>

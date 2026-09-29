@@ -125,7 +125,7 @@ export function subscribeToQueueChanges(
 }
 
 function explainError(message: string): string {
-  if (/no waiting tickets/i.test(message)) return 'Não há senhas aguardando neste atendimento.';
+  if (/no waiting tickets/i.test(message)) return 'Não há senhas aguardando na fila.';
   if (/active service type not found/i.test(message)) return 'Esse tipo de atendimento está inativo ou não existe.';
   if (/invalid ticket status transition/i.test(message)) return 'Essa mudança de status não é permitida.';
   if (/admin access required|permission denied/i.test(message)) return 'Sua conta não tem acesso ao painel da equipe.';
@@ -176,8 +176,8 @@ export async function issueTicket(input: { typeId: string; customerName?: string
   return ticket;
 }
 
-export async function callNextTicket(typeId: string, counterLabel = 'Balcão 1'): Promise<DisplayCall> {
-  const { data, error } = await requireSupabase().rpc('call_next_ticket', { p_type_id: typeId, p_counter_label: counterLabel.trim() || null });
+export async function callNextTicket(counterLabel = 'Balcão 1'): Promise<DisplayCall> {
+  const { data, error } = await requireSupabase().rpc('call_next_waiting_ticket', { p_counter_label: counterLabel.trim() || null });
   const call = mapDisplayCall(unwrap((data as ApiRow[] | null)?.[0] ?? null, error));
   announceQueueChange('tickets');
   return call;
@@ -204,7 +204,7 @@ export async function listTicketTypes(): Promise<TicketType[]> {
 }
 
 export async function listQueueTickets(businessDate: string): Promise<QueueTicket[]> {
-  const { data, error } = await requireSupabase().from('tickets').select('*, ticket_types(name)').eq('business_date', businessDate).order('sequence_number');
+  const { data, error } = await requireSupabase().from('tickets').select('*, ticket_types(name)').eq('business_date', businessDate).order('created_at', { ascending: true });
   return (unwrap(data, error) as unknown as QueueRow[]).map((row) => mapTicket(row));
 }
 

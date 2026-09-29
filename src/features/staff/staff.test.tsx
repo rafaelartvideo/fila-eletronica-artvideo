@@ -44,8 +44,9 @@ describe('staff panel', () => {
     let finish!: (value: unknown) => void;
     callNextTicket.mockImplementation(() => new Promise((resolve) => { finish = resolve; }));
     render(<MemoryRouter><StaffPage /></MemoryRouter>);
-    const button = await screen.findByRole('button', { name: /chamar próxima/i });
+    const button = await screen.findByRole('button', { name: /chamar próximo/i });
     fireEvent.click(button);
+    expect(callNextTicket).toHaveBeenCalledWith('Balcão 1');
     expect(button).toBeDisabled();
     finish({});
     await waitFor(() => expect(button).toBeEnabled());
