@@ -20,11 +20,11 @@ describe('queue API', () => {
 
   it('maps queue actions to their RPCs and parameters', async () => {
     rpc.mockResolvedValue({ data: [{ id: 'event1', ticket_number: 'C-001', service_type_id: 'type2', service_type_name: 'Conserto', counter_label: 'Balcão 3', called_at: '2026-01-01T12:00:00Z' }], error: null });
-    await callNextTicket('type2', 'Balcão 3');
+    await callNextTicket('Balcão 3');
     await repeatTicketCall('ticket1');
     await transitionTicket('ticket2', 'serving');
     expect(rpc.mock.calls).toEqual([
-      ['call_next_ticket', { p_type_id: 'type2', p_counter_label: 'Balcão 3' }],
+      ['call_next_waiting_ticket', { p_counter_label: 'Balcão 3' }],
       ['repeat_ticket_call', { p_ticket_id: 'ticket1' }],
       ['transition_ticket', { p_ticket_id: 'ticket2', p_to_status: 'serving' }],
     ]);
@@ -32,6 +32,6 @@ describe('queue API', () => {
 
   it('turns database failures into a useful Portuguese message', async () => {
     rpc.mockResolvedValue({ data: null, error: { message: 'No waiting tickets' } });
-    await expect(callNextTicket('type2')).rejects.toThrow('Não há senhas aguardando neste atendimento.');
+    await expect(callNextTicket()).rejects.toThrow('Não há senhas aguardando na fila.');
   });
 });
