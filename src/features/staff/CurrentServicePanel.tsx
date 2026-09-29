@@ -7,6 +7,8 @@ interface Props {
   ticket: QueueTicket;
   busy: boolean;
   minimized: boolean;
+  canCall: boolean;
+  canServe: boolean;
   onMinimize: () => void;
   onRestore: () => void;
   onRepeat: () => void;
@@ -28,6 +30,8 @@ export function CurrentServicePanel({
   ticket,
   busy,
   minimized,
+  canCall,
+  canServe,
   onMinimize,
   onRestore,
   onRepeat,
@@ -92,7 +96,7 @@ export function CurrentServicePanel({
         {ticket.customerName && <div><small>Cliente</small><strong><UserRound size={14} /> {ticket.customerName}</strong></div>}
       </div>
 
-      {!isCalled && <div className={`service-customer-request ${requestError ? 'has-error' : ''}`}>
+      {!isCalled && canServe && <div className={`service-customer-request ${requestError ? 'has-error' : ''}`}>
         <label htmlFor={`customer-request-${ticket.id}`}>O que o cliente queria <span>*</span></label>
         <textarea
           id={`customer-request-${ticket.id}`}
@@ -115,10 +119,10 @@ export function CurrentServicePanel({
       </div>}
 
       <footer className="service-session-actions">
-        {isCalled && <button type="button" className="service-action secondary" disabled={busy} onClick={onRepeat}><RotateCcw size={17} /> Repetir chamada</button>}
-        {isCalled && <button type="button" className="service-action primary" disabled={busy} onClick={onStart}><Play size={17} /> Iniciar atendimento</button>}
-        {!isCalled && <button type="button" className="service-action success" disabled={busy} onClick={complete}><Check size={17} /> Encerrar atendimento</button>}
-        {isCalled && <button type="button" className="service-action danger" disabled={busy} onClick={onCancel}><X size={17} /> Cancelar</button>}
+        {isCalled && canCall && <button type="button" className="service-action secondary" disabled={busy} onClick={onRepeat}><RotateCcw size={17} /> Repetir chamada</button>}
+        {isCalled && canServe && <button type="button" className="service-action primary" disabled={busy} onClick={onStart}><Play size={17} /> Iniciar atendimento</button>}
+        {!isCalled && canServe && <button type="button" className="service-action success" disabled={busy} onClick={complete}><Check size={17} /> Encerrar atendimento</button>}
+        {isCalled && canServe && <button type="button" className="service-action danger" disabled={busy} onClick={onCancel}><X size={17} /> Cancelar</button>}
       </footer>
     </section>
   </div>;
