@@ -2,8 +2,8 @@ import { fireEvent, render, screen } from '@testing-library/react';
 import { MemoryRouter } from 'react-router';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
-const { listTicketTypes, issueTicket } = vi.hoisted(() => ({ listTicketTypes: vi.fn(), issueTicket: vi.fn() }));
-vi.mock('../../lib/supabase/queue-api', () => ({ listTicketTypes, issueTicket }));
+const { listTicketTypes, issueTicket, subscribeToQueueChanges } = vi.hoisted(() => ({ listTicketTypes: vi.fn(), issueTicket: vi.fn(), subscribeToQueueChanges: vi.fn() }));
+vi.mock('../../lib/supabase/queue-api', () => ({ listTicketTypes, issueTicket, subscribeToQueueChanges }));
 import { KioskPage } from './KioskPage';
 
 const types = [
@@ -19,6 +19,7 @@ describe('customer kiosk', () => {
   beforeEach(() => {
     listTicketTypes.mockReset().mockResolvedValue(types);
     issueTicket.mockReset().mockResolvedValue({ ticketNumber: 'C008', sequenceNumber: 8, serviceTypeName: 'Conserto' });
+    subscribeToQueueChanges.mockReset().mockReturnValue({ unsubscribe: vi.fn() });
   });
 
   it('shows active service types only and issues a ticket without a name', async () => {
