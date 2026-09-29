@@ -9,8 +9,8 @@ vi.mock('../../lib/supabase/queue-api', () => ({ listTicketTypes, issueTicket, s
 import { KioskPage } from './KioskPage';
 
 const types = [
-  { id: 'repair', name: 'Conserto', prefix: 'C', isActive: true, sortOrder: 0 },
-  { id: 'pickup', name: 'Retirada', prefix: 'R', isActive: false, sortOrder: 1 },
+  { id: 'repair', name: 'Conserto', prefix: 'C', priority: 'normal', isActive: true, sortOrder: 0 },
+  { id: 'pickup', name: 'Retirada', prefix: 'R', priority: 'normal', isActive: false, sortOrder: 1 },
 ];
 
 function openKiosk() {
