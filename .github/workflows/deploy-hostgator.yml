@@ -44,6 +44,15 @@ jobs:
           VITE_SUPABASE_URL: ${{ secrets.VITE_SUPABASE_URL }}
           VITE_SUPABASE_ANON_KEY: ${{ secrets.VITE_SUPABASE_ANON_KEY }}
 
+      - name: Package print agent
+        run: |
+          mkdir -p dist/print-agent
+          cp print-agent/agent.ps1 dist/print-agent/agent.ps1
+          cp print-agent/setup.ps1 dist/print-agent/setup.ps1
+          cp print-agent/config.example.json dist/print-agent/config.example.json
+          cp print-agent/README.md dist/print-agent/README.md
+          zip -j dist/print-agent/artvideo-print-agent.zip print-agent/agent.ps1 print-agent/setup.ps1 print-agent/config.example.json print-agent/README.md
+
       - name: Deploy dist to HostGator over FTPS
         uses: SamKirkland/FTP-Deploy-Action@v4.4.0
         with:
