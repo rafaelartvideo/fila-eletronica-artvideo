@@ -63,7 +63,8 @@ export function PrinterSettings() {
   }
 
   return <section className="settings-panel printer-settings">
-    <header><div><span className="section-kicker">IMPRESSÃO DIRETA</span><h2>Agente da impressora</h2><p>Conecte a Elgin i9 ao PC da recepção para imprimir senhas diretamente, sem abrir a janela do navegador.</p></div><button className="subtle-button" onClick={() => void refresh()}><RefreshCw size={15} /> Atualizar</button></header>
+    <header><div><span className="section-kicker">IMPRESSÃO DIRETA</span><h2>Agente da impressora</h2><p>Conecte a Elgin i9 ao PC da recepção para imprimir senhas diretamente, sem abrir a janela do navegador.</p></div><div className="printer-header-actions"><a className="subtle-button" href="/print-agent/artvideo-print-agent.zip" download><Download size={15} /> Baixar agente atualizado</a><button className="subtle-button" onClick={() => void refresh()}><RefreshCw size={15} /> Atualizar</button></div></header>
+    <div className="printer-update-notice"><strong>Para aplicar mudanças de impressão no PC:</strong> baixe o agente atualizado, extraia por cima da pasta atual sem apagar o <code>config.json</code> e execute <code>setup.ps1</code>. Depois disso, o setup passa a buscar automaticamente a versão mais recente do agente.</div>
     {error && <div role="alert" className="form-error">{error}</div>}
     <form className="printer-agent-form" onSubmit={generate}>
       <label>Nome do computador<input value={name} onChange={(event) => setName(event.target.value)} maxLength={80} required /></label>
