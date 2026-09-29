@@ -51,8 +51,7 @@ export function PrinterSettings() {
       agentToken: created.token,
       printerName: 'ELGIN i9',
       pollIntervalMs: 1000,
-      feedLines: 7,
-      cutMode: 'partial',
+      feedLines: 3,
     };
     const blob = new Blob([JSON.stringify(config, null, 2)], { type: 'application/json' });
     const href = URL.createObjectURL(blob);
@@ -64,7 +63,7 @@ export function PrinterSettings() {
   }
 
   return <section className="settings-panel printer-settings">
-    <header><div><span className="section-kicker">IMPRESSÃO DIRETA</span><h2>Agente da impressora</h2><p>Conecte a Elgin i9 ao PC da recepção para imprimir e cortar senhas sem abrir a janela do navegador.</p></div><button className="subtle-button" onClick={() => void refresh()}><RefreshCw size={15} /> Atualizar</button></header>
+    <header><div><span className="section-kicker">IMPRESSÃO DIRETA</span><h2>Agente da impressora</h2><p>Conecte a Elgin i9 ao PC da recepção para imprimir senhas diretamente, sem abrir a janela do navegador.</p></div><button className="subtle-button" onClick={() => void refresh()}><RefreshCw size={15} /> Atualizar</button></header>
     {error && <div role="alert" className="form-error">{error}</div>}
     <form className="printer-agent-form" onSubmit={generate}>
       <label>Nome do computador<input value={name} onChange={(event) => setName(event.target.value)} maxLength={80} required /></label>
