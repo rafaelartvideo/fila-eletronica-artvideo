@@ -109,21 +109,32 @@ function Build-TicketBytes($Job) {
   Add-Bytes ([byte[]](0x1B,0x61,0x01))
 
   Add-Bytes ([byte[]](0x1B,0x45,0x01))
+  Add-Bytes ([byte[]](0x1D,0x21,0x11))
   Add-Line 'FILA DE ATENDIMENTO'
+  Add-Bytes ([byte[]](0x1D,0x21,0x00))
   Add-Bytes ([byte[]](0x1B,0x45,0x00))
 
-  # Mensagem no topo, antes do atendimento e da senha.
+  # Mensagem no topo maior, mas mantendo a largura normal para não quebrar a linha.
+  Add-Bytes ([byte[]](0x1D,0x21,0x10))
   Add-Line 'Aguarde sua senha ser chamada.'
-  Add-Line ([string]$Job.service_type_name).ToUpperInvariant()
+  Add-Bytes ([byte[]](0x1D,0x21,0x00))
 
   Add-Bytes ([byte[]](0x1B,0x45,0x01))
-  Add-Bytes ([byte[]](0x1D,0x21,0x22))
+  Add-Bytes ([byte[]](0x1D,0x21,0x11))
+  Add-Line ([string]$Job.service_type_name).ToUpperInvariant()
+  Add-Bytes ([byte[]](0x1D,0x21,0x00))
+  Add-Bytes ([byte[]](0x1B,0x45,0x00))
+
+  Add-Bytes ([byte[]](0x1B,0x45,0x01))
+  Add-Bytes ([byte[]](0x1D,0x21,0x33))
   Add-Line $ticketNumber
   Add-Bytes ([byte[]](0x1D,0x21,0x00))
   Add-Bytes ([byte[]](0x1B,0x45,0x00))
 
   $issued = [DateTimeOffset]::Parse([string]$Job.issued_at).ToLocalTime()
+  Add-Bytes ([byte[]](0x1D,0x21,0x10))
   Add-Line ("Emitida em {0:dd/MM/yyyy HH:mm}" -f $issued)
+  Add-Bytes ([byte[]](0x1D,0x21,0x00))
 
   # Avanço final para levar toda a senha além da serrilha de destaque manual.
   # Esta impressora não possui guilhotina; não enviamos comandos ESC/POS de corte.
