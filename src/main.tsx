@@ -6,6 +6,24 @@ import './styles/tokens.css';
 import './styles/global.css';
 import './styles/polish.css';
 
+const THEME_STORAGE_KEY = 'fila-theme';
+
+function applyTheme(theme: string | null) {
+  const resolvedTheme = theme === 'light' ? 'light' : 'dark';
+  document.documentElement.dataset.theme = resolvedTheme;
+  document.documentElement.style.colorScheme = resolvedTheme;
+}
+
+try {
+  applyTheme(window.localStorage.getItem(THEME_STORAGE_KEY));
+} catch {
+  applyTheme('dark');
+}
+
+window.addEventListener('storage', (event) => {
+  if (event.key === THEME_STORAGE_KEY) applyTheme(event.newValue);
+});
+
 ReactDOM.createRoot(document.getElementById('root')!).render(
   <React.StrictMode>
     <BrowserRouter>
