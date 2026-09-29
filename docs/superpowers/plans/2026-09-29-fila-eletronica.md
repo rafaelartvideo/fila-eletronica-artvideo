@@ -69,13 +69,14 @@
 ### Task 2: Add the Supabase queue schema and secure transactional operations
 
 **Files:**
-- Create: `supabase/config.toml`, `supabase/migrations/202609290001_queue.sql`, `supabase/tests/queue_contract.sql`
+- Create: `supabase/config.toml`, CLI-generated timestamped migration in `supabase/migrations/`, `supabase/tests/queue_contract_test.sql`
 - Create: `scripts/test-queue-concurrency.mjs`
 - Modify: `README.md`
 
 **Interfaces:**
 - Tables: `admin_users`, `ticket_types`, `daily_ticket_sequences`, `tickets`, `display_calls`, and `display_media`.
 - RPC `issue_ticket(p_type_id uuid, p_customer_name text default null)` returns only the issued ticket details to the caller.
+- RPC `is_queue_admin()` returns only whether the authenticated session belongs to `private.admin_users`; it never exposes the admin roster.
 - RPC `call_next_ticket(p_type_id uuid, p_counter_label text default null)` atomically calls the oldest waiting ticket and returns the public call fields.
 - RPC `repeat_ticket_call(p_ticket_id uuid)` refreshes call time without changing the ticket state.
 - RPC `transition_ticket(p_ticket_id uuid, p_to_status text)` allows only `called → serving`, `waiting/called → cancelled`, and `serving → completed`.
@@ -146,7 +147,7 @@
 
 **Files:**
 - Create: `playwright.config.ts`, `tests/e2e/queue-flow.spec.ts`, `tests/e2e/display.spec.ts`
-- Modify: `README.md`, `.env.example`, `supabase/tests/queue_contract.sql`
+- Modify: `README.md`, `.env.example`, `supabase/tests/queue_contract_test.sql`
 
 **Interfaces:**
 - End-to-end tests use local Supabase and Playwright; test data is isolated per run and cleaned up by a test helper.
