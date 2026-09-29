@@ -25,6 +25,7 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
+          # react-router 8 / jsdom 30 require a newer Node 22 release.
           node-version: 22.22.2
           cache: npm
 
