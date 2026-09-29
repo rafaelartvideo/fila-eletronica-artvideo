@@ -51,7 +51,7 @@ export function PrinterSettings() {
       agentToken: created.token,
       printerName: 'ELGIN i9',
       pollIntervalMs: 1000,
-      feedLines: 3,
+      feedLines: 10,
     };
     const blob = new Blob([JSON.stringify(config, null, 2)], { type: 'application/json' });
     const href = URL.createObjectURL(blob);
