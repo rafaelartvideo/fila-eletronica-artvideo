@@ -26,11 +26,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     if (!supabase) { setLoading(false); return; }
+    const client = supabase;
     let active = true;
 
     const bootstrap = async () => {
       try {
-        const { data, error } = await supabase.auth.getSession();
+        const { data, error } = await client.auth.getSession();
         if (error) throw error;
         if (!active) return;
         sessionUserIdRef.current = data.session?.user.id ?? null;
@@ -47,7 +48,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       }
     };
 
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, next) => {
+    const { data: { subscription } } = client.auth.onAuthStateChange((event, next) => {
       if (!active) return;
 
       const nextUserId = next?.user.id ?? null;
