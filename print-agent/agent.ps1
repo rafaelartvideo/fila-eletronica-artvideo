@@ -125,8 +125,12 @@ function Build-TicketBytes($Job) {
   $issued = [DateTimeOffset]::Parse([string]$Job.issued_at).ToLocalTime()
   Add-Line ("Emitida em {0:dd/MM/yyyy HH:mm}" -f $issued)
 
-  # Avança linhas reais depois do conteúdo e só então corta.
-  Add-Bytes ([byte[]](0x1B,0x64,[byte]$feedLines))
+  # Força o avanço com quebras de linha reais antes do corte.
+  # Na Elgin i9 em modo RAW, isso é mais previsível do que ESC d n.
+  for ($i = 0; $i -lt $feedLines; $i++) {
+    Add-Line ''
+  }
+
   if ($cutMode -eq 'full') {
     Add-Bytes ([byte[]](0x1D,0x56,0x00))
   } else {
