@@ -5,7 +5,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 const { listTicketTypes, listQueueTickets, callNextTicket, completeTicket, issueTicket, transitionTicket, repeatTicketCall, subscribeToQueueChanges, listPrintAgents, createPrintAgent, authState } = vi.hoisted(() => ({
   listTicketTypes: vi.fn(), listQueueTickets: vi.fn(), callNextTicket: vi.fn(), completeTicket: vi.fn(), issueTicket: vi.fn(), transitionTicket: vi.fn(), repeatTicketCall: vi.fn(), subscribeToQueueChanges: vi.fn(),
   listPrintAgents: vi.fn(), createPrintAgent: vi.fn(),
-  authState: { session: null as unknown, isAdmin: false, loading: false },
+  authState: { session: null as unknown, isAdmin: false, loading: false, userName: 'Admin', roleName: 'Administrador', hasPermission: vi.fn() },
 }));
 vi.mock('../../lib/supabase/queue-api', () => ({ listTicketTypes, listQueueTickets, callNextTicket, completeTicket, issueTicket, transitionTicket, repeatTicketCall, subscribeToQueueChanges, listPrintAgents, createPrintAgent }));
 vi.mock('../auth/AuthProvider', () => ({ useAuth: () => ({ ...authState, signOut: vi.fn() }) }));
@@ -31,6 +31,9 @@ describe('staff panel', () => {
     authState.session = null;
     authState.isAdmin = false;
     authState.loading = false;
+    authState.userName = 'Admin';
+    authState.roleName = 'Administrador';
+    authState.hasPermission.mockReset().mockReturnValue(true);
   });
 
   it('denies the staff page without an administrator session', () => {
