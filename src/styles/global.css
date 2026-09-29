@@ -339,7 +339,7 @@ button:focus-visible, a:focus-visible { outline: 3px solid rgb(38 117 220 / 45%)
 
   .print-ticket-brand {
     justify-content: center !important;
-    font-size: 9pt;
+    font-size: 11pt;
   }
 
   .print-ticket-brand svg {
@@ -349,20 +349,20 @@ button:focus-visible, a:focus-visible { outline: 3px solid rgb(38 117 220 / 45%)
 
   .print-service-label {
     margin-top: 3mm;
-    font-size: 10pt;
+    font-size: 13pt;
   }
 
   .print-ticket-number {
     margin-top: 1mm;
     margin-bottom: 1mm;
-    font-size: 52pt;
+    font-size: 62pt;
     line-height: 1;
     letter-spacing: -.04em;
   }
 
   .print-ticket-date {
     display: block;
-    font-size: 8pt;
+    font-size: 10pt;
     line-height: 1.35;
   }
 
@@ -370,7 +370,7 @@ button:focus-visible, a:focus-visible { outline: 3px solid rgb(38 117 220 / 45%)
     margin-top: 2.5mm;
     padding-top: 2mm;
     border-top: 1px dashed #000;
-    font-size: 9pt;
+    font-size: 11pt;
     line-height: 1.35;
   }
 
