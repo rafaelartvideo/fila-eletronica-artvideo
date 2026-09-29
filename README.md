@@ -92,7 +92,21 @@ O script recusa URLs não locais por padrão. Para um projeto hospedado, só pro
 
 ## Publicação
 
-Gere a versão estática com `npm run build` e publique a pasta `dist/` em um host compatível com SPA. Configure as duas variáveis `VITE_SUPABASE_*` no ambiente de build e faça o host redirecionar rotas desconhecidas para `index.html`. A URL do display pode ser aberta em modo tela cheia no computador ou TV conectada.
+O workflow `.github/workflows/deploy-hostgator.yml` publica automaticamente a pasta `dist/` na raiz da conta FTP quando um commit chega à `main`. Ele roda os testes e o build antes do FTPS. A pasta deve ser exclusiva desta aplicação, pois o deploy mantém o conteúdo publicado nela sincronizado com `dist/`.
+
+No GitHub, abra **Settings → Secrets and variables → Actions** e crie estes repository secrets:
+
+| Secret | Valor |
+| --- | --- |
+| `VITE_SUPABASE_URL` | URL do projeto Supabase hospedado |
+| `VITE_SUPABASE_ANON_KEY` | chave publicável/anon do Supabase; nunca use `service_role` |
+| `FTP_SERVER` | servidor FTPS da HostGator, como `ftp.seudominio.com.br` ou o hostname informado no cPanel |
+| `FTP_USERNAME` | usuário FTP dedicado à pasta raiz deste app |
+| `FTP_PASSWORD` | senha dessa conta FTP |
+
+No cPanel, aponte o domínio ou subdomínio para uma pasta exclusiva, crie uma conta FTP limitada a essa pasta e use FTPS explícito na porta 21. Como a conta fica limitada ao document root, o workflow envia para `./`. Não use a conta FTP principal do cPanel.
+
+O arquivo `public/.htaccess` configura o fallback de rotas do React para `index.html`; o Vite o copia para `dist/`. Após mesclar este PR em `main`, confira a execução em **GitHub → Actions → Deploy Fila Artvideo**. A URL do display pode ser aberta em modo tela cheia no computador ou TV conectada.
 
 ## Privacidade e operação
 
