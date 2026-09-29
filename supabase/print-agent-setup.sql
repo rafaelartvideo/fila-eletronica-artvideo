@@ -1,6 +1,7 @@
 -- Execute este script uma vez no Supabase usado pelo sistema de filas.
 
 -- Direct thermal printing: private queue consumed by the Artvideo Windows print agent.
+create schema if not exists private;
 create table if not exists private.print_agents (
   id uuid primary key default gen_random_uuid(),
   slug text not null unique check (slug ~ '^[a-z0-9][a-z0-9_-]{1,39}$'),
