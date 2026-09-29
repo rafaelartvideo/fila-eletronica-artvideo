@@ -7,23 +7,16 @@ import { DisplayEnvironment } from './DisplayEnvironment';
 import { MediaPlayer } from './MediaPlayer';
 import { useDisplayCalls } from './useDisplayCalls';
 
-const defaultNotices = [
-  'AGUARDE SUA SENHA SER CHAMADA',
-  'ACOMPANHE A CHAMADA NA TELA',
-  'ATENDIMENTO POR ORDEM DE CHEGADA',
-  'OBRIGADO PELA PREFERÊNCIA',
-];
-
 export function DisplayPage() {
   const { currentCall, recentCalls, connection } = useDisplayCalls();
   const [media, setMedia] = useState<MediaItem[]>([]);
-  const [notices, setNotices] = useState<string[]>(defaultNotices);
+  const [notices, setNotices] = useState<string[]>([]);
 
   const refreshContent = useCallback(async () => {
     try {
       const [items, tickerItems] = await Promise.all([listDisplayMedia(), listDisplayNotices()]);
       setMedia(items.filter((item) => item.isActive));
-      setNotices(tickerItems.length ? tickerItems.filter((item) => item.isActive).map((item) => item.text) : defaultNotices);
+      setNotices(tickerItems.filter((item) => item.isActive).map((item) => item.text.trim()).filter(Boolean));
     } catch {
       // Keep the last known content if the connection is temporarily unavailable.
     }
@@ -63,9 +56,9 @@ export function DisplayPage() {
         </div>
       </div>
       {notices.length > 0 && <div className="display-ticker" aria-label="Informações para clientes">
-        {[0, 1].map((copy) => <div key={copy} className="display-ticker-track" aria-hidden={copy === 1}>
-          {notices.map((notice, index) => <span key={`${notice}-${index}`}>{notice}<i /></span>)}
-        </div>)}
+        <div className="display-ticker-track">
+          {[0, 1].flatMap((copy) => notices.map((notice, index) => <span key={`${copy}-${notice}-${index}`} aria-hidden={copy === 1}>{notice}<i /></span>))}
+        </div>
       </div>}
     </div>
   </main>;
