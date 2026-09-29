@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Check, Maximize2, Minimize2, Play, RotateCcw, Save, UserRound, X } from 'lucide-react';
+import { Check, Maximize2, Minimize2, Play, RotateCcw, UserRound, X } from 'lucide-react';
 import type { QueueTicket } from '../../domain/queue';
 import { ticketPriorityLabel } from '../../domain/queue';
 
@@ -11,9 +11,8 @@ interface Props {
   onRestore: () => void;
   onRepeat: () => void;
   onStart: () => void;
-  onComplete: () => void;
+  onComplete: (customerRequest: string) => void;
   onCancel: () => void;
-  onSaveRequest: (value: string) => void;
 }
 
 function formatTime(value: string | null) {
@@ -35,16 +34,27 @@ export function CurrentServicePanel({
   onStart,
   onComplete,
   onCancel,
-  onSaveRequest,
 }: Props) {
   const isCalled = ticket.status === 'called';
   const statusLabel = isCalled ? 'Aguardando cliente' : 'Em atendimento';
   const tone = isCalled ? 'called' : 'serving';
   const [request, setRequest] = useState(ticket.customerRequest ?? '');
+  const [requestError, setRequestError] = useState('');
 
   useEffect(() => {
     setRequest(ticket.customerRequest ?? '');
+    setRequestError('');
   }, [ticket.id, ticket.customerRequest]);
+
+  function complete() {
+    const normalized = request.trim();
+    if (!normalized) {
+      setRequestError('Informe o que o cliente queria antes de encerrar o atendimento.');
+      return;
+    }
+    setRequestError('');
+    onComplete(normalized);
+  }
 
   if (minimized) {
     return <button className={`service-session-dock ${tone}`} type="button" onClick={onRestore} aria-label={`Abrir atendimento ${ticket.ticketNumber}`}>
@@ -56,8 +66,6 @@ export function CurrentServicePanel({
       <Maximize2 size={18} />
     </button>;
   }
-
-  const requestChanged = request.trim() !== (ticket.customerRequest ?? '').trim();
 
   return <div className="service-session-overlay">
     <section className={`service-session-modal ${tone}`} role="dialog" aria-modal="true" aria-labelledby="service-session-title">
@@ -84,28 +92,32 @@ export function CurrentServicePanel({
         {ticket.customerName && <div><small>Cliente</small><strong><UserRound size={14} /> {ticket.customerName}</strong></div>}
       </div>
 
-      {!isCalled && <div className="service-customer-request">
-        <label htmlFor={`customer-request-${ticket.id}`}>O que o cliente queria</label>
+      {!isCalled && <div className={`service-customer-request ${requestError ? 'has-error' : ''}`}>
+        <label htmlFor={`customer-request-${ticket.id}`}>O que o cliente queria <span>*</span></label>
         <textarea
           id={`customer-request-${ticket.id}`}
           value={request}
-          onChange={(event) => setRequest(event.target.value)}
+          onChange={(event) => {
+            setRequest(event.target.value);
+            if (event.target.value.trim()) setRequestError('');
+          }}
           placeholder="Descreva de forma objetiva o que o cliente solicitou."
           maxLength={1000}
           rows={4}
+          required
+          aria-invalid={Boolean(requestError)}
+          aria-describedby={requestError ? `customer-request-error-${ticket.id}` : undefined}
         />
-        <div>
-          <small>{request.length}/1000</small>
-          <button type="button" className="service-request-save" disabled={busy || !requestChanged} onClick={() => onSaveRequest(request)}>
-            <Save size={16} /> Salvar
-          </button>
+        <div className="service-request-meta">
+          <small>{request.length}/1000 · obrigatório para encerrar</small>
         </div>
+        {requestError && <div id={`customer-request-error-${ticket.id}`} className="service-request-feedback" role="alert">{requestError}</div>}
       </div>}
 
       <footer className="service-session-actions">
         {isCalled && <button type="button" className="service-action secondary" disabled={busy} onClick={onRepeat}><RotateCcw size={17} /> Repetir chamada</button>}
         {isCalled && <button type="button" className="service-action primary" disabled={busy} onClick={onStart}><Play size={17} /> Iniciar atendimento</button>}
-        {!isCalled && <button type="button" className="service-action success" disabled={busy} onClick={onComplete}><Check size={17} /> Encerrar atendimento</button>}
+        {!isCalled && <button type="button" className="service-action success" disabled={busy} onClick={complete}><Check size={17} /> Encerrar atendimento</button>}
         {isCalled && <button type="button" className="service-action danger" disabled={busy} onClick={onCancel}><X size={17} /> Cancelar</button>}
       </footer>
     </section>

@@ -73,8 +73,19 @@ try {
     /transition|status/i,
     'invalid transition is rejected',
   );
-  const completed = await db.query(`select * from public.transition_ticket($1, 'completed')`, [first.rows[0].id]);
+  await assert.rejects(
+    db.query(`select * from public.transition_ticket($1, 'completed')`, [first.rows[0].id]),
+    /transition|status/i,
+    'started services cannot be completed through the generic transition',
+  );
+  await assert.rejects(
+    db.query(`select * from public.complete_ticket($1, '   ')`, [first.rows[0].id]),
+    /customer request required/i,
+    'service request is required to complete an attendance',
+  );
+  const completed = await db.query(`select * from public.complete_ticket($1, 'Cliente solicitou orçamento para reparo')`, [first.rows[0].id]);
   assert.equal(completed.rows[0].status, 'completed');
+  assert.equal(completed.rows[0].customer_request, 'Cliente solicitou orçamento para reparo');
   const nextGlobal = await db.query(`select * from public.call_next_waiting_ticket('Balcão 1')`);
   assert.equal(nextGlobal.rows[0].ticket_number, 'C-002', 'global queue preserves arrival order across service types');
 

@@ -2,12 +2,12 @@ import { act, fireEvent, render, screen, waitFor } from '@testing-library/react'
 import { MemoryRouter, Route, Routes } from 'react-router';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
-const { listTicketTypes, listQueueTickets, callNextTicket, issueTicket, transitionTicket, repeatTicketCall, saveTicketCustomerRequest, subscribeToQueueChanges, listPrintAgents, createPrintAgent, authState } = vi.hoisted(() => ({
-  listTicketTypes: vi.fn(), listQueueTickets: vi.fn(), callNextTicket: vi.fn(), issueTicket: vi.fn(), transitionTicket: vi.fn(), repeatTicketCall: vi.fn(), saveTicketCustomerRequest: vi.fn(), subscribeToQueueChanges: vi.fn(),
+const { listTicketTypes, listQueueTickets, callNextTicket, completeTicket, issueTicket, transitionTicket, repeatTicketCall, subscribeToQueueChanges, listPrintAgents, createPrintAgent, authState } = vi.hoisted(() => ({
+  listTicketTypes: vi.fn(), listQueueTickets: vi.fn(), callNextTicket: vi.fn(), completeTicket: vi.fn(), issueTicket: vi.fn(), transitionTicket: vi.fn(), repeatTicketCall: vi.fn(), subscribeToQueueChanges: vi.fn(),
   listPrintAgents: vi.fn(), createPrintAgent: vi.fn(),
   authState: { session: null as unknown, isAdmin: false, loading: false },
 }));
-vi.mock('../../lib/supabase/queue-api', () => ({ listTicketTypes, listQueueTickets, callNextTicket, issueTicket, transitionTicket, repeatTicketCall, saveTicketCustomerRequest, subscribeToQueueChanges, listPrintAgents, createPrintAgent }));
+vi.mock('../../lib/supabase/queue-api', () => ({ listTicketTypes, listQueueTickets, callNextTicket, completeTicket, issueTicket, transitionTicket, repeatTicketCall, subscribeToQueueChanges, listPrintAgents, createPrintAgent }));
 vi.mock('../auth/AuthProvider', () => ({ useAuth: () => ({ ...authState, signOut: vi.fn() }) }));
 
 import { RequireAdmin } from '../auth/RequireAdmin';
@@ -23,8 +23,8 @@ describe('staff panel', () => {
     callNextTicket.mockReset().mockResolvedValue({});
     issueTicket.mockReset().mockResolvedValue({});
     transitionTicket.mockReset().mockResolvedValue({});
+    completeTicket.mockReset().mockResolvedValue({});
     repeatTicketCall.mockReset().mockResolvedValue({});
-    saveTicketCustomerRequest.mockReset().mockResolvedValue(undefined);
     subscribeToQueueChanges.mockReset().mockReturnValue({ unsubscribe: vi.fn() });
     listPrintAgents.mockReset().mockResolvedValue([]);
     createPrintAgent.mockReset();

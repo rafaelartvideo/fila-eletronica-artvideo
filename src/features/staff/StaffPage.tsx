@@ -3,7 +3,7 @@ import { Activity, CalendarDays, Clapperboard, LogOut, Megaphone, MessageCircle,
 import { Link } from 'react-router';
 import type { QueueTicket, TicketStatus, TicketType } from '../../domain/queue';
 import { ticketWhatsAppUrl } from '../../domain/whatsapp';
-import { callNextTicket, issueTicket, listQueueTickets, listTicketTypes, repeatTicketCall, saveTicketCustomerRequest, subscribeToQueueChanges, transitionTicket } from '../../lib/supabase/queue-api';
+import { callNextTicket, completeTicket, issueTicket, listQueueTickets, listTicketTypes, repeatTicketCall, subscribeToQueueChanges, transitionTicket } from '../../lib/supabase/queue-api';
 import { useAuth } from '../auth/AuthProvider';
 import { QueueColumn } from './QueueColumn';
 import { CurrentServicePanel } from './CurrentServicePanel';
@@ -164,13 +164,20 @@ export function StaffPage() {
     }
   }
 
-  async function saveCurrentRequest(ticketId: string, value: string) {
+  async function completeCurrentTicket(ticketId: string, customerRequest: string) {
     setBusy(true); setError('');
     try {
-      await saveTicketCustomerRequest(ticketId, value);
-      await refresh();
+      await completeTicket(ticketId, customerRequest);
+      const nextTickets = await refresh();
+      if (activeTicketId === ticketId) {
+        const nextActive = nextTickets
+          ?.filter((ticket) => (ticket.status === 'called' || ticket.status === 'serving') && ticket.counterLabel === counter)
+          .sort((a, b) => Date.parse(b.calledAt ?? b.createdAt) - Date.parse(a.calledAt ?? a.createdAt))[0] ?? null;
+        setActiveTicketId(nextActive?.id ?? null);
+        setServicePanelMinimized(false);
+      }
     } catch (cause) {
-      setError(cause instanceof Error ? cause.message : 'Não foi possível salvar o motivo do atendimento.');
+      setError(cause instanceof Error ? cause.message : 'Não foi possível encerrar o atendimento.');
     } finally {
       setBusy(false);
     }
@@ -231,9 +238,8 @@ export function StaffPage() {
       onRestore={() => setServicePanelMinimized(false)}
       onRepeat={() => void repeatCurrentTicket(currentTicket.id)}
       onStart={() => void changeTicketStatus(currentTicket.id, 'serving')}
-      onComplete={() => void changeTicketStatus(currentTicket.id, 'completed')}
+      onComplete={(value) => void completeCurrentTicket(currentTicket.id, value)}
       onCancel={() => void changeTicketStatus(currentTicket.id, 'cancelled')}
-      onSaveRequest={(value) => void saveCurrentRequest(currentTicket.id, value)}
     />}
 
     {issueType && <div className="issue-overlay" onMouseDown={(event) => { if (event.target === event.currentTarget) closeIssue(); }}><section className="issue-dialog" role="dialog" aria-modal="true" aria-labelledby="issue-title">

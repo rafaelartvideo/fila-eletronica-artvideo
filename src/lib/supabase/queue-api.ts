@@ -138,6 +138,7 @@ export function subscribeToQueueChanges(
 function explainError(message: string): string {
   if (/no waiting tickets/i.test(message)) return 'Não há senhas aguardando na fila.';
   if (/active service type not found/i.test(message)) return 'Esse tipo de atendimento está inativo ou não existe.';
+  if (/customer request required/i.test(message)) return 'Informe o que o cliente queria antes de encerrar o atendimento.';
   if (/invalid ticket status transition/i.test(message)) return 'Essa mudança de status não é permitida.';
   if (/admin access required|permission denied/i.test(message)) return 'Sua conta não tem acesso ao painel da equipe.';
   if (/authentication required|jwt/i.test(message)) return 'Sua sessão expirou. Entre novamente para continuar.';
@@ -236,14 +237,24 @@ export async function listQueueTickets(businessDate: string): Promise<QueueTicke
   return (unwrap(data, error) as unknown as QueueRow[]).map((row) => mapTicket(row));
 }
 
-export async function saveTicketCustomerRequest(ticketId: string, customerRequest: string): Promise<void> {
+export async function completeTicket(ticketId: string, customerRequest: string): Promise<QueueTicket> {
   const normalized = customerRequest.trim();
-  const { error } = await requireSupabase()
-    .from('tickets')
-    .update({ customer_request: normalized || null, updated_at: new Date().toISOString() })
-    .eq('id', ticketId);
-  if (error) throw new Error(explainError(error.message));
+  if (!normalized) throw new Error('Informe o que o cliente queria antes de encerrar o atendimento.');
+  const { data, error } = await requireSupabase().rpc('complete_ticket', {
+    p_ticket_id: ticketId,
+    p_customer_request: normalized,
+  });
+  const row = unwrap((data as ApiRow[] | null)?.[0] ?? null, error);
+  const ticket = mapTicket({
+    ...row,
+    customer_request: normalized,
+    ticket_types: {
+      name: String(row.service_type_name),
+      priority: row.service_priority ? String(row.service_priority) : 'normal',
+    },
+  } as unknown as QueueRow);
   announceQueueChange('tickets');
+  return ticket;
 }
 
 export async function getTicketTracking(token: string): Promise<TicketTracking> {

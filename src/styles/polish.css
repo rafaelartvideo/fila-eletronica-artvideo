@@ -1636,3 +1636,31 @@ html[data-theme='light'] .tracking-qr-dialog-link { color: #1762c5; }
   .tracking-qr-dialog h2 { font-size: 24px; }
   .tracking-qr-trigger { min-height: 64px; }
 }
+
+
+/* Required service request is saved only when the service is closed. */
+.service-customer-request label > span { color: #ff7f7f; }
+.service-request-meta { display: flex; justify-content: flex-end; }
+.service-customer-request.has-error textarea {
+  border-color: #b74b57;
+  box-shadow: 0 0 0 3px rgb(183 75 87 / 13%);
+}
+.service-request-feedback {
+  margin-top: -2px;
+  padding: 9px 11px;
+  border: 1px solid #6c3841;
+  border-radius: 9px;
+  color: #ffb7b7;
+  background: #321d24;
+  font-size: 10px;
+  line-height: 1.4;
+}
+html[data-theme='light'] .service-customer-request.has-error textarea {
+  border-color: #d15f68;
+  box-shadow: 0 0 0 3px rgb(209 95 104 / 12%);
+}
+html[data-theme='light'] .service-request-feedback {
+  color: #a53c45;
+  border-color: #efc7ca;
+  background: #fff2f3;
+}
