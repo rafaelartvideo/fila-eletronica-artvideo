@@ -13,8 +13,8 @@ vi.mock('../auth/AuthProvider', () => ({ useAuth: () => ({ ...authState, signOut
 import { RequireAdmin } from '../auth/RequireAdmin';
 import { StaffPage } from './StaffPage';
 
-const service = { id: 'service-1', name: 'Conserto', prefix: 'C', isActive: true, sortOrder: 0 };
-const ticket = { id: 'ticket-1', ticketNumber: 'C001', sequenceNumber: 1, businessDate: '2026-01-01', serviceTypeId: 'service-1', serviceTypeName: 'Conserto', customerName: 'Maria', status: 'waiting' as const, counterLabel: null, createdAt: '2026-01-01T12:00:00Z', calledAt: null, servingAt: null, completedAt: null, cancelledAt: null };
+const service = { id: 'service-1', name: 'Conserto', prefix: 'C', priority: 'normal' as const, isActive: true, sortOrder: 0 };
+const ticket = { id: 'ticket-1', ticketNumber: 'C001', sequenceNumber: 1, businessDate: '2026-01-01', serviceTypeId: 'service-1', serviceTypeName: 'Conserto', servicePriority: 'normal' as const, customerName: 'Maria', status: 'waiting' as const, counterLabel: null, createdAt: '2026-01-01T12:00:00Z', calledAt: null, servingAt: null, completedAt: null, cancelledAt: null };
 
 describe('staff panel', () => {
   beforeEach(() => {
