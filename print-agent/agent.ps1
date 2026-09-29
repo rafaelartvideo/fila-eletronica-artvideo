@@ -20,7 +20,8 @@ foreach ($required in @('supabaseUrl','supabaseKey','agentSlug','agentToken','pr
 }
 
 $pollMs = if ($config.pollIntervalMs) { [Math]::Max(500, [int]$config.pollIntervalMs) } else { 1000 }
-$feedLines = if ($config.feedLines) { [Math]::Max(4, [Math]::Min(15, [int]$config.feedLines)) } else { 10 }
+$configuredFeedLines = if ($null -ne $config.feedLines) { [int]$config.feedLines } else { 10 }
+$feedLines = if ($configuredFeedLines -le 3) { 10 } else { [Math]::Max(4, [Math]::Min(15, $configuredFeedLines)) }
 
 if (-not ('RawPrinter.Artvideo' -as [type])) {
 Add-Type -TypeDefinition @"
