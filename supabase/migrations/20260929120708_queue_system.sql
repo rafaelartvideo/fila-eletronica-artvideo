@@ -303,7 +303,7 @@ returns table (
 language plpgsql
 security definer
 set search_path = ''
-as $
+as $$
 declare
   v_ticket record;
 begin
@@ -345,7 +345,7 @@ begin
     order by event.called_at desc
     limit 1;
 end
-$;
+$$;
 
 create or replace function public.call_next_waiting_ticket(p_counter_label text default null)
 returns table (
@@ -359,16 +359,16 @@ returns table (
 language sql
 security invoker
 set search_path = ''
-as $
+as $$
   select * from private.call_next_waiting_ticket(p_counter_label)
-$;
+$$;
 
 revoke all on function private.call_next_waiting_ticket(text) from public, anon, authenticated;
 grant execute on function private.call_next_waiting_ticket(text) to authenticated;
 revoke all on function public.call_next_waiting_ticket(text) from public, anon, authenticated;
 grant execute on function public.call_next_waiting_ticket(text) to authenticated;
 
-do $
+do $$
 begin
   if exists (select 1 from pg_catalog.pg_publication where pubname = 'supabase_realtime') then
     alter publication supabase_realtime add table public.display_calls;
