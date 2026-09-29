@@ -267,7 +267,7 @@ button:focus-visible, a:focus-visible { outline: 3px solid rgb(38 117 220 / 45%)
 .kiosk-new-button { min-height: 44px; display: inline-flex; align-items: center; justify-content: center; gap: 8px; border: 1px solid #e0e6ef; border-radius: 11px; color: #586880; background: #fff; font-size: 11px; font-weight: 700; cursor: pointer; }
 @media print {
   @page {
-    size: 80mm 110mm;
+    size: 80mm 78mm;
     margin: 0;
   }
 
@@ -278,7 +278,7 @@ button:focus-visible, a:focus-visible { outline: 3px solid rgb(38 117 220 / 45%)
     width: 80mm !important;
     min-width: 80mm !important;
     max-width: 80mm !important;
-    min-height: 110mm !important;
+    min-height: 78mm !important;
     margin: 0 !important;
     padding: 0 !important;
     overflow: visible !important;
@@ -299,7 +299,7 @@ button:focus-visible, a:focus-visible { outline: 3px solid rgb(38 117 220 / 45%)
   .issued-ticket-screen {
     width: 80mm !important;
     max-width: 80mm !important;
-    min-height: 110mm !important;
+    min-height: 78mm !important;
     margin: 0 !important;
     padding: 0 !important;
   }
@@ -313,7 +313,7 @@ button:focus-visible, a:focus-visible { outline: 3px solid rgb(38 117 220 / 45%)
     width: 72mm !important;
     max-width: 72mm !important;
     margin: 0 4mm !important;
-    padding: 2mm 4mm 0 !important;
+    padding: 0 4mm !important;
     box-sizing: border-box !important;
     border: 0 !important;
     border-radius: 0 !important;
@@ -348,7 +348,7 @@ button:focus-visible, a:focus-visible { outline: 3px solid rgb(38 117 220 / 45%)
   }
 
   .print-service-label {
-    margin-top: 5mm;
+    margin-top: 3mm;
     font-size: 10pt;
   }
 
@@ -367,8 +367,8 @@ button:focus-visible, a:focus-visible { outline: 3px solid rgb(38 117 220 / 45%)
   }
 
   .print-ticket-message {
-    margin-top: 4mm;
-    padding-top: 3mm;
+    margin-top: 2.5mm;
+    padding-top: 2mm;
     border-top: 1px dashed #000;
     font-size: 9pt;
     line-height: 1.35;
@@ -377,9 +377,9 @@ button:focus-visible, a:focus-visible { outline: 3px solid rgb(38 117 220 / 45%)
   .print-feed-spacer {
     display: block !important;
     width: 100%;
-    height: 28mm !important;
-    min-height: 28mm !important;
-    flex: 0 0 28mm !important;
+    height: 12mm !important;
+    min-height: 12mm !important;
+    flex: 0 0 12mm !important;
   }
 }
 
