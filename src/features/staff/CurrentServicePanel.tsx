@@ -1,5 +1,6 @@
 import { Check, Clock3, Maximize2, Minimize2, Play, RotateCcw, UserRound, X } from 'lucide-react';
 import type { QueueTicket } from '../../domain/queue';
+import { ticketPriorityLabel } from '../../domain/queue';
 
 interface Props {
   ticket: QueueTicket;
@@ -69,6 +70,7 @@ export function CurrentServicePanel({
         <div><small>Balcão</small><strong>{ticket.counterLabel ?? 'Balcão 1'}</strong></div>
         <div><small>Chegada</small><strong>{formatTime(ticket.createdAt)}</strong></div>
         <div><small>Chamada</small><strong>{formatTime(ticket.calledAt)}</strong></div>
+        <div><small>Prioridade</small><strong><span className={`priority-badge ${ticket.servicePriority}`}>{ticketPriorityLabel(ticket.servicePriority)}</span></strong></div>
         {ticket.customerName && <div><small>Cliente</small><strong><UserRound size={14} /> {ticket.customerName}</strong></div>}
       </div>
 
