@@ -1,0 +1,15 @@
+import { Navigate } from 'react-router';
+import type { ReactNode } from 'react';
+import { LoaderCircle, ShieldCheck } from 'lucide-react';
+import { useAuth } from './AuthProvider';
+
+export function RequireAdmin({ children }: { children: ReactNode }) {
+  const { session, isAdmin, loading } = useAuth();
+  if (loading) return <main className="auth-wait"><LoaderCircle className="spin" /> Verificando acesso seguro…</main>;
+  if (!session || !isAdmin) return <Navigate to="/painel/login" replace state={{ denied: Boolean(session) }} />;
+  return <>{children}</>;
+}
+
+export function AdminBadge() {
+  return <span className="admin-badge"><ShieldCheck size={15} /> Equipe autenticada</span>;
+}
