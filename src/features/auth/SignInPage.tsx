@@ -1,5 +1,5 @@
 import { useState, type FormEvent } from 'react';
-import { ArrowLeft, LockKeyhole, Wrench } from 'lucide-react';
+
 import { Link, Navigate, useLocation } from 'react-router';
 import { BrandLogo } from '../../components/BrandLogo';
 import { useAuth } from './AuthProvider';
