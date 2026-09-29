@@ -13,13 +13,14 @@ Agente gratuito para Windows que recebe trabalhos do sistema de filas e envia ES
 7. Se o nome da impressora do Windows for diferente, o setup permite escolhê-la.
 8. O agente inicia na hora e passa a iniciar automaticamente no login do Windows.
 
-Depois disso, qualquer celular, tablet ou PC que use o sistema pode clicar em Imprimir senha. O pedido passa pelo Supabase e este PC envia o trabalho RAW para a Elgin, com alinhamento central, avanço de papel e corte.
+Depois disso, qualquer celular, tablet ou PC que use o sistema pode clicar em Imprimir senha. O pedido passa pelo Supabase e este PC envia o trabalho RAW para a Elgin, com alinhamento central e avanço curto para destaque manual do papel.
 
 ## Ajustes
 
 No config.json:
-- feedLines: quantidade de linhas avançadas antes do corte.
-- cutMode: partial ou full.
+- feedLines: quantidade de linhas avançadas até a serrilha para destaque manual; o padrão é 3 e o agente limita a no máximo 3.
 - pollIntervalMs: intervalo de consulta; o padrão é 1000 ms.
+
+A impressora configurada não usa guilhotina, por isso o agente não envia comandos ESC/POS de corte.
 
 Nenhuma chave service-role é usada. O agente recebe apenas a chave pública do projeto e uma credencial própria gerada no painel.
