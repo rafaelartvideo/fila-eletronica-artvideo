@@ -11,8 +11,15 @@ export function useDisplayCalls(): { currentCall: DisplayCall | null; recentCall
   const alive = useRef(true);
 
   const refresh = useCallback(async () => {
-    try { const rows = await listDisplayCalls(5); if (alive.current) setCalls(rows); }
-    catch { if (alive.current) setConnection('reconnecting'); }
+    try {
+      const rows = await listDisplayCalls(30);
+      const uniqueCalls = rows.filter((call, index, all) =>
+        all.findIndex((candidate) => candidate.ticketNumber === call.ticketNumber) === index,
+      );
+      if (alive.current) setCalls(uniqueCalls.slice(0, 5));
+    } catch {
+      if (alive.current) setConnection('reconnecting');
+    }
   }, []);
 
   useEffect(() => {

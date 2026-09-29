@@ -26,6 +26,6 @@ export function CallAnnouncement({ call }: { call: DisplayCall | null }) {
         {voiceEnabled ? <Volume2 size={16} /> : <VolumeX size={16} />}<small>{voiceEnabled ? 'Voz ativada' : 'Ativar voz'}</small>
       </button>
     </div>
-    {call ? <div className="display-current-call"><strong>{call.ticketNumber}</strong><div><span>{call.serviceTypeName}</span><small>{call.counterLabel || 'Dirija-se ao balcão'}</small></div></div> : <div className="display-no-call"><span className="display-pulse" />Aguardando a próxima chamada</div>}
+    {call ? <div key={`${call.id}-${call.calledAt}`} className="display-current-call display-current-call-animated"><strong>{call.ticketNumber}</strong><div><span>{call.serviceTypeName}</span><small>{call.counterLabel || 'Dirija-se ao balcão'}</small></div></div> : <div className="display-no-call"><span className="display-pulse" />Aguardando a próxima chamada</div>}
   </section>;
 }

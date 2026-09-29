@@ -467,3 +467,24 @@ input::placeholder { color: #71859c; opacity: 1; }
   .service-form .blue-button { height: 48px; min-height: 48px; }
   .staff-tabs .counter-field { margin-left: 0; }
 }
+
+
+/* Draw attention whenever a ticket is called or recalled. */
+.display-current-call-animated {
+  transform-origin: center;
+  animation: display-call-attention 1.15s cubic-bezier(.2, .8, .2, 1);
+}
+.display-current-call-animated > strong {
+  animation: display-call-number-attention 1.15s cubic-bezier(.2, .8, .2, 1);
+}
+@keyframes display-call-attention {
+  0% { opacity: .35; transform: scale(.93); filter: brightness(1.35); }
+  28% { opacity: 1; transform: scale(1.035); filter: brightness(1.18); }
+  62% { transform: scale(.99); }
+  100% { opacity: 1; transform: scale(1); filter: brightness(1); }
+}
+@keyframes display-call-number-attention {
+  0%, 100% { text-shadow: 0 0 0 rgb(134 240 193 / 0%); }
+  28% { text-shadow: 0 0 30px rgb(134 240 193 / 58%); }
+  58% { text-shadow: 0 0 14px rgb(134 240 193 / 28%); }
+}
