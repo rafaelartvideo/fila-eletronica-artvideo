@@ -3,7 +3,6 @@ import { Link } from 'react-router';
 
 const destinations = [
   { to: '/painel', label: 'Painel da equipe', description: 'Gerencie a fila e acompanhe cada atendimento.', icon: Wrench, tone: 'blue' },
-  { to: '/totem', label: 'Gerar senha', description: 'Escolha o atendimento e receba sua senha.', icon: TicketCheck, tone: 'gold' },
   { to: '/display', label: 'Tela de chamadas', description: 'Exiba senhas chamadas e vídeos para os clientes.', icon: MonitorPlay, tone: 'navy' },
 ] as const;
 
@@ -24,7 +23,7 @@ export function HomePage() {
             <div className="eyebrow"><span /> ORGANIZAÇÃO QUE VOCÊ VÊ</div>
             <h1>Atendimento simples.<br /><em>Fila em movimento.</em></h1>
             <p>Senhas organizadas para a equipe e chamadas claras para cada cliente.</p>
-            <Link className="primary-link" to="/totem">Emitir uma senha <ArrowUpRight size={17} /></Link>
+            <Link className="primary-link" to="/painel">Acessar painel da equipe <ArrowUpRight size={17} /></Link>
           </div>
           <div className="hero-illustration" aria-hidden="true">
             <div className="orbit orbit-one" />

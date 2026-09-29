@@ -140,7 +140,7 @@ function explainError(message: string): string {
   if (/active service type not found/i.test(message)) return 'Esse tipo de atendimento está inativo ou não existe.';
   if (/customer request required/i.test(message)) return 'Informe o que o cliente queria antes de encerrar o atendimento.';
   if (/invalid ticket status transition/i.test(message)) return 'Essa mudança de status não é permitida.';
-  if (/admin access required|permission denied/i.test(message)) return 'Sua conta não tem acesso ao painel da equipe.';
+  if (/ticket issuance is limited to staff|admin access required|permission denied/i.test(message)) return 'Somente a equipe autorizada pode gerar senhas.';
   if (/authentication required|jwt/i.test(message)) return 'Sua sessão expirou. Entre novamente para continuar.';
   return `Não foi possível concluir a operação. ${message}`;
 }
@@ -181,9 +181,8 @@ export async function issueTicket(input: { typeId: string; customerName?: string
   const client = requireSupabase();
   const { data: { session }, error: sessionError } = await client.auth.getSession();
   if (sessionError) throw new Error(explainError(sessionError.message));
-  if (!session) {
-    const { error: signInError } = await client.auth.signInAnonymously();
-    if (signInError) throw new Error(explainError(signInError.message));
+  if (!session || session.user?.is_anonymous) {
+    throw new Error('Entre no painel da equipe para gerar uma senha.');
   }
   const params = { p_type_id: input.typeId, p_customer_name: input.customerName?.trim() || null };
   let result = await client.rpc('issue_ticket_v2', params);

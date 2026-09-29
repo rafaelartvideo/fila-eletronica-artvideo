@@ -30,7 +30,7 @@ try {
   await db.query(`insert into public.ticket_types (id, name, prefix, priority) values ($1, 'Retirada', 'R', 'urgent')`, [kioskServiceId]);
   await db.exec(`set role anon`);
   const publicTypes = await db.query(`select name from public.ticket_types order by name`);
-  assert.deepEqual(publicTypes.rows.map(({ name }) => name), ['Conserto', 'Retirada'], 'anonymous kiosk can list active service types without private schema access');
+  assert.deepEqual(publicTypes.rows.map(({ name }) => name), ['Conserto', 'Retirada'], 'public clients can list active service types without private schema access');
   await db.exec(`reset role`);
   await db.query(`select set_config('request.jwt.claim.sub', $1, false)`, [adminId]);
   await db.query(`select set_config('request.jwt.claims', $1, false)`, [JSON.stringify({ sub: adminId, role: 'authenticated' })]);
@@ -42,17 +42,16 @@ try {
 
   const kioskId = '00000000-0000-4000-8000-000000000002';
   await db.query(`select set_config('request.jwt.claim.sub', $1, false)`, [kioskId]);
-  await db.query(`select set_config('request.jwt.claims', $1, false)`, [JSON.stringify({ sub: kioskId, role: 'authenticated' })]);
+  await db.query(`select set_config('request.jwt.claims', $1, false)`, [JSON.stringify({ sub: kioskId, role: 'authenticated', is_anonymous: true })]);
   await assert.rejects(
     db.query(`select * from public.issue_ticket($1, null)`, [kioskServiceId]),
-    /anonymous kiosk or staff sessions/i,
-    'regular authenticated users cannot issue kiosk tickets',
+    /staff|admin access/i,
+    'anonymous sessions cannot issue tickets',
   );
-  await db.query(`select set_config('request.jwt.claims', $1, false)`, [JSON.stringify({ sub: kioskId, role: 'authenticated', is_anonymous: true })]);
-  const kioskTicket = await db.query(`select * from public.issue_ticket($1, null)`, [kioskServiceId]);
-  assert.equal(kioskTicket.rows[0].sequence_number, 1, 'anonymous kiosk session can issue tickets');
   await db.query(`select set_config('request.jwt.claim.sub', $1, false)`, [adminId]);
   await db.query(`select set_config('request.jwt.claims', $1, false)`, [JSON.stringify({ sub: adminId, role: 'authenticated' })]);
+  const kioskTicket = await db.query(`select * from public.issue_ticket($1, null)`, [kioskServiceId]);
+  assert.equal(kioskTicket.rows[0].sequence_number, 1, 'staff can issue a ticket for any active service type');
 
   await assert.rejects(
     db.query(`select * from public.issue_ticket($1, null)`, ['10000000-0000-4000-8000-000000000099']),
@@ -97,7 +96,7 @@ try {
   const ticketReadGrant = await db.query(`select has_table_privilege('anon', 'public.tickets', 'select') as granted`);
   assert.equal(ticketReadGrant.rows[0].granted, false, 'anonymous role cannot read ticket rows directly');
   const kioskGrants = await db.query(`select has_table_privilege('anon', 'public.ticket_types', 'select') as can_list, has_function_privilege('anon', 'public.issue_ticket(uuid,text)', 'execute') as can_issue`);
-  assert.deepEqual(kioskGrants.rows[0], { can_list: true, can_issue: false }, 'anonymous can list services but must sign in before issuing');
+  assert.deepEqual(kioskGrants.rows[0], { can_list: true, can_issue: false }, 'anonymous role cannot execute ticket issuance');
   const events = await db.query(`select * from public.display_calls where ticket_number='C-001' and counter_label='Balcão 1'`);
   assert.equal(events.rows.length, 1, 'call trigger creates sanitized display event');
 
