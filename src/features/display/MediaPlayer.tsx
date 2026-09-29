@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useLayoutEffect, useMemo, useState } from 'react';
 import { Clapperboard, SkipForward } from 'lucide-react';
 import type { MediaItem } from '../../domain/queue';
 import { normalizeMediaUrl } from '../../domain/media';
@@ -10,7 +10,7 @@ export function MediaPlayer({ items }: { items: MediaItem[] }) {
   const current = usable.length ? usable[index % usable.length] : null;
   const source = current ? normalizeMediaUrl(current.url) : null;
 
-  useEffect(() => { setFailed([]); setIndex(0); }, [items]);
+  useLayoutEffect(() => { setFailed([]); setIndex(0); }, [items]);
 
   function advance() {
     if (usable.length > 1) setIndex((value) => (value + 1) % usable.length);
