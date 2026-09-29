@@ -10,6 +10,13 @@ export function RequireAdmin({ children }: { children: ReactNode }) {
   return <>{children}</>;
 }
 
+export function RequirePermission({ permission, children }: { permission: string; children: ReactNode }) {
+  const { loading, hasPermission } = useAuth();
+  if (loading) return <main className="auth-wait"><LoaderCircle className="spin" /> Verificando permissão…</main>;
+  if (!hasPermission(permission)) return <Navigate to="/painel" replace />;
+  return <>{children}</>;
+}
+
 export function AdminBadge() {
   return <span className="admin-badge"><ShieldCheck size={15} /> Equipe autenticada</span>;
 }
