@@ -1,4 +1,4 @@
-import { createContext, useCallback, useContext, useEffect, useMemo, useState, type ReactNode } from 'react';
+import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import type { Session } from '@supabase/supabase-js';
 import { isQueueAdmin } from '../../lib/supabase/queue-api';
 import { requireSupabase, supabase } from '../../lib/supabase/client';
@@ -17,6 +17,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [session, setSession] = useState<Session | null>(null);
   const [loading, setLoading] = useState(true);
   const [isAdmin, setIsAdmin] = useState(false);
+  const sessionUserIdRef = useRef<string | null>(null);
 
   const verifyAdmin = useCallback(async (current: Session | null) => {
     if (!current) { setIsAdmin(false); return; }
@@ -26,18 +27,57 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     if (!supabase) { setLoading(false); return; }
     let active = true;
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, next) => {
+
+    const bootstrap = async () => {
+      try {
+        const { data, error } = await supabase.auth.getSession();
+        if (error) throw error;
+        if (!active) return;
+        sessionUserIdRef.current = data.session?.user.id ?? null;
+        setSession(data.session);
+        await verifyAdmin(data.session);
+      } catch {
+        if (active) {
+          sessionUserIdRef.current = null;
+          setSession(null);
+          setIsAdmin(false);
+        }
+      } finally {
+        if (active) setLoading(false);
+      }
+    };
+
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, next) => {
       if (!active) return;
+
+      const nextUserId = next?.user.id ?? null;
+      const sameUser = Boolean(nextUserId && sessionUserIdRef.current === nextUserId);
+      sessionUserIdRef.current = nextUserId;
       setSession(next);
-      setLoading(true);
-      window.setTimeout(() => { if (active) void verifyAdmin(next).finally(() => setLoading(false)); }, 0);
+
+      if (!next) {
+        setIsAdmin(false);
+        setLoading(false);
+        return;
+      }
+
+      // Supabase can emit SIGNED_IN/TOKEN_REFRESHED again when a browser tab
+      // becomes active. Keep the current screen mounted for the same user.
+      if (sameUser && (event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED' || event === 'INITIAL_SESSION')) {
+        return;
+      }
+
+      const blockUi = !sameUser;
+      if (blockUi) setLoading(true);
+      window.setTimeout(() => {
+        if (!active) return;
+        void verifyAdmin(next).finally(() => {
+          if (active && blockUi) setLoading(false);
+        });
+      }, 0);
     });
-    void supabase.auth.getSession().then(async ({ data }) => {
-      if (!active) return;
-      setSession(data.session);
-      await verifyAdmin(data.session);
-      if (active) setLoading(false);
-    });
+
+    void bootstrap();
     return () => { active = false; subscription.unsubscribe(); };
   }, [verifyAdmin]);
 
