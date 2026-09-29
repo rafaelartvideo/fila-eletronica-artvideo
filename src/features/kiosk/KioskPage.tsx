@@ -50,7 +50,18 @@ export function KioskPage() {
 
   function reset() { setSelectedType(null); setPhone(''); setTicket(null); setError(''); }
 
-  return <main className={`kiosk-page ${selectedType && !ticket ? 'kiosk-selection-active' : ''}`}>
+  const viewportLocked = Boolean(selectedType || ticket);
+  useEffect(() => {
+    if (!viewportLocked) return;
+    document.documentElement.classList.add('kiosk-viewport-locked');
+    document.body.classList.add('kiosk-viewport-locked');
+    return () => {
+      document.documentElement.classList.remove('kiosk-viewport-locked');
+      document.body.classList.remove('kiosk-viewport-locked');
+    };
+  }, [viewportLocked]);
+
+  return <main className={`kiosk-page ${selectedType && !ticket ? 'kiosk-selection-active' : ''} ${ticket ? 'kiosk-ticket-active' : ''} ${viewportLocked ? 'kiosk-viewport-active' : ''}`}>
     <header className="kiosk-topbar no-print">
       <Link to="/" className="auth-back"><ArrowLeft size={17} /> Voltar</Link>
       <div className="kiosk-brand"><Ticket size={20} /><strong>RETIRADA DE SENHA</strong></div>
