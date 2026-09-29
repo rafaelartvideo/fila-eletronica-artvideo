@@ -1,4 +1,4 @@
-import { Check, ChevronRight, Megaphone, Plus, RotateCcw, UserRound, X } from 'lucide-react';
+import { Check, ChevronRight, Megaphone, Plus, RotateCcw, X } from 'lucide-react';
 import type { QueueTicket, TicketType } from '../../domain/queue';
 
 interface Props {
@@ -24,11 +24,11 @@ export function QueueColumn({ type, tickets, busy, onCall, onIssue, onRepeat, on
       <button className="call-next-button" onClick={onCall} disabled={busy || waiting.length === 0}>
         <Megaphone size={17} /> Chamar próxima <ChevronRight size={17} />
       </button>
-      <button className="issue-walkin-button" onClick={onIssue} disabled={busy}><Plus size={15} /> Emitir senha manual</button>
+      <button className="issue-walkin-button" onClick={onIssue} disabled={busy}><Plus size={18} /> Gerar senha</button>
       <div className="queue-list">
         {active.map((ticket) => <article key={ticket.id} className={`queue-ticket ${ticket.status}`}>
           <div className="ticket-number-small">{ticket.ticketNumber}</div>
-          <div className="ticket-person"><strong>{ticket.customerName || 'Cliente sem nome'}</strong><small>{ticket.status === 'called' ? 'Chamado · ' + (ticket.counterLabel ?? 'Balcão 1') : 'Em atendimento'}</small></div>
+          <div className="ticket-person"><strong>{ticket.serviceTypeName}</strong><small>{ticket.status === 'called' ? 'Chamado · ' + (ticket.counterLabel ?? 'Balcão 1') : 'Em atendimento'}</small></div>
           <div className="ticket-actions">
             {ticket.status === 'called' && <button title="Repetir chamada" aria-label={`Repetir chamada ${ticket.ticketNumber}`} disabled={busy} onClick={() => onRepeat(ticket.id)}><RotateCcw size={16} /></button>}
             {ticket.status === 'called' && <button title="Iniciar atendimento" aria-label={`Iniciar ${ticket.ticketNumber}`} disabled={busy} onClick={() => onTransition(ticket.id, 'serving')}><ChevronRight size={17} /></button>}
@@ -38,7 +38,7 @@ export function QueueColumn({ type, tickets, busy, onCall, onIssue, onRepeat, on
         </article>)}
         {waiting.map((ticket) => <article key={ticket.id} className="queue-ticket waiting">
           <div className="ticket-number-small">{ticket.ticketNumber}</div>
-          <div className="ticket-person"><strong>{ticket.customerName || 'Cliente sem nome'}</strong><small><UserRound size={12} /> Na fila</small></div>
+          <div className="ticket-person"><strong>{ticket.serviceTypeName}</strong><small>Na fila</small></div>
           <div className="ticket-actions"><button title="Cancelar senha" aria-label={`Cancelar ${ticket.ticketNumber}`} disabled={busy} onClick={() => onTransition(ticket.id, 'cancelled')}><X size={16} /></button></div>
         </article>)}
         {active.length === 0 && waiting.length === 0 && <div className="queue-empty"><Check size={20} /> Nenhuma senha pendente</div>}

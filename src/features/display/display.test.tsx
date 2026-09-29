@@ -62,6 +62,14 @@ describe('public display', () => {
     expect(screen.getByText(/chamadas recentes/i)).toBeInTheDocument();
   });
 
+  it('puts video first and the current call with recent calls in the right rail', async () => {
+    render(<DisplayPage />);
+    expect(await screen.findByText('C008')).toBeInTheDocument();
+    const grid = document.querySelector('.display-main-grid')!;
+    expect(grid.firstElementChild).toHaveClass('display-media');
+    expect(grid.lastElementChild).toHaveClass('display-queue-column');
+  });
+
   it('advances the media playlist when playback ends', async () => {
     listDisplayMedia.mockResolvedValue([
       { id: 'video1', title: 'Vídeo 1', url: 'https://cdn.example/a.mp4', sortOrder: 0, isActive: true },

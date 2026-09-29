@@ -4,11 +4,11 @@ Sistema web de senhas para a Eletrônica Artvideo. A equipe gerencia a fila, o c
 
 ## Recursos
 
-- `/painel` — painel protegido para a equipe, com emissão manual, chamadas, repetição, início e conclusão de atendimento.
-- `/totem` — emissão de senha sem nome obrigatório e opção de impressão no navegador.
-- `/display` — chamadas em tempo real, histórico recente, voz opcional e playlist de vídeos.
+- `/painel` — painel protegido para a equipe, com geração de senhas, chamadas, repetição, início e conclusão de atendimento.
+- `/totem` — geração de senha sem nome, com impressão e WhatsApp opcional.
+- `/display` — vídeo em destaque, senha chamada e histórico recente na coluna lateral, voz opcional.
 - Numeração atômica por serviço, reiniciada a cada dia às 00h no fuso `America/Sao_Paulo`.
-- Dados de identificação só aparecem no painel autenticado. A tela pública recebe uma tabela de chamadas sem nome ou telefone.
+- O telefone digitado para WhatsApp fica apenas na tela de emissão e não é gravado. A tela pública recebe chamadas sem dados pessoais.
 - Links do YouTube são convertidos para incorporação sem cookies. Outros links precisam permitir incorporação no site externo.
 
 ## Tecnologia
@@ -108,6 +108,6 @@ No cPanel, aponte o domínio ou subdomínio para uma pasta exclusiva, crie uma c
 
 O arquivo `public/.htaccess` configura o fallback de rotas do React para `index.html`; o Vite o copia para `dist/`. Após mesclar este PR em `main`, confira a execução em **GitHub → Actions → Deploy Fila Artvideo**. A URL do display pode ser aberta em modo tela cheia no computador ou TV conectada.
 
-## Privacidade e operação
+## WhatsApp e operação
 
-O nome é opcional e serve para a equipe localizar o cliente. O painel mostra os nomes; o totem, a impressão e o display mostram apenas o número e o tipo de atendimento. Defina uma rotina operacional para retenção ou remoção dos dados de clientes conforme a política da loja.
+Cliente ou atendente pode informar um celular brasileiro com DDD ao gerar a senha. Depois da emissão, o botão **Enviar pelo WhatsApp** abre uma conversa com a mensagem preenchida; alguém precisa confirmar o envio no WhatsApp do aparelho. O telefone não é salvo no Supabase. Para envio automático sem interação, seria necessária uma integração futura com a WhatsApp Business Platform.

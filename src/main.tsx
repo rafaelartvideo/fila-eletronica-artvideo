@@ -4,6 +4,7 @@ import { BrowserRouter } from 'react-router';
 import App from './app/App';
 import './styles/tokens.css';
 import './styles/global.css';
+import './styles/polish.css';
 
 ReactDOM.createRoot(document.getElementById('root')!).render(
   <React.StrictMode>

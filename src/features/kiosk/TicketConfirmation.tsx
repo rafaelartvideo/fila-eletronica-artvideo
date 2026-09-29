@@ -1,7 +1,9 @@
-import { Check, Printer, RotateCcw, TicketCheck } from 'lucide-react';
+import { Check, MessageCircle, Printer, RotateCcw, TicketCheck } from 'lucide-react';
 import type { QueueTicket } from '../../domain/queue';
+import { ticketWhatsAppUrl } from '../../domain/whatsapp';
 
-export function TicketConfirmation({ ticket, onNewTicket }: { ticket: QueueTicket; onNewTicket: () => void }) {
+export function TicketConfirmation({ ticket, phone = '', onNewTicket }: { ticket: QueueTicket; phone?: string; onNewTicket: () => void }) {
+  const whatsappUrl = phone ? ticketWhatsAppUrl(phone, ticket) : null;
   return <section className="issued-ticket-screen" aria-live="polite">
     <div className="ticket-success-mark"><Check size={25} /></div>
     <span className="section-kicker">SENHA EMITIDA</span>
@@ -15,6 +17,8 @@ export function TicketConfirmation({ ticket, onNewTicket }: { ticket: QueueTicke
       <div className="print-ticket-message">Aguarde sua chamada na tela.</div>
     </article>
     <div className="kiosk-controls no-print" data-testid="kiosk-controls">
+      {whatsappUrl && <a className="whatsapp-button" href={whatsappUrl} target="_blank" rel="noopener noreferrer"><MessageCircle size={20} /> Enviar pelo WhatsApp</a>}
+      {phone && !whatsappUrl && <small className="phone-error">Número inválido. Use DDD + número brasileiro para enviar pelo WhatsApp.</small>}
       <button className="kiosk-print-button" onClick={() => window.print()}><Printer size={19} /> Imprimir senha</button>
       <button className="kiosk-new-button" onClick={onNewTicket}><RotateCcw size={17} /> Emitir outra senha</button>
     </div>

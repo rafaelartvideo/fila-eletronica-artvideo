@@ -47,12 +47,16 @@ describe('staff panel', () => {
     await waitFor(() => expect(button).toBeEnabled());
   });
 
-  it('lets staff add a walk-in ticket directly to the queue', async () => {
+  it('lets staff issue a ticket and prepare a WhatsApp message', async () => {
     authState.session = {};
     authState.isAdmin = true;
+    issueTicket.mockResolvedValue({ ticketNumber: 'C002', serviceTypeName: 'Conserto' });
     render(<MemoryRouter><StaffPage /></MemoryRouter>);
-    fireEvent.click(await screen.findByRole('button', { name: /emitir senha manual/i }));
-    await waitFor(() => expect(issueTicket).toHaveBeenCalledWith({ typeId: 'service-1', customerName: null }));
+    fireEvent.click(await screen.findByRole('button', { name: /gerar senha/i }));
+    fireEvent.change(screen.getByLabelText(/WhatsApp/i), { target: { value: '11912345678' } });
+    fireEvent.click(screen.getByRole('button', { name: /confirmar e gerar/i }));
+    await waitFor(() => expect(issueTicket).toHaveBeenCalledWith({ typeId: 'service-1' }));
+    expect(await screen.findByRole('link', { name: /Enviar pelo WhatsApp/i })).toHaveAttribute('href', expect.stringContaining('C002'));
   });
 
   it('reloads the queue after midnight in São Paulo', async () => {
