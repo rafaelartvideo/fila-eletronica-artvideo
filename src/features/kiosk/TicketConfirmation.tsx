@@ -16,7 +16,6 @@ export function TicketConfirmation({ ticket, phone = '', onNewTicket }: { ticket
       const job = await requestTicketPrint(ticket.id);
       setPrintState('waiting');
       for (let attempt = 0; attempt < 12; attempt += 1) {
-        await new Promise((resolve) => window.setTimeout(resolve, 700));
         const status = await getPrintJobStatus(job.id);
         if (status.status === 'printed') {
           setPrintState('printed');
@@ -26,6 +25,7 @@ export function TicketConfirmation({ ticket, phone = '', onNewTicket }: { ticket
         if (status.status === 'error') {
           throw new Error(status.errorMessage || 'A impressora não concluiu a impressão.');
         }
+        if (attempt < 11) await new Promise((resolve) => window.setTimeout(resolve, 700));
       }
       setPrintMessage('Pedido enviado. A impressão sairá assim que o agente estiver conectado.');
     } catch (cause) {

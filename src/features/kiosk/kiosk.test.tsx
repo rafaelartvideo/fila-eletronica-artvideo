@@ -1,9 +1,11 @@
-import { fireEvent, render, screen } from '@testing-library/react';
+import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 import { MemoryRouter } from 'react-router';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
-const { listTicketTypes, issueTicket, subscribeToQueueChanges } = vi.hoisted(() => ({ listTicketTypes: vi.fn(), issueTicket: vi.fn(), subscribeToQueueChanges: vi.fn() }));
-vi.mock('../../lib/supabase/queue-api', () => ({ listTicketTypes, issueTicket, subscribeToQueueChanges }));
+const { listTicketTypes, issueTicket, subscribeToQueueChanges, requestTicketPrint, getPrintJobStatus } = vi.hoisted(() => ({
+  listTicketTypes: vi.fn(), issueTicket: vi.fn(), subscribeToQueueChanges: vi.fn(), requestTicketPrint: vi.fn(), getPrintJobStatus: vi.fn(),
+}));
+vi.mock('../../lib/supabase/queue-api', () => ({ listTicketTypes, issueTicket, subscribeToQueueChanges, requestTicketPrint, getPrintJobStatus }));
 import { KioskPage } from './KioskPage';
 
 const types = [
@@ -18,8 +20,10 @@ function openKiosk() {
 describe('customer kiosk', () => {
   beforeEach(() => {
     listTicketTypes.mockReset().mockResolvedValue(types);
-    issueTicket.mockReset().mockResolvedValue({ ticketNumber: 'C008', sequenceNumber: 8, serviceTypeName: 'Conserto' });
+    issueTicket.mockReset().mockResolvedValue({ id: 'ticket-8', ticketNumber: 'C008', sequenceNumber: 8, serviceTypeName: 'Conserto', createdAt: '2026-09-29T14:00:00-03:00' });
     subscribeToQueueChanges.mockReset().mockReturnValue({ unsubscribe: vi.fn() });
+    requestTicketPrint.mockReset().mockResolvedValue({ id: 'print-1', status: 'pending' });
+    getPrintJobStatus.mockReset().mockResolvedValue({ id: 'print-1', status: 'printed', errorMessage: null, completedAt: '2026-09-29T14:00:01-03:00' });
   });
 
   it('shows active service types only and issues a ticket without a name', async () => {
@@ -52,14 +56,14 @@ describe('customer kiosk', () => {
     expect(await screen.findByText('C008')).toBeInTheDocument();
   });
 
-  it('prints the ticket and marks controls as hidden for print', async () => {
-    const print = vi.fn();
-    Object.defineProperty(window, 'print', { value: print, configurable: true });
+  it('sends the ticket to the direct-print agent and keeps controls hidden for browser print', async () => {
     openKiosk();
     fireEvent.click(await screen.findByRole('button', { name: /Conserto/i }));
     fireEvent.click(screen.getByRole('button', { name: /Gerar senha/i }));
     fireEvent.click(await screen.findByRole('button', { name: /Imprimir senha/i }));
-    expect(print).toHaveBeenCalledOnce();
+    await waitFor(() => expect(requestTicketPrint).toHaveBeenCalledWith('ticket-8'));
+    await waitFor(() => expect(getPrintJobStatus).toHaveBeenCalledWith('print-1'));
+    expect(await screen.findByText('Senha impressa.')).toBeInTheDocument();
     expect(screen.getByTestId('kiosk-controls')).toHaveClass('no-print');
   });
 });

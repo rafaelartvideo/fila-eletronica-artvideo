@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from 'react';
-import { Activity, CalendarDays, Clapperboard, LogOut, MessageCircle, Moon, Settings2, Sun, TicketCheck, Wrench, X } from 'lucide-react';
+import { Activity, CalendarDays, Clapperboard, LogOut, MessageCircle, Moon, Printer, Settings2, Sun, TicketCheck, Wrench, X } from 'lucide-react';
 import { Link } from 'react-router';
 import type { QueueTicket, TicketStatus, TicketType } from '../../domain/queue';
 import { ticketWhatsAppUrl } from '../../domain/whatsapp';
