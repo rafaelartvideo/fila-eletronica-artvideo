@@ -870,3 +870,26 @@ html[data-theme='light'] .display-ticker-track i { background: #c68b0a; }
   .printer-agent-form { grid-template-columns: 1fr; }
   .printer-agent-form .blue-button { width: 100%; }
 }
+
+
+/* Keep primary actions in the original blue palette in both themes. */
+html[data-theme='light'] .call-next-button:not(:disabled),
+html[data-theme='light'] .kiosk-generate-button:not(:disabled),
+html[data-theme='light'] .kiosk-print-button:not(:disabled),
+html[data-theme='light'] .blue-button:not(:disabled),
+html[data-theme='light'] .auth-submit:not(:disabled) {
+  color: #fff;
+  border-color: transparent;
+  background: linear-gradient(96deg, #175db8, #307ed8);
+}
+html[data-theme='light'] .call-next-button:not(:disabled) svg,
+html[data-theme='light'] .kiosk-generate-button:not(:disabled) svg,
+html[data-theme='light'] .kiosk-print-button:not(:disabled) svg,
+html[data-theme='light'] .blue-button:not(:disabled) svg,
+html[data-theme='light'] .auth-submit:not(:disabled) svg {
+  color: #fff;
+}
+html[data-theme='light'] .blue-button:not(:disabled),
+html[data-theme='light'] .auth-submit:not(:disabled) {
+  background: #1762c5;
+}
