@@ -42,6 +42,25 @@ $nl = [Environment]::NewLine
 $launcherBody = '@echo off' + $nl + 'start "" /min powershell.exe -NoProfile -ExecutionPolicy Bypass -WindowStyle Hidden -File "' + $agentPath + '"' + $nl
 Set-Content -LiteralPath $launcher -Value $launcherBody -Encoding ASCII
 
+# Encerra instâncias antigas deste agente antes de iniciar a versão atual.
+$escapedAgentPath = [Regex]::Escape($agentPath)
+$oldAgents = @(Get-CimInstance Win32_Process -Filter "Name = 'powershell.exe'" |
+  Where-Object {
+    $_.ProcessId -ne $PID -and
+    $_.CommandLine -and
+    $_.CommandLine -match $escapedAgentPath
+  })
+
+foreach ($process in $oldAgents) {
+  try {
+    Stop-Process -Id $process.ProcessId -Force -ErrorAction Stop
+    Write-Host "Agente antigo encerrado (PID $($process.ProcessId))." -ForegroundColor DarkGray
+  } catch {
+    Write-Host "Não foi possível encerrar o agente antigo PID $($process.ProcessId): $($_.Exception.Message)" -ForegroundColor Yellow
+  }
+}
+
+Start-Sleep -Milliseconds 500
 Start-Process powershell.exe -WindowStyle Hidden -ArgumentList @('-NoProfile','-ExecutionPolicy','Bypass','-File',('"' + $agentPath + '"'))
 Write-Host ''
 Write-Host 'Agente instalado e iniciado.' -ForegroundColor Green
