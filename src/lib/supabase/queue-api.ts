@@ -1,4 +1,4 @@
-import type { RealtimeChannel } from '@supabase/supabase-js';
+import { FunctionsHttpError, type RealtimeChannel } from '@supabase/supabase-js';
 import type { DisplayCall, MediaItem, QueueTicket, TicketPriority, TicketStatus, TicketType } from '../../domain/queue';
 import { requireSupabase } from './client';
 
@@ -24,6 +24,52 @@ export type TicketTracking = {
   calledAt: string | null;
   updatedAt: string;
   queueAhead: number;
+};
+
+export type QueuePermission = {
+  key: string;
+  label: string;
+  moduleName: string;
+  description: string;
+  sortOrder: number;
+};
+
+export type QueueRole = {
+  id: string;
+  name: string;
+  description: string | null;
+  isSystem: boolean;
+  isActive: boolean;
+  permissions: string[];
+};
+
+export type QueueUser = {
+  userId: string;
+  username: string;
+  fullName: string;
+  roleId: string;
+  roleName: string;
+  isActive: boolean;
+  createdAt: string;
+  updatedAt: string;
+};
+
+export type AttendanceRecord = {
+  id: string;
+  businessDate: string;
+  ticketNumber: string;
+  serviceTypeName: string;
+  servicePriority: TicketPriority;
+  status: TicketStatus;
+  counterLabel: string | null;
+  customerRequest: string | null;
+  createdAt: string;
+  calledAt: string | null;
+  startedAt: string | null;
+  completedAt: string | null;
+  cancelledAt: string | null;
+  attendantName: string | null;
+  attendantUsername: string | null;
 };
 
 const displayNoticeUrlPrefix = 'https://ticker.artvideo.local/';
@@ -398,4 +444,122 @@ export async function getPrintJobStatus(jobId: string): Promise<{ id: string; st
     errorMessage: row.error_message ? String(row.error_message) : null,
     completedAt: row.completed_at ? String(row.completed_at) : null,
   };
+}
+
+
+async function edgeFunctionError(error: unknown, fallback: string): Promise<Error> {
+  if (error instanceof FunctionsHttpError) {
+    try {
+      const payload = await error.context.json();
+      if (typeof payload?.error === 'string' && payload.error.trim()) return new Error(payload.error.trim());
+    } catch {}
+  }
+  return new Error(fallback);
+}
+
+export async function listAttendanceHistory(from: string, to: string): Promise<AttendanceRecord[]> {
+  const { data, error } = await requireSupabase().rpc('list_attendance_history', { p_from: from, p_to: to });
+  return (unwrap(data as ApiRow[] | null, error) as ApiRow[]).map((row) => ({
+    id: String(row.id),
+    businessDate: String(row.business_date),
+    ticketNumber: formatTicketNumber(String(row.ticket_number)),
+    serviceTypeName: String(row.service_type_name),
+    servicePriority: normalizePriority(row.service_priority),
+    status: String(row.status) as TicketStatus,
+    counterLabel: row.counter_label ? String(row.counter_label) : null,
+    customerRequest: row.customer_request ? String(row.customer_request) : null,
+    createdAt: String(row.created_at),
+    calledAt: row.called_at ? String(row.called_at) : null,
+    startedAt: row.started_at ? String(row.started_at) : null,
+    completedAt: row.completed_at ? String(row.completed_at) : null,
+    cancelledAt: row.cancelled_at ? String(row.cancelled_at) : null,
+    attendantName: row.attendant_name ? String(row.attendant_name) : null,
+    attendantUsername: row.attendant_username ? String(row.attendant_username) : null,
+  }));
+}
+
+export async function listQueuePermissions(): Promise<QueuePermission[]> {
+  const { data, error } = await requireSupabase()
+    .from('queue_permissions')
+    .select('key,label,module_name,description,sort_order')
+    .order('sort_order')
+    .order('label');
+  return (unwrap(data, error) as ApiRow[]).map((row) => ({
+    key: String(row.key),
+    label: String(row.label),
+    moduleName: String(row.module_name),
+    description: String(row.description ?? ''),
+    sortOrder: Number(row.sort_order ?? 0),
+  }));
+}
+
+export async function listQueueRoles(): Promise<QueueRole[]> {
+  const { data, error } = await requireSupabase().rpc('list_queue_roles');
+  return (unwrap(data as ApiRow[] | null, error) as ApiRow[]).map((row) => ({
+    id: String(row.id),
+    name: String(row.name),
+    description: row.description ? String(row.description) : null,
+    isSystem: Boolean(row.is_system),
+    isActive: Boolean(row.is_active),
+    permissions: Array.isArray(row.permissions) ? row.permissions.map(String) : [],
+  }));
+}
+
+export async function saveQueueRole(input: {
+  id?: string;
+  name: string;
+  description?: string;
+  isActive: boolean;
+  permissions: string[];
+}): Promise<string> {
+  const { data, error } = await requireSupabase().rpc('save_queue_role', {
+    p_id: input.id ?? null,
+    p_name: input.name.trim(),
+    p_description: input.description?.trim() || null,
+    p_is_active: input.isActive,
+    p_permission_keys: input.permissions,
+  });
+  return String(unwrap(data as string | null, error));
+}
+
+export async function listQueueUsers(): Promise<QueueUser[]> {
+  const { data, error } = await requireSupabase()
+    .from('queue_users')
+    .select('user_id,username,full_name,role_id,is_active,created_at,updated_at,queue_roles(name)')
+    .order('full_name');
+  return (unwrap(data, error) as ApiRow[]).map((row) => {
+    const role = row.queue_roles as { name?: unknown } | null;
+    return {
+      userId: String(row.user_id),
+      username: String(row.username),
+      fullName: String(row.full_name),
+      roleId: String(row.role_id),
+      roleName: role?.name ? String(role.name) : 'Sem cargo',
+      isActive: Boolean(row.is_active),
+      createdAt: String(row.created_at),
+      updatedAt: String(row.updated_at),
+    };
+  });
+}
+
+export async function saveQueueUser(input: {
+  userId?: string;
+  username: string;
+  fullName: string;
+  roleId: string;
+  password?: string;
+  isActive: boolean;
+}): Promise<void> {
+  const result = await requireSupabase().functions.invoke('queue-user-admin', {
+    body: {
+      action: input.userId ? 'update' : 'create',
+      user_id: input.userId,
+      username: input.username.trim().toLowerCase(),
+      full_name: input.fullName.trim(),
+      role_id: input.roleId,
+      password: input.password ?? '',
+      is_active: input.isActive,
+    },
+  });
+  if (result.error) throw await edgeFunctionError(result.error, 'Não foi possível salvar o usuário.');
 }
