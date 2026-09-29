@@ -1491,3 +1491,148 @@ html[data-theme='light'] .service-customer-request textarea { color: #17253a; bo
   .tracking-status-card { align-items: flex-start; }
   .service-customer-request { margin-inline: 14px; }
 }
+
+
+/* Expandable tracking QR for staff-assisted ticket issue. */
+.tracking-qr-trigger {
+  width: 100%;
+  min-height: 68px;
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  align-items: center;
+  gap: 11px;
+  margin: 13px 0;
+  padding: 11px 13px;
+  border: 1px solid #35516f;
+  border-radius: 12px;
+  color: #eaf3fc;
+  background: #102842;
+  text-align: left;
+  cursor: pointer;
+}
+.tracking-qr-trigger:hover { border-color: #4a7199; background: #143252; }
+.tracking-qr-trigger-icon {
+  width: 40px;
+  height: 40px;
+  display: grid;
+  place-items: center;
+  border-radius: 10px;
+  color: #a9d0fb;
+  background: #18395e;
+}
+.tracking-qr-trigger > span:nth-child(2) { min-width: 0; display: grid; gap: 3px; }
+.tracking-qr-trigger strong { font-size: 11px; }
+.tracking-qr-trigger small { color: #9eb1c6; font-size: 9px; line-height: 1.4; }
+
+.tracking-qr-links {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+}
+.tracking-qr-links button,
+.tracking-qr-links a {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  width: fit-content;
+  padding: 0;
+  border: 0;
+  color: #1762c5;
+  background: transparent;
+  font-size: 10px;
+  font-weight: 750;
+  cursor: pointer;
+  text-decoration: none;
+}
+
+.tracking-qr-overlay {
+  position: fixed;
+  z-index: 120;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  padding: 20px;
+  background: rgb(3 10 18 / 78%);
+  backdrop-filter: blur(6px);
+}
+.tracking-qr-dialog {
+  position: relative;
+  width: min(520px, 100%);
+  display: grid;
+  justify-items: center;
+  gap: 10px;
+  padding: 28px;
+  border: 1px solid #31485f;
+  border-radius: 20px;
+  color: #f5f8fc;
+  background: #10233a;
+  box-shadow: 0 30px 90px rgb(0 0 0 / 45%);
+  text-align: center;
+}
+.tracking-qr-dialog h2 {
+  margin: 4px 0 0;
+  font-size: 28px;
+  letter-spacing: -.04em;
+}
+.tracking-qr-dialog > p {
+  max-width: 410px;
+  margin: 0 0 8px;
+  color: #a6b8cb;
+  font-size: 11px;
+  line-height: 1.55;
+}
+.tracking-qr-dialog-close {
+  position: absolute;
+  top: 16px;
+  right: 16px;
+  width: 39px;
+  height: 39px;
+  display: grid;
+  place-items: center;
+  border: 1px solid #344b64;
+  border-radius: 10px;
+  color: #c2d1e0;
+  background: #172c44;
+  cursor: pointer;
+}
+.tracking-qr-visual.large {
+  width: min(330px, 78vw);
+  height: min(330px, 78vw);
+  margin: 7px 0 4px;
+  padding: 8px;
+  border-radius: 16px;
+  background: #fff;
+}
+.tracking-qr-dialog-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 4px;
+  color: #8fc2ff;
+  font-size: 10px;
+  font-weight: 750;
+  text-decoration: none;
+}
+html[data-theme='light'] .tracking-qr-trigger {
+  color: #1c2d43;
+  border-color: #d5e0ec;
+  background: #f5f9fe;
+}
+html[data-theme='light'] .tracking-qr-trigger:hover { border-color: #bfd2e7; background: #eef6ff; }
+html[data-theme='light'] .tracking-qr-trigger-icon { color: #2469b7; background: #e5f1ff; }
+html[data-theme='light'] .tracking-qr-trigger small { color: #697b90; }
+html[data-theme='light'] .tracking-qr-dialog {
+  color: #17253a;
+  border-color: #d8e1ea;
+  background: #fff;
+}
+html[data-theme='light'] .tracking-qr-dialog > p { color: #697a8e; }
+html[data-theme='light'] .tracking-qr-dialog-close { color: #5a6d82; border-color: #dce4ec; background: #f2f6fa; }
+html[data-theme='light'] .tracking-qr-dialog-link { color: #1762c5; }
+
+@media (max-width: 520px) {
+  .tracking-qr-dialog { padding: 25px 16px 18px; }
+  .tracking-qr-dialog h2 { font-size: 24px; }
+  .tracking-qr-trigger { min-height: 64px; }
+}
