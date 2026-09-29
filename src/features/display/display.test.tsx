@@ -1,11 +1,11 @@
 import { act, fireEvent, render, renderHook, screen, waitFor } from '@testing-library/react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
-const { listDisplayCalls, listDisplayMedia, subscribeToDisplayCalls, subscriptionState } = vi.hoisted(() => ({
-  listDisplayCalls: vi.fn(), listDisplayMedia: vi.fn(), subscribeToDisplayCalls: vi.fn(),
+const { listDisplayCalls, listDisplayMedia, subscribeToDisplayCalls, subscribeToQueueChanges, subscriptionState } = vi.hoisted(() => ({
+  listDisplayCalls: vi.fn(), listDisplayMedia: vi.fn(), subscribeToDisplayCalls: vi.fn(), subscribeToQueueChanges: vi.fn(),
   subscriptionState: { onChange: null as null | (() => void), onStatus: null as null | ((status: string) => void) },
 }));
-vi.mock('../../lib/supabase/queue-api', () => ({ listDisplayCalls, listDisplayMedia, subscribeToDisplayCalls }));
+vi.mock('../../lib/supabase/queue-api', () => ({ listDisplayCalls, listDisplayMedia, subscribeToDisplayCalls, subscribeToQueueChanges }));
 
 import { useDisplayCalls } from './useDisplayCalls';
 import { DisplayPage } from './DisplayPage';
@@ -19,6 +19,7 @@ describe('public display', () => {
     listDisplayMedia.mockReset().mockResolvedValue([]);
     subscriptionState.onChange = null;
     subscriptionState.onStatus = null;
+    subscribeToQueueChanges.mockReset().mockReturnValue({ unsubscribe: vi.fn() });
     subscribeToDisplayCalls.mockReset().mockImplementation((onChange, onStatus) => {
       subscriptionState.onChange = onChange;
       subscriptionState.onStatus = onStatus;
