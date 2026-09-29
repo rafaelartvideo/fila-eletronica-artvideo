@@ -15,6 +15,7 @@ export function TicketConfirmation({ ticket, phone = '', onNewTicket }: { ticket
       <strong className="print-ticket-number">{ticket.ticketNumber}</strong>
       <span className="print-ticket-date">Senha emitida · {new Intl.DateTimeFormat('pt-BR', { timeZone: 'America/Sao_Paulo', dateStyle: 'short', timeStyle: 'short' }).format(new Date(ticket.createdAt || Date.now()))}</span>
       <div className="print-ticket-message">Aguarde sua chamada na tela.</div>
+      <div className="print-feed-spacer" aria-hidden="true" />
     </article>
     <div className="kiosk-controls no-print" data-testid="kiosk-controls">
       {whatsappUrl && <a className="whatsapp-button" href={whatsappUrl} target="_blank" rel="noopener noreferrer"><MessageCircle size={20} /> Enviar pelo WhatsApp</a>}
