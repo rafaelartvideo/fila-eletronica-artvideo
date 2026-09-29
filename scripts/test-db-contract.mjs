@@ -11,7 +11,7 @@ try {
     create role anon;
     create role authenticated;
     create schema auth;
-    create table auth.users (id uuid primary key);
+    create table auth.users (id uuid primary key, email text);
     create function auth.uid() returns uuid language sql stable as $$
       select nullif(current_setting('request.jwt.claim.sub', true), '')::uuid
     $$;
@@ -24,8 +24,9 @@ try {
   const adminId = '00000000-0000-4000-8000-000000000001';
   const serviceId = '10000000-0000-4000-8000-000000000001';
   const kioskServiceId = '10000000-0000-4000-8000-000000000002';
-  await db.query(`insert into auth.users (id) values ($1)`, [adminId]);
+  await db.query(`insert into auth.users (id, email) values ($1, 'admin@artvideo.local')`, [adminId]);
   await db.query(`insert into private.admin_users (user_id) values ($1)`, [adminId]);
+  await db.query(`insert into public.queue_users (user_id, username, full_name, role_id, is_active) values ($1, 'admin', 'Administrador', '00000000-0000-4000-8000-000000000101', true)`, [adminId]);
   await db.query(`insert into public.ticket_types (id, name, prefix) values ($1, 'Conserto', 'C')`, [serviceId]);
   await db.query(`insert into public.ticket_types (id, name, prefix, priority) values ($1, 'Retirada', 'R', 'urgent')`, [kioskServiceId]);
   await db.exec(`set role anon`);
@@ -45,7 +46,7 @@ try {
   await db.query(`select set_config('request.jwt.claims', $1, false)`, [JSON.stringify({ sub: kioskId, role: 'authenticated', is_anonymous: true })]);
   await assert.rejects(
     db.query(`select * from public.issue_ticket($1, null)`, [kioskServiceId]),
-    /staff|admin access/i,
+    /permission denied|queue.issue/i,
     'anonymous sessions cannot issue tickets',
   );
   await db.query(`select set_config('request.jwt.claim.sub', $1, false)`, [adminId]);
@@ -85,6 +86,9 @@ try {
   const completed = await db.query(`select * from public.complete_ticket($1, 'Cliente solicitou orçamento para reparo')`, [first.rows[0].id]);
   assert.equal(completed.rows[0].status, 'completed');
   assert.equal(completed.rows[0].customer_request, 'Cliente solicitou orçamento para reparo');
+  const attendance = await db.query(`select * from public.list_attendance_history('2026-01-01', '2026-12-31') where ticket_number='C-001'`);
+  assert.equal(attendance.rows[0].customer_request, 'Cliente solicitou orçamento para reparo', 'attendance history includes the customer request');
+  assert.equal(attendance.rows[0].attendant_username, 'admin', 'attendance history records the attendant');
   const nextGlobal = await db.query(`select * from public.call_next_waiting_ticket('Balcão 1')`);
   assert.equal(nextGlobal.rows[0].ticket_number, 'C-002', 'global queue preserves arrival order across service types');
 
