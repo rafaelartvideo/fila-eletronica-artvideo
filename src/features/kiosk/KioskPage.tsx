@@ -1,9 +1,9 @@
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { ArrowLeft, ArrowRight, CircleHelp, Wrench } from 'lucide-react';
 import { Link } from 'react-router';
 import { BrandLogo } from '../../components/BrandLogo';
 import type { QueueTicket, TicketType } from '../../domain/queue';
-import { issueTicket, listTicketTypes } from '../../lib/supabase/queue-api';
+import { issueTicket, listTicketTypes, subscribeToQueueChanges } from '../../lib/supabase/queue-api';
 import { TicketConfirmation } from './TicketConfirmation';
 
 export function KioskPage() {
@@ -15,13 +15,35 @@ export function KioskPage() {
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState('');
 
-  async function loadTypes() {
-    setLoading(true); setError('');
-    try { setTypes((await listTicketTypes()).filter((type) => type.isActive)); }
-    catch (cause) { setError(cause instanceof Error ? cause.message : 'Não foi possível carregar os atendimentos.'); }
-    finally { setLoading(false); }
-  }
-  useEffect(() => { void loadTypes(); }, []);
+  const loadTypes = useCallback(async (showLoading = false) => {
+    if (showLoading) setLoading(true);
+    setError('');
+    try {
+      const nextTypes = (await listTicketTypes()).filter((type) => type.isActive);
+      setTypes(nextTypes);
+      setSelectedType((current) => current ? nextTypes.find((type) => type.id === current.id) ?? null : null);
+    } catch (cause) {
+      setError(cause instanceof Error ? cause.message : 'Não foi possível carregar os atendimentos.');
+    } finally {
+      if (showLoading) setLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    let active = true;
+    void loadTypes(true);
+    let channel: { unsubscribe: () => Promise<unknown> | unknown } | undefined;
+    try {
+      channel = subscribeToQueueChanges(['ticket_types'], () => {
+        if (active) void loadTypes();
+      }, (status) => {
+        if (active && status === 'SUBSCRIBED') void loadTypes();
+      });
+    } catch {
+      // Keep the initial list available even if Realtime is temporarily offline.
+    }
+    return () => { active = false; void channel?.unsubscribe(); };
+  }, [loadTypes]);
 
   async function createTicket() {
     if (!selectedType) return;
@@ -38,7 +60,7 @@ export function KioskPage() {
     <div className="kiosk-content">
       {ticket ? <TicketConfirmation ticket={ticket} phone={phone} onNewTicket={reset} /> : <>
         <div className="kiosk-welcome"><span className="section-kicker">GERAR SENHA</span><h1>{selectedType ? 'Confirme seu atendimento' : 'Como podemos ajudar?'}</h1><p>{selectedType ? `Você selecionou ${selectedType.name}. Seu WhatsApp é opcional.` : 'Escolha o atendimento para gerar sua senha.'}</p></div>
-        {error && <div role="alert" className="kiosk-error">{error}{selectedType && <button onClick={() => void createTicket()}>Tentar novamente</button>}{!selectedType && <button onClick={() => void loadTypes()}>Recarregar</button>}</div>}
+        {error && <div role="alert" className="kiosk-error">{error}{selectedType && <button onClick={() => void createTicket()}>Tentar novamente</button>}{!selectedType && <button onClick={() => void loadTypes(true)}>Recarregar</button>}</div>}
         {loading ? <div className="kiosk-loading">Carregando atendimentos…</div> : selectedType ? <section className="kiosk-step-card">
           <div className="selected-service"><span className="entry-icon gold"><Wrench size={20} /></span><div><small>ATENDIMENTO</small><strong>{selectedType.name}</strong></div><button className="change-service" onClick={() => { setSelectedType(null); setError(''); }}>Alterar</button></div>
           <label className="kiosk-name-label" htmlFor="kiosk-phone">WhatsApp do cliente <span>(opcional)</span></label>
