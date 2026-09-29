@@ -2,8 +2,11 @@ import { useEffect, useMemo, useState, type FormEvent } from 'react';
 import { LockKeyhole, Pencil, Plus, ShieldCheck, X } from 'lucide-react';
 import type { QueuePermission, QueueRole } from '../../lib/supabase/queue-api';
 import { listQueuePermissions, listQueueRoles, saveQueueRole } from '../../lib/supabase/queue-api';
+import { useAuth } from '../auth/AuthProvider';
 
 export function RolesSettings() {
+  const { hasPermission } = useAuth();
+  const canManage = hasPermission('roles.manage');
   const [roles, setRoles] = useState<QueueRole[]>([]);
   const [permissions, setPermissions] = useState<QueuePermission[]>([]);
   const [editing, setEditing] = useState<QueueRole | null>(null);
@@ -81,7 +84,7 @@ export function RolesSettings() {
   return <section className="access-panel">
     <header className="panel-section-header">
       <div><span className="section-kicker">ACESSOS</span><h2>Cargos e permissões</h2><p>Defina quais módulos e ações cada cargo pode utilizar.</p></div>
-      <button className="blue-button" type="button" onClick={create}><Plus size={16} /> Novo cargo</button>
+      {canManage && <button className="blue-button" type="button" onClick={create}><Plus size={16} /> Novo cargo</button>}
     </header>
 
     {error && !open && <div className="staff-error" role="alert">{error}<button onClick={() => void load()}>Tentar novamente</button></div>}
@@ -91,7 +94,7 @@ export function RolesSettings() {
         <div className="role-card-head"><span>{role.isSystem ? <LockKeyhole size={18} /> : <ShieldCheck size={18} />}</span><div><strong>{role.name}</strong><small>{role.isActive ? 'Ativo' : 'Inativo'}</small></div></div>
         <p>{role.description || 'Sem descrição.'}</p>
         <div className="role-permission-summary">{role.permissions.length} permissões</div>
-        {role.isSystem ? <small className="role-system-note">Cargo protegido do sistema.</small> : <button className="subtle-button" type="button" onClick={() => edit(role)}><Pencil size={15} /> Editar cargo</button>}
+        {role.isSystem ? <small className="role-system-note">Cargo protegido do sistema.</small> : canManage ? <button className="subtle-button" type="button" onClick={() => edit(role)}><Pencil size={15} /> Editar cargo</button> : <small className="role-system-note">Somente visualização.</small>}
       </article>)}
     </div>
 
