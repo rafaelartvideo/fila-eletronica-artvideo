@@ -1,6 +1,7 @@
 $ErrorActionPreference = 'Stop'
 $root = $PSScriptRoot
 $configPath = Join-Path $root 'config.json'
+$agentPath = Join-Path $root 'agent.ps1'
 
 Write-Host ''
 Write-Host '=== Artvideo Print - configuração ===' -ForegroundColor Cyan
@@ -10,6 +11,24 @@ if (-not (Test-Path -LiteralPath $configPath)) {
   Write-Host 'No painel do sistema, abra Impressora > Gerar nova chave > Baixar config.json.'
   Write-Host 'Depois coloque o arquivo config.json nesta mesma pasta e execute este setup novamente.'
   exit 1
+}
+
+$config = Get-Content -LiteralPath $configPath -Raw | ConvertFrom-Json
+
+# Sempre tenta atualizar o agente a partir da main antes de reiniciar.
+# Se a internet/GitHub estiver indisponível, continua com a cópia local.
+$latestAgentUrl = 'https://raw.githubusercontent.com/rafaelartvideo/fila-eletronica-artvideo/main/print-agent/agent.ps1'
+$tempAgentPath = Join-Path $root 'agent.latest.ps1'
+try {
+  Invoke-WebRequest -Uri $latestAgentUrl -OutFile $tempAgentPath -UseBasicParsing -TimeoutSec 20
+  if ((Get-Item -LiteralPath $tempAgentPath).Length -lt 1000) {
+    throw 'Arquivo de atualização inválido.'
+  }
+  Move-Item -LiteralPath $tempAgentPath -Destination $agentPath -Force
+  Write-Host 'Agente atualizado para a versão mais recente.' -ForegroundColor Green
+} catch {
+  if (Test-Path -LiteralPath $tempAgentPath) { Remove-Item -LiteralPath $tempAgentPath -Force -ErrorAction SilentlyContinue }
+  Write-Host "Não foi possível buscar atualização automática; usando o agent.ps1 local. $($_.Exception.Message)" -ForegroundColor Yellow
 }
 
 $config = Get-Content -LiteralPath $configPath -Raw | ConvertFrom-Json
@@ -37,7 +56,6 @@ if ($currentIndex -lt 0) {
 
 $startup = [Environment]::GetFolderPath('Startup')
 $launcher = Join-Path $startup 'Artvideo Print Agent.cmd'
-$agentPath = Join-Path $root 'agent.ps1'
 $nl = [Environment]::NewLine
 $launcherBody = '@echo off' + $nl + 'start "" /min powershell.exe -NoProfile -ExecutionPolicy Bypass -WindowStyle Hidden -File "' + $agentPath + '"' + $nl
 Set-Content -LiteralPath $launcher -Value $launcherBody -Encoding ASCII
