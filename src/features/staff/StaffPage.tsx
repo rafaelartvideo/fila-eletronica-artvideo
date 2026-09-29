@@ -1,5 +1,5 @@
-import { useCallback, useEffect, useState } from 'react';
-import { Activity, CalendarDays, Clapperboard, LogOut, Megaphone, MessageCircle, Moon, Printer, Settings2, Sun, TicketCheck, TicketPlus, Wrench, X } from 'lucide-react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
+import { Activity, CalendarDays, Clapperboard, History, LogOut, Megaphone, MessageCircle, Moon, Printer, Settings2, ShieldCheck, Sun, TicketCheck, TicketPlus, Users, Wrench, X } from 'lucide-react';
 import { Link } from 'react-router';
 import type { QueueTicket, TicketStatus, TicketType } from '../../domain/queue';
 import { ticketWhatsAppUrl } from '../../domain/whatsapp';
@@ -11,8 +11,12 @@ import { TicketTrackingQr } from '../tracking/TicketTrackingQr';
 import { ServiceTypeSettings } from './ServiceTypeSettings';
 import { MediaSettings } from './MediaSettings';
 import { PrinterSettings } from './PrinterSettings';
+import { AttendanceHistory } from './AttendanceHistory';
+import { UsersSettings } from './UsersSettings';
+import { RolesSettings } from './RolesSettings';
 
-type Tab = 'queue' | 'services' | 'media' | 'printer';
+type Tab = 'queue' | 'attendance' | 'services' | 'users' | 'roles' | 'media' | 'printer';
+
 function todayInSaoPaulo() {
   const parts = new Intl.DateTimeFormat('en-CA', { timeZone: 'America/Sao_Paulo', year: 'numeric', month: '2-digit', day: '2-digit' }).formatToParts(new Date());
   const value = Object.fromEntries(parts.map(({ type, value }) => [type, value]));
@@ -20,7 +24,28 @@ function todayInSaoPaulo() {
 }
 
 export function StaffPage() {
-  const { signOut } = useAuth();
+  const { signOut, hasPermission, userName, roleName } = useAuth();
+  const canQueue = hasPermission('queue.view');
+  const canIssue = hasPermission('queue.issue');
+  const canCall = hasPermission('queue.call');
+  const canServe = hasPermission('queue.serve');
+  const canAttendance = hasPermission('attendance.view');
+  const canServices = hasPermission('service_types.manage');
+  const canUsers = hasPermission('users.view') || hasPermission('users.manage');
+  const canRoles = hasPermission('roles.view') || hasPermission('roles.manage');
+  const canMedia = hasPermission('display.manage');
+  const canPrinter = hasPermission('printer.manage');
+
+  const availableTabs = useMemo(() => [
+    canQueue && 'queue',
+    canAttendance && 'attendance',
+    canServices && 'services',
+    canUsers && 'users',
+    canRoles && 'roles',
+    canMedia && 'media',
+    canPrinter && 'printer',
+  ].filter(Boolean) as Tab[], [canQueue, canAttendance, canServices, canUsers, canRoles, canMedia, canPrinter]);
+
   const [theme, setTheme] = useState<'dark' | 'light'>(() => document.documentElement.dataset.theme === 'light' ? 'light' : 'dark');
   const [tab, setTab] = useState<Tab>('queue');
   const [types, setTypes] = useState<TicketType[]>([]);
@@ -34,6 +59,10 @@ export function StaffPage() {
   const [activeTicketId, setActiveTicketId] = useState<string | null>(null);
   const [servicePanelMinimized, setServicePanelMinimized] = useState(false);
   const [day, setDay] = useState(todayInSaoPaulo);
+
+  useEffect(() => {
+    if (!availableTabs.includes(tab) && availableTabs[0]) setTab(availableTabs[0]);
+  }, [availableTabs, tab]);
 
   useEffect(() => {
     const syncTheme = () => setTheme(document.documentElement.dataset.theme === 'light' ? 'light' : 'dark');
@@ -50,6 +79,7 @@ export function StaffPage() {
   }, []);
 
   const refresh = useCallback(async () => {
+    if (!canQueue) return null;
     setError('');
     try {
       const [nextTypes, nextTickets] = await Promise.all([listTicketTypes(), listQueueTickets(day)]);
@@ -60,9 +90,10 @@ export function StaffPage() {
       setError(cause instanceof Error ? cause.message : 'Não foi possível atualizar a fila.');
       return null;
     }
-  }, [day]);
+  }, [day, canQueue]);
 
   useEffect(() => {
+    if (!canQueue) return;
     let active = true;
     void refresh();
     let channel: { unsubscribe: () => Promise<unknown> | unknown } | undefined;
@@ -72,7 +103,7 @@ export function StaffPage() {
       });
     } catch {}
     return () => { active = false; void channel?.unsubscribe(); };
-  }, [refresh]);
+  }, [refresh, canQueue]);
 
   useEffect(() => {
     const current = activeTicketId
@@ -83,7 +114,6 @@ export function StaffPage() {
     const candidate = tickets
       .filter((ticket) => (ticket.status === 'called' || ticket.status === 'serving') && ticket.counterLabel === counter)
       .sort((a, b) => Date.parse(b.calledAt ?? b.createdAt) - Date.parse(a.calledAt ?? a.createdAt))[0] ?? null;
-
     setActiveTicketId(candidate?.id ?? null);
   }, [tickets, counter, activeTicketId]);
 
@@ -100,7 +130,7 @@ export function StaffPage() {
   }
 
   async function issueFromStaff() {
-    if (!issueType) return;
+    if (!issueType || !canIssue) return;
     setBusy(true); setError('');
     try {
       const issued = await issueTicket({ typeId: issueType.id });
@@ -113,6 +143,7 @@ export function StaffPage() {
   function closeIssue() { setIssueType(null); setIssuePhone(''); setIssuedTicket(null); setError(''); }
 
   async function callNext() {
+    if (!canCall) return;
     setBusy(true); setError('');
     try {
       const call = await callNextTicket(counter);
@@ -130,6 +161,7 @@ export function StaffPage() {
   }
 
   async function repeatCurrentTicket(ticketId: string) {
+    if (!canCall) return;
     setBusy(true); setError('');
     try {
       await repeatTicketCall(ticketId);
@@ -142,11 +174,11 @@ export function StaffPage() {
   }
 
   async function changeTicketStatus(ticketId: string, status: Extract<TicketStatus, 'serving' | 'completed' | 'cancelled'>) {
+    if (!canServe) return;
     setBusy(true); setError('');
     try {
       await transitionTicket(ticketId, status);
       const nextTickets = await refresh();
-
       if (status === 'serving') {
         setActiveTicketId(ticketId);
         setServicePanelMinimized(false);
@@ -165,6 +197,7 @@ export function StaffPage() {
   }
 
   async function completeCurrentTicket(ticketId: string, customerRequest: string) {
+    if (!canServe) return;
     setBusy(true); setError('');
     try {
       await completeTicket(ticketId, customerRequest);
@@ -198,42 +231,68 @@ export function StaffPage() {
     (ticket.status === 'called' || ticket.status === 'serving') && ticket.counterLabel === counter
   );
 
+  const heading = {
+    queue: ['Fila de atendimento', 'Gerencie as senhas e acompanhe os atendimentos em andamento.'],
+    attendance: ['Atendimentos', 'Histórico completo das senhas e atendimentos realizados.'],
+    services: ['Tipos de atendimento', 'Configure tipos, prefixos e prioridades da fila.'],
+    users: ['Usuários', 'Gerencie quem pode acessar o sistema.'],
+    roles: ['Cargos e permissões', 'Controle as funções disponíveis para cada cargo.'],
+    media: ['Conteúdo do display', 'Gerencie vídeos e mensagens exibidas na tela de chamadas.'],
+    printer: ['Impressora', 'Configure o agente local de impressão de senhas.'],
+  }[tab];
+
   return <main className="staff-app">
     <header className="staff-topbar">
-      <Link to="/" className="staff-brand" aria-label="Página inicial"><span className="staff-brand-icon"><TicketCheck size={19} /></span><span><strong>PAINEL DE ATENDIMENTO</strong><small>GESTÃO DA FILA</small></span></Link>
-      <div className="staff-top-actions"><Link className="staff-kiosk-link" to="/totem"><TicketPlus size={16} /> <span>Gerar senhas</span></Link><button className="staff-theme-toggle" type="button" onClick={toggleTheme} aria-label={theme === 'dark' ? 'Ativar tema claro' : 'Ativar tema escuro'} title={theme === 'dark' ? 'Ativar tema claro' : 'Ativar tema escuro'}>{theme === 'dark' ? <Sun size={16} /> : <Moon size={16} />}<span>{theme === 'dark' ? 'Claro' : 'Escuro'}</span></button><button className="staff-logout" onClick={() => void logout()}><LogOut size={16} /> Sair</button></div>
+      <Link to="/" className="staff-brand" aria-label="Página inicial"><span className="staff-brand-icon"><TicketCheck size={19} /></span><span><strong>PAINEL DE ATENDIMENTO</strong><small>{userName || 'EQUIPE'} · {roleName || 'USUÁRIO'}</small></span></Link>
+      <div className="staff-top-actions">
+        {canIssue && <Link className="staff-kiosk-link" to="/totem"><TicketPlus size={16} /> <span>Gerar senhas</span></Link>}
+        <button className="staff-theme-toggle" type="button" onClick={toggleTheme} aria-label={theme === 'dark' ? 'Ativar tema claro' : 'Ativar tema escuro'} title={theme === 'dark' ? 'Ativar tema claro' : 'Ativar tema escuro'}>{theme === 'dark' ? <Sun size={16} /> : <Moon size={16} />}<span>{theme === 'dark' ? 'Claro' : 'Escuro'}</span></button>
+        <button className="staff-logout" onClick={() => void logout()}><LogOut size={16} /> Sair</button>
+      </div>
     </header>
 
     <section className="staff-main">
-      <div className="staff-heading"><div><span className="section-kicker">OPERAÇÃO DA LOJA</span><h1>Fila de atendimento</h1><p>Gerencie as senhas e acompanhe os atendimentos em andamento.</p></div><div className="date-pill"><CalendarDays size={16} /> {new Intl.DateTimeFormat('pt-BR', { timeZone: 'America/Sao_Paulo', dateStyle: 'full' }).format(new Date())}</div></div>
-      <div className="staff-metrics">
+      <div className="staff-heading"><div><span className="section-kicker">OPERAÇÃO DA LOJA</span><h1>{heading[0]}</h1><p>{heading[1]}</p></div><div className="date-pill"><CalendarDays size={16} /> {new Intl.DateTimeFormat('pt-BR', { timeZone: 'America/Sao_Paulo', dateStyle: 'full' }).format(new Date())}</div></div>
+
+      {canQueue && <div className="staff-metrics">
         <div className="staff-metric waiting-metric"><span className="metric-icon amber"><Activity size={17} /></span><div><small>Aguardando</small><strong>{waiting}</strong></div></div>
         <div className="staff-metric called-metric"><span className="metric-icon green"><TicketCheck size={17} /></span><div><small>Chamadas / atendimento</small><strong>{serving}</strong></div></div>
         <div className="staff-metric"><span className="metric-icon blue"><TicketCheck size={17} /></span><div><small>Concluídos hoje</small><strong>{served}</strong></div></div>
-      </div>
-      <nav className="staff-tabs" aria-label="Seções do painel">
-        <button className={tab === 'queue' ? 'selected' : ''} onClick={() => setTab('queue')}><TicketCheck size={16} /> Fila</button>
-        <button className={tab === 'services' ? 'selected' : ''} onClick={() => setTab('services')}><Settings2 size={16} /> Atendimentos</button>
-        <button className={tab === 'media' ? 'selected' : ''} onClick={() => setTab('media')}><Clapperboard size={16} /> Conteúdo do display</button>
-        <button className={tab === 'printer' ? 'selected' : ''} onClick={() => setTab('printer')}><Printer size={16} /> Impressora</button>
-        {tab === 'queue' && <>
+      </div>}
+
+      <nav className="staff-tabs staff-tabs-expanded" aria-label="Seções do painel">
+        {canQueue && <button className={tab === 'queue' ? 'selected' : ''} onClick={() => setTab('queue')}><TicketCheck size={16} /> Fila</button>}
+        {canAttendance && <button className={tab === 'attendance' ? 'selected' : ''} onClick={() => setTab('attendance')}><History size={16} /> Atendimentos</button>}
+        {canServices && <button className={tab === 'services' ? 'selected' : ''} onClick={() => setTab('services')}><Settings2 size={16} /> Tipos de atendimento</button>}
+        {canUsers && <button className={tab === 'users' ? 'selected' : ''} onClick={() => setTab('users')}><Users size={16} /> Usuários</button>}
+        {canRoles && <button className={tab === 'roles' ? 'selected' : ''} onClick={() => setTab('roles')}><ShieldCheck size={16} /> Cargos e permissões</button>}
+        {canMedia && <button className={tab === 'media' ? 'selected' : ''} onClick={() => setTab('media')}><Clapperboard size={16} /> Display</button>}
+        {canPrinter && <button className={tab === 'printer' ? 'selected' : ''} onClick={() => setTab('printer')}><Printer size={16} /> Impressora</button>}
+        {tab === 'queue' && canCall && <>
           <label className="counter-field">Balcão<input aria-label="Balcão de atendimento" value={counter} onChange={(event) => setCounter(event.target.value)} maxLength={40} /></label>
           <button className="global-call-button" disabled={busy || waiting === 0 || counterHasActive} onClick={() => void callNext()}>
             <Megaphone size={16} /> {counterHasActive ? 'Atendimento em andamento' : waiting === 0 ? 'Fila vazia' : 'Chamar próximo'}
           </button>
         </>}
       </nav>
+
       {error && <div className="staff-error" role="alert">{error}<button onClick={() => void refresh()}>Tentar novamente</button></div>}
-      {tab === 'queue' && <div className="queue-grid">{types.length === 0 ? <div className="empty-services"><Wrench size={22} /><h2>Nenhum atendimento ativo</h2><p>Cadastre um tipo de atendimento para começar a receber senhas.</p><button className="blue-button" onClick={() => setTab('services')}>Configurar atendimentos</button></div> : types.map((type) => <QueueColumn key={type.id} type={type} tickets={tickets.filter((ticket) => ticket.serviceTypeId === type.id)} busy={busy} onIssue={() => { setIssueType(type); setIssuedTicket(null); }} onOpen={openCurrentTicket} onTransition={(id, status) => void changeTicketStatus(id, status)} />)}</div>}
-      {tab === 'services' && <ServiceTypeSettings onChanged={() => void refresh()} />}
-      {tab === 'media' && <MediaSettings onChanged={() => void refresh()} />}
-      {tab === 'printer' && <PrinterSettings />}
+      {tab === 'queue' && canQueue && <div className="queue-grid">{types.length === 0 ? <div className="empty-services"><Wrench size={22} /><h2>Nenhum atendimento ativo</h2><p>Cadastre um tipo de atendimento para começar a receber senhas.</p>{canServices && <button className="blue-button" onClick={() => setTab('services')}>Configurar atendimentos</button>}</div> : types.map((type) => <QueueColumn key={type.id} type={type} tickets={tickets.filter((ticket) => ticket.serviceTypeId === type.id)} busy={busy} canIssue={canIssue} canServe={canServe} onIssue={() => { setIssueType(type); setIssuedTicket(null); }} onOpen={openCurrentTicket} onTransition={(id, status) => void changeTicketStatus(id, status)} />)}</div>}
+      {tab === 'attendance' && canAttendance && <AttendanceHistory />}
+      {tab === 'services' && canServices && <ServiceTypeSettings onChanged={() => void refresh()} />}
+      {tab === 'users' && canUsers && <UsersSettings />}
+      {tab === 'roles' && canRoles && <RolesSettings />}
+      {tab === 'media' && canMedia && <MediaSettings onChanged={() => void refresh()} />}
+      {tab === 'printer' && canPrinter && <PrinterSettings />}
+      {availableTabs.length === 0 && <div className="attendance-empty">Seu usuário não possui nenhum módulo liberado.</div>}
     </section>
 
-    {currentTicket && <CurrentServicePanel
+    {currentTicket && canQueue && <CurrentServicePanel
       ticket={currentTicket}
       busy={busy}
       minimized={servicePanelMinimized}
+      canCall={canCall}
+      canServe={canServe}
       onMinimize={() => setServicePanelMinimized(true)}
       onRestore={() => setServicePanelMinimized(false)}
       onRepeat={() => void repeatCurrentTicket(currentTicket.id)}
@@ -242,7 +301,7 @@ export function StaffPage() {
       onCancel={() => void changeTicketStatus(currentTicket.id, 'cancelled')}
     />}
 
-    {issueType && <div className="issue-overlay" onMouseDown={(event) => { if (event.target === event.currentTarget) closeIssue(); }}><section className="issue-dialog" role="dialog" aria-modal="true" aria-labelledby="issue-title">
+    {issueType && canIssue && <div className="issue-overlay" onMouseDown={(event) => { if (event.target === event.currentTarget) closeIssue(); }}><section className="issue-dialog" role="dialog" aria-modal="true" aria-labelledby="issue-title">
       <button className="issue-close" aria-label="Fechar" onClick={closeIssue}><X size={20} /></button>
       <span className="section-kicker">GERAR SENHA</span>
       <h2 id="issue-title">{issuedTicket ? 'Senha gerada' : issueType.name}</h2>
