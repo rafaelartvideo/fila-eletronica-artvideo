@@ -1,7 +1,6 @@
 import { useState, type FormEvent } from 'react';
 import { ArrowLeft, LockKeyhole } from 'lucide-react';
 import { Link, Navigate, useLocation } from 'react-router';
-import { BrandLogo } from '../../components/BrandLogo';
 import { useAuth } from './AuthProvider';
 import { requireSupabase, supabase } from '../../lib/supabase/client';
 
@@ -31,7 +30,7 @@ export function SignInPage() {
     <main className="auth-page">
       <Link to="/" className="auth-back"><ArrowLeft size={16} /> Voltar ao início</Link>
       <section className="auth-card">
-        <div className="auth-logo"><BrandLogo /></div>
+        <div className="auth-logo"><LockKeyhole size={24} /></div>
         <span className="section-kicker">ÁREA RESTRITA</span>
         <h1>Bem-vindo de volta</h1>
         <p>Entre com sua conta da equipe para gerenciar a fila.</p>
@@ -45,6 +44,7 @@ export function SignInPage() {
         </form>
         <small>Acesso exclusivo para administradores.</small>
       </section>
+      <footer className="system-footer">• Senhas do dia reiniciam automaticamente às 00h em São Paulo.</footer>
     </main>
   );
 }

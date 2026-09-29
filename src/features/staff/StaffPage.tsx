@@ -1,12 +1,10 @@
 import { useCallback, useEffect, useState } from 'react';
 import { Activity, CalendarDays, Clapperboard, LogOut, MessageCircle, RefreshCw, Settings2, TicketCheck, Wrench, X } from 'lucide-react';
 import { Link } from 'react-router';
-import { BrandLogo } from '../../components/BrandLogo';
 import type { QueueTicket, TicketStatus, TicketType } from '../../domain/queue';
 import { ticketWhatsAppUrl } from '../../domain/whatsapp';
 import { callNextTicket, issueTicket, listQueueTickets, listTicketTypes, repeatTicketCall, subscribeToQueueChanges, transitionTicket } from '../../lib/supabase/queue-api';
 import { useAuth } from '../auth/AuthProvider';
-import { AdminBadge } from '../auth/RequireAdmin';
 import { QueueColumn } from './QueueColumn';
 import { ServiceTypeSettings } from './ServiceTypeSettings';
 import { MediaSettings } from './MediaSettings';
@@ -55,14 +53,10 @@ export function StaffPage() {
     void refresh();
     let channel: { unsubscribe: () => Promise<unknown> | unknown } | undefined;
     try {
-      channel = subscribeToQueueChanges(['tickets', 'ticket_types'], () => {
-        if (active) void refresh();
-      }, (status) => {
+      channel = subscribeToQueueChanges(['tickets', 'ticket_types'], () => { if (active) void refresh(); }, (status) => {
         if (active && status === 'SUBSCRIBED') void refresh();
       });
-    } catch {
-      // The initial fetch above still keeps the panel usable if Realtime is unavailable.
-    }
+    } catch {}
     return () => { active = false; void channel?.unsubscribe(); };
   }, [refresh]);
 
@@ -97,21 +91,21 @@ export function StaffPage() {
 
   return <main className="staff-app">
     <header className="staff-topbar">
-      <Link to="/" className="staff-brand" aria-label="Página inicial"><BrandLogo /></Link>
-      <div className="staff-top-actions"><AdminBadge /><button className="staff-logout" onClick={() => void logout()}><LogOut size={16} /> Sair</button></div>
+      <Link to="/" className="staff-brand" aria-label="Página inicial"><span className="staff-brand-icon"><TicketCheck size={19} /></span><span><strong>PAINEL DE ATENDIMENTO</strong><small>GESTÃO DA FILA</small></span></Link>
+      <div className="staff-top-actions"><button className="staff-logout" onClick={() => void logout()}><LogOut size={16} /> Sair</button></div>
     </header>
 
     <section className="staff-main">
       <div className="staff-heading"><div><span className="section-kicker">OPERAÇÃO DA LOJA</span><h1>Fila de atendimento</h1><p>Gerencie as senhas e acompanhe os atendimentos em andamento.</p></div><div className="date-pill"><CalendarDays size={16} /> {new Intl.DateTimeFormat('pt-BR', { timeZone: 'America/Sao_Paulo', dateStyle: 'full' }).format(new Date())}</div></div>
       <div className="staff-metrics">
-        <div className="staff-metric"><span className="metric-icon amber"><Activity size={17} /></span><div><small>Aguardando</small><strong>{waiting}</strong></div></div>
-        <div className="staff-metric"><span className="metric-icon blue"><TicketCheck size={17} /></span><div><small>Em atendimento</small><strong>{serving}</strong></div></div>
-        <div className="staff-metric"><span className="metric-icon green"><TicketCheck size={17} /></span><div><small>Concluídos hoje</small><strong>{served}</strong></div></div>
+        <div className="staff-metric waiting-metric"><span className="metric-icon amber"><Activity size={17} /></span><div><small>Aguardando</small><strong>{waiting}</strong></div></div>
+        <div className="staff-metric called-metric"><span className="metric-icon green"><TicketCheck size={17} /></span><div><small>Chamadas / atendimento</small><strong>{serving}</strong></div></div>
+        <div className="staff-metric"><span className="metric-icon blue"><TicketCheck size={17} /></span><div><small>Concluídos hoje</small><strong>{served}</strong></div></div>
       </div>
       <nav className="staff-tabs" aria-label="Seções do painel">
         <button className={tab === 'queue' ? 'selected' : ''} onClick={() => setTab('queue')}><TicketCheck size={16} /> Fila</button>
         <button className={tab === 'services' ? 'selected' : ''} onClick={() => setTab('services')}><Settings2 size={16} /> Atendimentos</button>
-        <button className={tab === 'media' ? 'selected' : ''} onClick={() => setTab('media')}><Clapperboard size={16} /> Vídeos do display</button>
+        <button className={tab === 'media' ? 'selected' : ''} onClick={() => setTab('media')}><Clapperboard size={16} /> Conteúdo do display</button>
         {tab === 'queue' && <label className="counter-field">Balcão<input aria-label="Balcão de atendimento" value={counter} onChange={(event) => setCounter(event.target.value)} maxLength={40} /></label>}
         <button className="refresh-button" aria-label="Atualizar fila" onClick={() => void refresh()} disabled={busy}><RefreshCw size={16} /> Atualizar</button>
       </nav>
@@ -120,12 +114,14 @@ export function StaffPage() {
       {tab === 'services' && <ServiceTypeSettings onChanged={() => void refresh()} />}
       {tab === 'media' && <MediaSettings onChanged={() => void refresh()} />}
     </section>
+
     {issueType && <div className="issue-overlay" onMouseDown={(event) => { if (event.target === event.currentTarget) closeIssue(); }}><section className="issue-dialog" role="dialog" aria-modal="true" aria-labelledby="issue-title">
       <button className="issue-close" aria-label="Fechar" onClick={closeIssue}><X size={20} /></button>
       <span className="section-kicker">GERAR SENHA</span>
       <h2 id="issue-title">{issuedTicket ? 'Senha gerada' : issueType.name}</h2>
       {issuedTicket ? <><strong className="issue-result">{issuedTicket.ticketNumber}</strong><p>Entregue ou informe a senha ao cliente.</p>{issuePhone && ticketWhatsAppUrl(issuePhone, issuedTicket) ? <a className="whatsapp-button" href={ticketWhatsAppUrl(issuePhone, issuedTicket)!} target="_blank" rel="noopener noreferrer"><MessageCircle size={20} /> Enviar pelo WhatsApp</a> : issuePhone && <small className="phone-error">Número inválido. Use DDD + número brasileiro.</small>}<button className="kiosk-new-button" onClick={closeIssue}>Fechar</button></> : <><p>O número do WhatsApp é opcional. O envio será confirmado no aplicativo após a emissão.</p><label htmlFor="staff-phone">WhatsApp do cliente</label><input id="staff-phone" type="tel" inputMode="tel" placeholder="(11) 91234-5678" autoComplete="tel" maxLength={20} value={issuePhone} onChange={(event) => setIssuePhone(event.target.value)} /><button className="kiosk-generate-button" disabled={busy} onClick={() => void issueFromStaff()}>{busy ? 'Gerando…' : 'Confirmar e gerar'}</button></>}
     </section></div>}
-    <footer className="staff-footer"><BrandLogo /> <span>•</span> Senhas do dia reiniciam automaticamente às 00h em São Paulo.</footer>
+
+    <footer className="system-footer">• Senhas do dia reiniciam automaticamente às 00h em São Paulo.</footer>
   </main>;
 }

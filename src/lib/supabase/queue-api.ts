@@ -9,6 +9,9 @@ type QueueRow = {
 };
 type ApiRow = Record<string, unknown>;
 export type QueueRealtimeResource = 'tickets' | 'ticket_types' | 'display_media';
+export type DisplayNotice = { id: string; text: string; sortOrder: number; isActive: boolean };
+
+const displayNoticeUrlPrefix = 'https://ticker.artvideo.local/';
 
 const queueSyncTopic = 'queue-system-sync';
 
@@ -149,9 +152,39 @@ export async function saveDisplayMedia(input: { id?: string; title: string; url:
   announceQueueChange('display_media');
 }
 
-export async function listDisplayMedia(): Promise<MediaItem[]> {
+async function listDisplayContentRows(): Promise<ApiRow[]> {
   const { data, error } = await requireSupabase().from('display_media').select('id,title,url,sort_order,is_active').order('sort_order');
-  return (unwrap(data, error) as ApiRow[]).map((row) => ({ id: String(row.id), title: String(row.title), url: String(row.url), sortOrder: Number(row.sort_order), isActive: Boolean(row.is_active) }));
+  return unwrap(data, error) as ApiRow[];
+}
+
+export async function listDisplayMedia(): Promise<MediaItem[]> {
+  return (await listDisplayContentRows())
+    .filter((row) => !String(row.url).startsWith(displayNoticeUrlPrefix))
+    .map((row) => ({ id: String(row.id), title: String(row.title), url: String(row.url), sortOrder: Number(row.sort_order), isActive: Boolean(row.is_active) }));
+}
+
+export async function listDisplayNotices(): Promise<DisplayNotice[]> {
+  return (await listDisplayContentRows())
+    .filter((row) => String(row.url).startsWith(displayNoticeUrlPrefix))
+    .map((row) => ({ id: String(row.id), text: String(row.title), sortOrder: Number(row.sort_order), isActive: Boolean(row.is_active) }));
+}
+
+export async function saveDisplayNotice(text: string, sortOrder: number): Promise<void> {
+  const normalized = text.trim();
+  if (!normalized) throw new Error('Informe uma frase para o display.');
+  const suffix = typeof crypto !== 'undefined' && 'randomUUID' in crypto ? crypto.randomUUID() : `${Date.now()}-${Math.random().toString(36).slice(2)}`;
+  const { error } = await requireSupabase().from('display_media').insert({
+    title: normalized,
+    url: `${displayNoticeUrlPrefix}${suffix}`,
+    sort_order: sortOrder,
+    is_active: true,
+  });
+  if (error) throw new Error(explainError(error.message));
+  announceQueueChange('display_media');
+}
+
+export async function deleteDisplayNotice(id: string): Promise<void> {
+  await deleteDisplayMedia(id);
 }
 
 export async function deleteDisplayMedia(id: string): Promise<void> {

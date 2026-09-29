@@ -191,3 +191,159 @@ button, input { font-family: inherit; }
   .display-current-call > strong { font-size: clamp(29px, 8vw, 44px); }
   .display-callout-head > span svg { display: none; }
 }
+
+
+/* Unified dark interface */
+:root {
+  color-scheme: dark;
+  --ink: #f4f7fb;
+  --muted: #9aacbf;
+  --line: #263a52;
+  --surface: #10233a;
+  --blue-100: #173252;
+  --gold-100: #3c3218;
+  --shadow-soft: 0 20px 55px rgb(0 0 0 / 28%);
+}
+html, body, #root { background: #081321; color: #f4f7fb; }
+body { background: radial-gradient(circle at 80% 5%, #132f50 0, transparent 34%), #081321; }
+.home-page, .staff-app, .kiosk-page, .auth-page { min-height: 100vh; min-height: 100dvh; color: #f4f7fb; background: transparent; }
+.home-page, .staff-app, .kiosk-page { display: flex; flex-direction: column; }
+.home-page > main, .staff-main, .kiosk-content { flex: 1; }
+
+.topbar, .staff-topbar, .kiosk-topbar {
+  border-color: #24384f;
+  color: #f4f7fb;
+  background: rgb(10 25 43 / 94%);
+  box-shadow: 0 10px 30px rgb(0 0 0 / 12%);
+}
+.brand-copy small, .staff-brand small, .system-chip, .auth-back, .kiosk-help { color: #9fb2c8; }
+.brand-mark, .staff-brand-icon, .kiosk-service-icon { color: #d9e9fb; background: #173658; box-shadow: none; }
+.system-chip span { background: #36d399; box-shadow: 0 0 0 4px rgb(54 211 153 / 13%); }
+
+.entry-card, .staff-metric, .staff-tabs, .queue-card, .settings-panel, .kiosk-service-card, .kiosk-step-card, .auth-card, .issue-dialog, .empty-services {
+  border-color: #263b54;
+  color: #f4f7fb;
+  background: #10233a;
+  box-shadow: 0 12px 34px rgb(0 0 0 / 15%);
+}
+.entry-card:hover, .kiosk-service-card:hover { border-color: #3b6087; box-shadow: 0 16px 38px rgb(0 0 0 / 24%); }
+.entry-card-copy small, .section-heading > p, .staff-heading p, .settings-panel header p, .kiosk-welcome p, .issued-ticket-screen > p, .kiosk-privacy, .auth-card > p, .auth-card > small, .setting-row small, .queue-count, .ticket-person small { color: #9aacbf; }
+.section-heading h2, .staff-heading h1, .settings-panel header h2, .kiosk-welcome h1, .issued-ticket-screen h1, .auth-card h1, .queue-card-head h2 { color: #f4f7fb; }
+.section-heading .section-kicker, .staff-heading .section-kicker, .settings-panel .section-kicker, .auth-card .section-kicker { color: #89acd4; }
+
+.auth-page { display: flex; flex-direction: column; padding-bottom: 0; background: radial-gradient(circle at 70% 18%, #102f52, transparent 34%), #081321; }
+.auth-card { margin: auto; }
+.auth-logo { width: 48px; height: 48px; display: grid; place-items: center; margin-bottom: 24px; border-radius: 14px; color: #9fc7f5; background: #173658; }
+.auth-card input, .service-form input, .media-form input, .ticker-form input, .counter-field input, .issue-dialog input, .kiosk-name-input {
+  color: #eef5fd;
+  border-color: #304660;
+  background: #0b1a2d;
+}
+.auth-card input:focus, .service-form input:focus, .media-form input:focus, .ticker-form input:focus, .issue-dialog input:focus, .kiosk-name-input:focus {
+  border-color: #4c83bd;
+  box-shadow: 0 0 0 3px rgb(76 131 189 / 18%);
+}
+.form-notice { color: #efd67e; background: #3c3218; }
+.form-error, .staff-error, .kiosk-error { color: #ffb0b0; border-color: #6d3434; background: #321b22; }
+
+.staff-app { background: #081321; }
+.staff-main { padding-bottom: 38px; }
+.date-pill, .staff-logout, .refresh-button, .subtle-button, .ticket-actions button, .icon-danger, .change-service {
+  color: #afc0d3;
+  border-color: #30445c;
+  background: #0c1d31;
+}
+.staff-tabs > button:not(.refresh-button) { color: #9eafc1; }
+.staff-tabs > button.selected { color: #cfe5ff; background: #18385d; }
+.waiting-metric { background: linear-gradient(145deg, rgb(242 185 50 / 14%), #10233a 66%); }
+.called-metric { background: linear-gradient(145deg, rgb(54 211 153 / 13%), #10233a 66%); }
+
+.queue-card { overflow: hidden; }
+.queue-list { border-color: #263b54; }
+.queue-ticket { border-color: #2a3e56; }
+.queue-ticket.waiting { background: rgb(242 185 50 / 16%); box-shadow: inset 4px 0 #f2b932; }
+.queue-ticket.called { background: rgb(54 211 153 / 17%); box-shadow: inset 4px 0 #36d399; }
+.queue-ticket.serving { background: rgb(54 211 153 / 10%); box-shadow: inset 4px 0 #2ab881; }
+.ticket-number-small { color: #f4f7fb; }
+.queue-ticket.waiting .ticket-number-small { color: #ffd66e; }
+.queue-ticket.called .ticket-number-small, .queue-ticket.serving .ticket-number-small { color: #7ef0bf; }
+.queue-total { color: #bbd9ff; background: #173658; }
+.queue-history { color: #9fb0c3; border-top: 1px solid #263b54; }
+.queue-history > div span { color: #eaf2fb; }
+
+.settings-panel { overflow: hidden; }
+.display-content-settings { display: grid; gap: 22px; }
+.display-settings-block { padding-top: 20px; border-top: 1px solid #263b54; }
+.settings-subheading { display: flex; align-items: flex-start; gap: 11px; color: #d9e8f8; }
+.settings-subheading > div { display: grid; gap: 4px; }
+.settings-subheading small { color: #91a5ba; font-size: 11px; }
+.ticker-form { display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: end; gap: 11px; margin: 16px 0 8px; }
+.ticker-form label { display: grid; gap: 7px; color: #aebed0; font-size: 12px; font-weight: 700; }
+.ticker-form input { height: 43px; padding: 0 12px; border: 1px solid #304660; border-radius: 10px; outline: none; }
+.setting-row { border-color: #26394f; }
+.media-index { color: #8eb9e8; background: #173658; }
+
+.kiosk-page { background: radial-gradient(circle at 70% 12%, #123355, transparent 32%), #081321; }
+.kiosk-brand { display: inline-flex; align-items: center; gap: 9px; color: #dbeafb; }
+.kiosk-brand strong { font-size: 13px; letter-spacing: .08em; }
+.kiosk-service-card { color: #f4f7fb; }
+.selected-service, .print-ticket { border-color: #30455e; background: #0d1e32; }
+.print-ticket-brand { display: flex; align-items: center; justify-content: center; gap: 8px; color: #aec9e7; }
+.print-ticket-number { color: #ffd05f; }
+.print-service-label, .print-ticket-date, .print-ticket-message { color: #9fb0c4; }
+
+.issue-overlay { background: rgb(3 10 20 / 75%); }
+.issue-dialog p { color: #9caec1; }
+.issue-close { color: #b6c6d7; background: #17304d; }
+.issue-result { color: #7ef0bf; }
+
+.system-footer {
+  position: sticky;
+  z-index: 10;
+  bottom: 0;
+  width: 100%;
+  min-height: 44px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-top: auto;
+  padding: 10px 18px;
+  border-top: 1px solid #26394f;
+  color: #92a6bc;
+  background: rgb(8 19 33 / 96%);
+  backdrop-filter: blur(12px);
+  font-size: 11px;
+  text-align: center;
+}
+
+/* Display header information and recent-call fit */
+.display-topbar { justify-content: space-between; gap: 20px; background: #0a182a; }
+.display-environment { min-width: 0; display: flex; align-items: center; gap: clamp(13px, 2vw, 28px); color: #dce9f7; }
+.display-info-primary, .display-info-item { display: inline-flex; align-items: center; gap: 8px; white-space: nowrap; }
+.display-info-primary strong { color: #fff; font-size: clamp(23px, 2.2vw, 36px); letter-spacing: -.04em; }
+.display-info-item { color: #a9bdd2; font-size: clamp(10px, 1vw, 14px); }
+.display-info-item strong { color: #f8d260; font-size: clamp(15px, 1.4vw, 22px); }
+.display-callout { background: linear-gradient(150deg, rgb(22 92 70 / 94%), #133349); border-color: #2f6c62; }
+.display-current-call > strong { color: #86f0c1; }
+.display-recent { display: flex; flex-direction: column; overflow: hidden; }
+.display-recent header { flex: 0 0 auto; padding-bottom: 8px; }
+.display-recent h2 { margin: 0; }
+.recent-call-list { flex: 1 1 auto; min-height: 0; display: grid; grid-template-rows: repeat(4, minmax(0, 1fr)); gap: 7px; margin-top: 0; overflow: hidden; }
+.recent-call { min-height: 0; height: 100%; overflow: hidden; padding: clamp(5px, .7vh, 9px) 11px; }
+.recent-call strong, .recent-call span, .recent-call small { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+@media (max-width: 760px) {
+  .ticker-form, .media-form, .service-form { grid-template-columns: 1fr; }
+  .display-environment { gap: 10px; }
+  .display-info-item span { display: none; }
+  .display-info-primary strong { font-size: 20px; }
+  .display-info-item strong { font-size: 14px; }
+  .system-footer { font-size: 9px; min-height: 38px; }
+  .recent-call-list { grid-template-rows: repeat(4, minmax(0, 1fr)); }
+}
+
+@media print {
+  html, body, #root, .kiosk-page { background: #fff !important; color: #000 !important; }
+  .print-ticket { color: #000 !important; border-color: #bbb !important; background: #fff !important; box-shadow: none !important; }
+  .print-ticket-number, .print-ticket-brand, .print-service-label, .print-ticket-date, .print-ticket-message { color: #000 !important; }
+}

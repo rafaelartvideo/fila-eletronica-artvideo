@@ -1,29 +1,10 @@
 import { ArrowUpRight, MonitorPlay, MonitorSmartphone, TicketCheck, Wrench } from 'lucide-react';
 import { Link } from 'react-router';
-import { BrandLogo } from '../components/BrandLogo';
 
 const destinations = [
-  {
-    to: '/painel',
-    label: 'Painel da equipe',
-    description: 'Gerencie a fila e acompanhe cada atendimento.',
-    icon: Wrench,
-    tone: 'blue',
-  },
-  {
-    to: '/totem',
-    label: 'Gerar senha',
-    description: 'Escolha o atendimento e receba sua senha.',
-    icon: TicketCheck,
-    tone: 'gold',
-  },
-  {
-    to: '/display',
-    label: 'Tela de chamadas',
-    description: 'Exiba senhas chamadas e vídeos para os clientes.',
-    icon: MonitorPlay,
-    tone: 'navy',
-  },
+  { to: '/painel', label: 'Painel da equipe', description: 'Gerencie a fila e acompanhe cada atendimento.', icon: Wrench, tone: 'blue' },
+  { to: '/totem', label: 'Gerar senha', description: 'Escolha o atendimento e receba sua senha.', icon: TicketCheck, tone: 'gold' },
+  { to: '/display', label: 'Tela de chamadas', description: 'Exiba senhas chamadas e vídeos para os clientes.', icon: MonitorPlay, tone: 'navy' },
 ] as const;
 
 export function HomePage() {
@@ -31,7 +12,8 @@ export function HomePage() {
     <div className="home-page">
       <header className="topbar">
         <Link className="brand" to="/" aria-label="Página inicial">
-          <BrandLogo />
+          <span className="brand-mark"><TicketCheck size={20} /></span>
+          <span className="brand-copy"><strong>FILA DE ATENDIMENTO</strong><small>SISTEMA DE SENHAS</small></span>
         </Link>
         <span className="system-chip"><span /> Sistema de atendimento</span>
       </header>
@@ -42,9 +24,7 @@ export function HomePage() {
             <div className="eyebrow"><span /> ORGANIZAÇÃO QUE VOCÊ VÊ</div>
             <h1>Atendimento simples.<br /><em>Fila em movimento.</em></h1>
             <p>Senhas organizadas para a equipe e chamadas claras para cada cliente.</p>
-            <Link className="primary-link" to="/totem">
-              Emitir uma senha <ArrowUpRight size={17} />
-            </Link>
+            <Link className="primary-link" to="/totem">Emitir uma senha <ArrowUpRight size={17} /></Link>
           </div>
           <div className="hero-illustration" aria-hidden="true">
             <div className="orbit orbit-one" />
@@ -61,28 +41,21 @@ export function HomePage() {
 
         <section className="entry-section" aria-labelledby="entry-title">
           <div className="section-heading">
-            <div>
-              <span className="section-kicker">ACESSOS DO SISTEMA</span>
-              <h2 id="entry-title">Por onde vamos começar?</h2>
-            </div>
+            <div><span className="section-kicker">ACESSOS DO SISTEMA</span><h2 id="entry-title">Por onde vamos começar?</h2></div>
             <p>Escolha uma área para continuar.</p>
           </div>
           <div className="entry-grid">
             {destinations.map(({ to, label, description, icon: Icon, tone }) => (
               <Link key={to} className="entry-card" to={to}>
                 <span className={`entry-icon ${tone}`}><Icon size={21} /></span>
-                <span className="entry-card-copy">
-                  <strong>{label}</strong>
-                  <small>{description}</small>
-                </span>
+                <span className="entry-card-copy"><strong>{label}</strong><small>{description}</small></span>
                 <ArrowUpRight className="entry-arrow" size={18} />
               </Link>
             ))}
           </div>
         </section>
       </main>
-
-      <footer className="home-footer"><BrandLogo /><span>Fila de atendimento</span></footer>
+      <footer className="system-footer">• Senhas do dia reiniciam automaticamente às 00h em São Paulo.</footer>
     </div>
   );
 }
