@@ -267,7 +267,7 @@ button:focus-visible, a:focus-visible { outline: 3px solid rgb(38 117 220 / 45%)
 .kiosk-new-button { min-height: 44px; display: inline-flex; align-items: center; justify-content: center; gap: 8px; border: 1px solid #e0e6ef; border-radius: 11px; color: #586880; background: #fff; font-size: 11px; font-weight: 700; cursor: pointer; }
 @media print {
   @page {
-    size: 72mm auto;
+    size: 80mm auto;
     margin: 0;
   }
 
@@ -275,9 +275,9 @@ button:focus-visible, a:focus-visible { outline: 3px solid rgb(38 117 220 / 45%)
   body,
   #root,
   .kiosk-page {
-    width: 72mm !important;
-    min-width: 72mm !important;
-    max-width: 72mm !important;
+    width: 80mm !important;
+    min-width: 80mm !important;
+    max-width: 80mm !important;
     min-height: 0 !important;
     margin: 0 !important;
     padding: 0 !important;
@@ -297,8 +297,8 @@ button:focus-visible, a:focus-visible { outline: 3px solid rgb(38 117 220 / 45%)
 
   .kiosk-content,
   .issued-ticket-screen {
-    width: 72mm !important;
-    max-width: 72mm !important;
+    width: 80mm !important;
+    max-width: 80mm !important;
     margin: 0 !important;
     padding: 0 !important;
   }
@@ -309,10 +309,10 @@ button:focus-visible, a:focus-visible { outline: 3px solid rgb(38 117 220 / 45%)
   }
 
   .print-ticket {
-    width: 72mm !important;
-    max-width: 72mm !important;
+    width: 64mm !important;
+    max-width: 64mm !important;
     margin: 0 auto !important;
-    padding: 14mm 4mm 12mm !important;
+    padding: 8mm 3mm 18mm !important;
     box-sizing: border-box !important;
     border: 0 !important;
     border-radius: 0 !important;
@@ -328,7 +328,7 @@ button:focus-visible, a:focus-visible { outline: 3px solid rgb(38 117 220 / 45%)
   .print-ticket-date,
   .print-ticket-message {
     width: 100%;
-    max-width: 64mm;
+    max-width: 58mm;
     margin-left: auto;
     margin-right: auto;
     color: #000 !important;
@@ -337,33 +337,39 @@ button:focus-visible, a:focus-visible { outline: 3px solid rgb(38 117 220 / 45%)
 
   .print-ticket-brand {
     justify-content: center;
+    font-size: 8pt;
+  }
+
+  .print-ticket-brand svg {
+    width: 14px;
+    height: 14px;
   }
 
   .print-service-label {
-    margin-top: 5mm;
-    font-size: 10pt;
+    margin-top: 4mm;
+    font-size: 8.5pt;
   }
 
   .print-ticket-number {
     margin-top: 1mm;
     margin-bottom: 1mm;
-    font-size: 48pt;
+    font-size: 38pt;
     line-height: 1;
-    letter-spacing: -.04em;
+    letter-spacing: -.025em;
   }
 
   .print-ticket-date {
     display: block;
-    font-size: 8pt;
-    line-height: 1.35;
+    font-size: 7pt;
+    line-height: 1.3;
   }
 
   .print-ticket-message {
-    margin-top: 4mm;
-    padding-top: 3mm;
+    margin-top: 3mm;
+    padding-top: 2.5mm;
     border-top: 1px dashed #000;
-    font-size: 9pt;
-    line-height: 1.35;
+    font-size: 8pt;
+    line-height: 1.3;
   }
 }
 
