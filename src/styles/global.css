@@ -266,13 +266,105 @@ button:focus-visible, a:focus-visible { outline: 3px solid rgb(38 117 220 / 45%)
 .kiosk-print-button { min-height: 47px; font-size: 12px; }
 .kiosk-new-button { min-height: 44px; display: inline-flex; align-items: center; justify-content: center; gap: 8px; border: 1px solid #e0e6ef; border-radius: 11px; color: #586880; background: #fff; font-size: 11px; font-weight: 700; cursor: pointer; }
 @media print {
-  @page { size: 80mm auto; margin: 5mm; }
-  body, .kiosk-page { min-width: 0; min-height: 0; color: #000; background: #fff !important; }
-  .no-print, .ticket-success-mark, .issued-ticket-screen > .section-kicker, .issued-ticket-screen > h1, .issued-ticket-screen > p, .kiosk-controls { display: none !important; }
-  .kiosk-content { width: 100%; padding: 0; }
-  .print-ticket { width: 100%; margin: 0; padding: 4mm; border: 0; border-radius: 0; box-shadow: none; break-inside: avoid; }
-  .print-ticket-number { font-size: 52pt; }
-  .print-ticket-message { margin-top: 4mm; }
+  @page {
+    size: 72mm auto;
+    margin: 0;
+  }
+
+  html,
+  body,
+  #root,
+  .kiosk-page {
+    width: 72mm !important;
+    min-width: 72mm !important;
+    max-width: 72mm !important;
+    min-height: 0 !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    overflow: visible !important;
+    color: #000 !important;
+    background: #fff !important;
+  }
+
+  .no-print,
+  .ticket-success-mark,
+  .issued-ticket-screen > .section-kicker,
+  .issued-ticket-screen > h1,
+  .issued-ticket-screen > p,
+  .kiosk-controls {
+    display: none !important;
+  }
+
+  .kiosk-content,
+  .issued-ticket-screen {
+    width: 72mm !important;
+    max-width: 72mm !important;
+    margin: 0 !important;
+    padding: 0 !important;
+  }
+
+  .issued-ticket-screen {
+    display: block !important;
+    text-align: center !important;
+  }
+
+  .print-ticket {
+    width: 72mm !important;
+    max-width: 72mm !important;
+    margin: 0 auto !important;
+    padding: 4mm 4mm 12mm !important;
+    box-sizing: border-box !important;
+    border: 0 !important;
+    border-radius: 0 !important;
+    background: #fff !important;
+    box-shadow: none !important;
+    break-inside: avoid !important;
+    page-break-inside: avoid !important;
+  }
+
+  .print-ticket-brand,
+  .print-service-label,
+  .print-ticket-number,
+  .print-ticket-date,
+  .print-ticket-message {
+    width: 100%;
+    max-width: 64mm;
+    margin-left: auto;
+    margin-right: auto;
+    color: #000 !important;
+    text-align: center;
+  }
+
+  .print-ticket-brand {
+    justify-content: center;
+  }
+
+  .print-service-label {
+    margin-top: 5mm;
+    font-size: 10pt;
+  }
+
+  .print-ticket-number {
+    margin-top: 1mm;
+    margin-bottom: 1mm;
+    font-size: 48pt;
+    line-height: 1;
+    letter-spacing: -.04em;
+  }
+
+  .print-ticket-date {
+    display: block;
+    font-size: 8pt;
+    line-height: 1.35;
+  }
+
+  .print-ticket-message {
+    margin-top: 4mm;
+    padding-top: 3mm;
+    border-top: 1px dashed #000;
+    font-size: 9pt;
+    line-height: 1.35;
+  }
 }
 
 @media (max-width: 760px) {
