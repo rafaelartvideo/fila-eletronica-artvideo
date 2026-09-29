@@ -1,7 +1,7 @@
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { Activity } from 'lucide-react';
 import type { MediaItem } from '../../domain/queue';
-import { listDisplayMedia } from '../../lib/supabase/queue-api';
+import { listDisplayMedia, subscribeToQueueChanges } from '../../lib/supabase/queue-api';
 import { BrandLogo } from '../../components/BrandLogo';
 import { CallAnnouncement } from './CallAnnouncement';
 import { MediaPlayer } from './MediaPlayer';
@@ -17,13 +17,30 @@ const notices = [
 export function DisplayPage() {
   const { currentCall, recentCalls, connection } = useDisplayCalls();
   const [media, setMedia] = useState<MediaItem[]>([]);
+  const refreshMedia = useCallback(async () => {
+    try {
+      const items = await listDisplayMedia();
+      setMedia(items.filter((item) => item.isActive));
+    } catch {
+      // Keep the last known playlist if the connection is temporarily unavailable.
+    }
+  }, []);
+
   useEffect(() => {
     let active = true;
-    void listDisplayMedia().then((items) => {
-      if (active) setMedia(items.filter((item) => item.isActive));
-    }).catch(() => {});
-    return () => { active = false; };
-  }, []);
+    void refreshMedia();
+    let channel: { unsubscribe: () => Promise<unknown> | unknown } | undefined;
+    try {
+      channel = subscribeToQueueChanges(['display_media'], () => {
+        if (active) void refreshMedia();
+      }, (status) => {
+        if (active && status === 'SUBSCRIBED') void refreshMedia();
+      });
+    } catch {
+      // The current playlist remains available if Realtime cannot connect.
+    }
+    return () => { active = false; void channel?.unsubscribe(); };
+  }, [refreshMedia]);
 
   return <main className="public-display">
     <header className="display-topbar">
