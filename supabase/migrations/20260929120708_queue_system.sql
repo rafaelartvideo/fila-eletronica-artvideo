@@ -153,7 +153,7 @@ begin
       business_date, service_type_id, sequence_number, ticket_number, customer_name
     ) values (
       v_business_date, p_type_id, v_sequence,
-      v_type.prefix || pg_catalog.lpad(v_sequence::text, 3, '0'),
+      v_type.prefix || '-' || pg_catalog.lpad(v_sequence::text, 3, '0'),
       nullif(pg_catalog.btrim(p_customer_name), '')
     ) returning ticket.id, ticket.business_date, ticket.sequence_number, ticket.ticket_number,
       ticket.service_type_id, v_type.name, ticket.status, ticket.created_at;

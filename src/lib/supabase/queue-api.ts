@@ -1,3 +1,4 @@
+import type { RealtimeChannel } from '@supabase/supabase-js';
 import type { DisplayCall, MediaItem, QueueTicket, TicketStatus, TicketType } from '../../domain/queue';
 import { requireSupabase } from './client';
 
@@ -14,18 +15,70 @@ export type DisplayNotice = { id: string; text: string; sortOrder: number; isAct
 const displayNoticeUrlPrefix = 'https://ticker.artvideo.local/';
 
 const queueSyncTopic = 'queue-system-sync';
+const tableByResource: Record<QueueRealtimeResource, string> = {
+  tickets: 'tickets',
+  ticket_types: 'ticket_types',
+  display_media: 'display_media',
+};
+
+let queueBroadcastChannel: RealtimeChannel | null = null;
+let queueBroadcastStatus = 'CLOSED';
+const queueBroadcastListeners = new Set<(resource: QueueRealtimeResource) => void>();
+const queueStatusListeners = new Set<(status: string) => void>();
+
+function ensureQueueBroadcastChannel(): RealtimeChannel {
+  if (queueBroadcastChannel) return queueBroadcastChannel;
+
+  const channel = requireSupabase()
+    .channel(queueSyncTopic, { config: { broadcast: { ack: true } } })
+    .on('broadcast', { event: 'changed' }, (message) => {
+      const resource = (message.payload as { resource?: unknown } | undefined)?.resource;
+      if (typeof resource !== 'string' || !(resource in tableByResource)) return;
+      queueBroadcastListeners.forEach((listener) => listener(resource as QueueRealtimeResource));
+    });
+
+  queueBroadcastChannel = channel;
+  channel.subscribe((status) => {
+    queueBroadcastStatus = status;
+    queueStatusListeners.forEach((listener) => listener(status));
+  });
+
+  return channel;
+}
+
+function waitForQueueBroadcast(): Promise<void> {
+  if (queueBroadcastStatus === 'SUBSCRIBED') return Promise.resolve();
+
+  ensureQueueBroadcastChannel();
+  return new Promise((resolve, reject) => {
+    const timeout = window.setTimeout(() => {
+      queueStatusListeners.delete(handleStatus);
+      reject(new Error('Realtime connection timeout'));
+    }, 5_000);
+
+    function handleStatus(status: string) {
+      if (status === 'SUBSCRIBED') {
+        window.clearTimeout(timeout);
+        queueStatusListeners.delete(handleStatus);
+        resolve();
+      } else if (status === 'CHANNEL_ERROR' || status === 'TIMED_OUT') {
+        window.clearTimeout(timeout);
+        queueStatusListeners.delete(handleStatus);
+        reject(new Error('Realtime connection failed'));
+      }
+    }
+
+    queueStatusListeners.add(handleStatus);
+  });
+}
 
 async function broadcastQueueChange(resource: QueueRealtimeResource): Promise<void> {
   try {
-    const client = requireSupabase();
-    const channel = client.channel(queueSyncTopic);
-    try {
-      await channel.send({ type: 'broadcast', event: 'changed', payload: { resource } });
-    } finally {
-      await client.removeChannel(channel);
-    }
+    const channel = ensureQueueBroadcastChannel();
+    await waitForQueueBroadcast();
+    await channel.send({ type: 'broadcast', event: 'changed', payload: { resource } });
   } catch {
-    // Realtime sync is best-effort. The database write remains authoritative.
+    // Postgres Changes and manual refresh remain available as fallbacks.
   }
 }
 
@@ -38,15 +91,34 @@ export function subscribeToQueueChanges(
   onChange: (resource: QueueRealtimeResource) => void,
   onStatus: (status: string) => void = () => {},
 ) {
-  return requireSupabase()
-    .channel(queueSyncTopic)
-    .on('broadcast', { event: 'changed' }, (message) => {
-      const resource = (message.payload as { resource?: unknown } | undefined)?.resource;
-      if (typeof resource === 'string' && resources.includes(resource as QueueRealtimeResource)) {
-        onChange(resource as QueueRealtimeResource);
-      }
-    })
-    .subscribe((status) => onStatus(status));
+  const client = requireSupabase();
+  ensureQueueBroadcastChannel();
+
+  const broadcastListener = (resource: QueueRealtimeResource) => {
+    if (resources.includes(resource)) onChange(resource);
+  };
+  queueBroadcastListeners.add(broadcastListener);
+  queueStatusListeners.add(onStatus);
+  if (queueBroadcastStatus !== 'CLOSED') queueMicrotask(() => onStatus(queueBroadcastStatus));
+
+  const uniqueResources = [...new Set(resources)];
+  let dbChannel = client.channel(`${queueSyncTopic}-db-${uniqueResources.join('-')}-${Math.random().toString(36).slice(2)}`);
+  uniqueResources.forEach((resource) => {
+    dbChannel = dbChannel.on(
+      'postgres_changes',
+      { event: '*', schema: 'public', table: tableByResource[resource] },
+      () => onChange(resource),
+    );
+  });
+  dbChannel.subscribe();
+
+  return {
+    unsubscribe: async () => {
+      queueBroadcastListeners.delete(broadcastListener);
+      queueStatusListeners.delete(onStatus);
+      await client.removeChannel(dbChannel);
+    },
+  };
 }
 
 function explainError(message: string): string {
@@ -64,9 +136,15 @@ function unwrap<T>(data: T | null, error: { message: string } | null): T {
   return data;
 }
 
+function formatTicketNumber(value: string): string {
+  const normalized = value.trim();
+  if (normalized.includes('-')) return normalized;
+  return normalized.replace(/^([A-Z]+)(\d+)$/i, '$1-$2');
+}
+
 function mapTicket(row: QueueRow, serviceTypeName = row.ticket_types?.name ?? ''): QueueTicket {
   return {
-    id: row.id, ticketNumber: row.ticket_number, sequenceNumber: row.sequence_number,
+    id: row.id, ticketNumber: formatTicketNumber(row.ticket_number), sequenceNumber: row.sequence_number,
     businessDate: row.business_date, serviceTypeId: row.service_type_id, serviceTypeName,
     customerName: row.customer_name, status: row.status, counterLabel: row.counter_label,
     createdAt: row.created_at, calledAt: row.called_at, servingAt: row.started_at,
@@ -75,7 +153,7 @@ function mapTicket(row: QueueRow, serviceTypeName = row.ticket_types?.name ?? ''
 }
 
 function mapDisplayCall(row: ApiRow): DisplayCall {
-  return { id: String(row.id), ticketNumber: String(row.ticket_number), serviceTypeName: String(row.service_type_name), counterLabel: row.counter_label ? String(row.counter_label) : null, calledAt: String(row.called_at) };
+  return { id: String(row.id), ticketNumber: formatTicketNumber(String(row.ticket_number)), serviceTypeName: String(row.service_type_name), counterLabel: row.counter_label ? String(row.counter_label) : null, calledAt: String(row.called_at) };
 }
 
 export async function issueTicket(input: { typeId: string; customerName?: string | null }): Promise<QueueTicket> {

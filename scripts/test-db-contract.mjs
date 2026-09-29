@@ -61,7 +61,7 @@ try {
   );
 
   const called = await db.query(`select * from public.call_next_ticket($1, 'Balcão 1')`, [serviceId]);
-  assert.equal(called.rows[0].ticket_number, 'C001');
+  assert.equal(called.rows[0].ticket_number, 'C-001');
   assert.equal(called.rows[0].counter_label, 'Balcão 1');
   const serving = await db.query(`select * from public.transition_ticket($1, 'serving')`, [first.rows[0].id]);
   assert.equal(serving.rows[0].status, 'serving');
@@ -82,7 +82,7 @@ try {
   assert.equal(ticketReadGrant.rows[0].granted, false, 'anonymous role cannot read ticket rows directly');
   const kioskGrants = await db.query(`select has_table_privilege('anon', 'public.ticket_types', 'select') as can_list, has_function_privilege('anon', 'public.issue_ticket(uuid,text)', 'execute') as can_issue`);
   assert.deepEqual(kioskGrants.rows[0], { can_list: true, can_issue: false }, 'anonymous can list services but must sign in before issuing');
-  const events = await db.query(`select * from public.display_calls where ticket_number='C001' and counter_label='Balcão 1'`);
+  const events = await db.query(`select * from public.display_calls where ticket_number='C-001' and counter_label='Balcão 1'`);
   assert.equal(events.rows.length, 1, 'call trigger creates sanitized display event');
 
   const saoPauloDate = await db.query(`select private.business_date('2026-01-02 02:59:59+00')::text as before, private.business_date('2026-01-02 03:00:00+00')::text as after`);

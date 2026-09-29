@@ -347,3 +347,17 @@ body { background: radial-gradient(circle at 80% 5%, #132f50 0, transparent 34%)
   .print-ticket { color: #000 !important; border-color: #bbb !important; background: #fff !important; box-shadow: none !important; }
   .print-ticket-number, .print-ticket-brand, .print-service-label, .print-ticket-date, .print-ticket-message { color: #000 !important; }
 }
+
+/* Display header: larger labels, stable temperature size. */
+.display-environment { gap: clamp(18px, 2.4vw, 34px); }
+.display-info-primary strong { font-size: clamp(30px, 2.6vw, 42px); }
+.display-info-item { font-size: clamp(13px, 1.3vw, 19px); font-weight: 600; }
+.display-info-item svg { flex: 0 0 auto; }
+.display-weather strong { font-size: clamp(15px, 1.4vw, 22px); }
+.display-weather span { font-size: clamp(13px, 1.3vw, 19px); font-weight: 650; }
+@media (max-width: 760px) {
+  .display-info-primary strong { font-size: 23px; }
+  .display-info-item { font-size: 12px; }
+  .display-weather strong { font-size: 14px; }
+  .display-weather span { font-size: 12px; }
+}

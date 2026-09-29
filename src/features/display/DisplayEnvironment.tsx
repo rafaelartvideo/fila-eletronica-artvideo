@@ -16,7 +16,7 @@ function describeWeather(code: number): string {
 
 export function DisplayEnvironment() {
   const [now, setNow] = useState(() => new Date());
-  const [weather, setWeather] = useState<WeatherState>({ temperature: null, condition: 'São Paulo' });
+  const [weather, setWeather] = useState<WeatherState>({ temperature: null, condition: 'Aracaju-SE' });
 
   useEffect(() => {
     const timer = window.setInterval(() => setNow(new Date()), 1000);
@@ -27,13 +27,13 @@ export function DisplayEnvironment() {
     let active = true;
     async function loadWeather() {
       try {
-        const response = await fetch('https://api.open-meteo.com/v1/forecast?latitude=-23.5505&longitude=-46.6333&current=temperature_2m,weather_code&timezone=America%2FSao_Paulo');
+        const response = await fetch('https://api.open-meteo.com/v1/forecast?latitude=-10.9472&longitude=-37.0731&current=temperature_2m,weather_code&timezone=America%2FMaceio');
         if (!response.ok) return;
         const data = await response.json() as { current?: { temperature_2m?: number; weather_code?: number } };
         if (!active || !data.current) return;
         setWeather({
           temperature: typeof data.current.temperature_2m === 'number' ? data.current.temperature_2m : null,
-          condition: typeof data.current.weather_code === 'number' ? describeWeather(data.current.weather_code) : 'São Paulo',
+          condition: typeof data.current.weather_code === 'number' ? describeWeather(data.current.weather_code) : 'Aracaju-SE',
         });
       } catch {}
     }
@@ -42,12 +42,12 @@ export function DisplayEnvironment() {
     return () => { active = false; window.clearInterval(timer); };
   }, []);
 
-  const time = useMemo(() => new Intl.DateTimeFormat('pt-BR', { timeZone: 'America/Sao_Paulo', hour: '2-digit', minute: '2-digit' }).format(now), [now]);
-  const date = useMemo(() => new Intl.DateTimeFormat('pt-BR', { timeZone: 'America/Sao_Paulo', weekday: 'short', day: '2-digit', month: 'short' }).format(now).replace(/\.$/, ''), [now]);
+  const time = useMemo(() => new Intl.DateTimeFormat('pt-BR', { timeZone: 'America/Maceio', hour: '2-digit', minute: '2-digit' }).format(now), [now]);
+  const date = useMemo(() => new Intl.DateTimeFormat('pt-BR', { timeZone: 'America/Maceio', weekday: 'short', day: '2-digit', month: 'short' }).format(now).replace(/\.$/, ''), [now]);
 
   return <div className="display-environment">
     <div className="display-info-primary"><Clock3 size={18} /><strong>{time}</strong></div>
     <div className="display-info-item"><CalendarDays size={16} /><span>{date}</span></div>
-    <div className="display-info-item"><Thermometer size={16} /><strong>{weather.temperature === null ? '--°' : `${Math.round(weather.temperature)}°`}</strong><span>{weather.condition}</span><CloudSun size={16} /></div>
+    <div className="display-info-item display-weather"><Thermometer size={16} /><strong>{weather.temperature === null ? '--°' : `${Math.round(weather.temperature)}°`}</strong><span>{weather.condition}</span><CloudSun size={16} /></div>
   </div>;
 }
