@@ -1,4 +1,4 @@
-import { Check, MessageCircle, Printer, RotateCcw, TicketCheck } from 'lucide-react';
+
 import type { QueueTicket } from '../../domain/queue';
 import { BrandLogo } from '../../components/BrandLogo';
 import { ticketWhatsAppUrl } from '../../domain/whatsapp';
