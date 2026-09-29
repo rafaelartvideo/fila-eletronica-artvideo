@@ -2,7 +2,7 @@ import { useEffect, useState, type FormEvent } from 'react';
 import { Clapperboard, Plus, Trash2 } from 'lucide-react';
 import type { MediaItem } from '../../domain/queue';
 import { normalizeMediaUrl } from '../../domain/media';
-import { deleteDisplayMedia, listDisplayMedia, saveDisplayMedia } from '../../lib/supabase/queue-api';
+import { deleteDisplayMedia, listDisplayMedia, saveDisplayMedia, subscribeToQueueChanges } from '../../lib/supabase/queue-api';
 
 export function MediaSettings({ onChanged }: { onChanged: () => void }) {
   const [items, setItems] = useState<MediaItem[]>([]);
@@ -11,7 +11,21 @@ export function MediaSettings({ onChanged }: { onChanged: () => void }) {
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState('');
   async function refresh() { try { setItems(await listDisplayMedia()); } catch (cause) { setError(cause instanceof Error ? cause.message : 'Falha ao carregar vídeos.'); } }
-  useEffect(() => { void refresh(); }, []);
+  useEffect(() => {
+    let active = true;
+    void refresh();
+    let channel: { unsubscribe: () => Promise<unknown> | unknown } | undefined;
+    try {
+      channel = subscribeToQueueChanges(['display_media'], () => {
+        if (active) void refresh();
+      }, (status) => {
+        if (active && status === 'SUBSCRIBED') void refresh();
+      });
+    } catch {
+      // Keep the current media list available if Realtime cannot connect.
+    }
+    return () => { active = false; void channel?.unsubscribe(); };
+  }, []);
 
   async function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault(); setBusy(true); setError('');
