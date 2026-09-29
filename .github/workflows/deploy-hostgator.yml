@@ -53,5 +53,9 @@ jobs:
           port: 21
           local-dir: ./dist/
           server-dir: ./
+          state-name: .ftp-deploy-sync-state-fila.json
+          exclude: |
+            **/.well-known/**
+            **/.ftpquota
           timeout: 120000
           log-level: minimal
