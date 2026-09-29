@@ -2,11 +2,11 @@ import { act, fireEvent, render, screen, waitFor } from '@testing-library/react'
 import { MemoryRouter, Route, Routes } from 'react-router';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
-const { listTicketTypes, listQueueTickets, callNextTicket, issueTicket, transitionTicket, repeatTicketCall, authState } = vi.hoisted(() => ({
-  listTicketTypes: vi.fn(), listQueueTickets: vi.fn(), callNextTicket: vi.fn(), issueTicket: vi.fn(), transitionTicket: vi.fn(), repeatTicketCall: vi.fn(),
+const { listTicketTypes, listQueueTickets, callNextTicket, issueTicket, transitionTicket, repeatTicketCall, subscribeToQueueChanges, authState } = vi.hoisted(() => ({
+  listTicketTypes: vi.fn(), listQueueTickets: vi.fn(), callNextTicket: vi.fn(), issueTicket: vi.fn(), transitionTicket: vi.fn(), repeatTicketCall: vi.fn(), subscribeToQueueChanges: vi.fn(),
   authState: { session: null as unknown, isAdmin: false, loading: false },
 }));
-vi.mock('../../lib/supabase/queue-api', () => ({ listTicketTypes, listQueueTickets, callNextTicket, issueTicket, transitionTicket, repeatTicketCall }));
+vi.mock('../../lib/supabase/queue-api', () => ({ listTicketTypes, listQueueTickets, callNextTicket, issueTicket, transitionTicket, repeatTicketCall, subscribeToQueueChanges }));
 vi.mock('../auth/AuthProvider', () => ({ useAuth: () => ({ ...authState, signOut: vi.fn() }) }));
 
 import { RequireAdmin } from '../auth/RequireAdmin';
@@ -23,6 +23,7 @@ describe('staff panel', () => {
     issueTicket.mockReset().mockResolvedValue({});
     transitionTicket.mockReset().mockResolvedValue({});
     repeatTicketCall.mockReset().mockResolvedValue({});
+    subscribeToQueueChanges.mockReset().mockReturnValue({ unsubscribe: vi.fn() });
     authState.session = null;
     authState.isAdmin = false;
     authState.loading = false;
