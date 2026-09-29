@@ -356,3 +356,271 @@ grant execute on function public.list_attendance_history(date, date), public.lis
   public.save_queue_role(uuid, text, text, boolean, text[]) to authenticated;
 
 notify pgrst, 'reload schema';
+
+
+-- Permission-aware queue operations.
+create or replace function private.issue_ticket(p_type_id uuid, p_customer_name text default null)
+returns table (
+  id uuid, business_date date, sequence_number integer, ticket_number text,
+  service_type_id uuid, service_type_name text, status text, created_at timestamptz
+)
+language plpgsql
+security definer
+set search_path = ''
+as $$
+declare
+  v_business_date date := private.business_date(pg_catalog.now());
+  v_type public.ticket_types%rowtype;
+  v_sequence integer;
+begin
+  if not private.has_queue_permission('queue.issue') then
+    raise exception using errcode = 'P0001', message = 'Permission denied: queue.issue';
+  end if;
+  select * into v_type from public.ticket_types as types where types.id = p_type_id and types.is_active;
+  if not found then raise exception using errcode = 'P0001', message = 'Active service type not found'; end if;
+  if p_customer_name is not null and char_length(pg_catalog.btrim(p_customer_name)) > 120 then
+    raise exception using errcode = 'P0001', message = 'Customer name is too long';
+  end if;
+  insert into private.daily_ticket_sequences as daily_sequence (business_date, service_type_id, last_number)
+    values (v_business_date, p_type_id, 1)
+    on conflict on constraint daily_ticket_sequences_pkey do update
+      set last_number = daily_sequence.last_number + 1
+    returning daily_sequence.last_number into v_sequence;
+  return query
+    insert into public.tickets as ticket (business_date, service_type_id, sequence_number, ticket_number, customer_name)
+    values (
+      v_business_date, p_type_id, v_sequence,
+      v_type.prefix || '-' || pg_catalog.lpad(v_sequence::text, 3, '0'),
+      nullif(pg_catalog.btrim(p_customer_name), '')
+    )
+    returning ticket.id, ticket.business_date, ticket.sequence_number, ticket.ticket_number,
+      ticket.service_type_id, v_type.name, ticket.status, ticket.created_at;
+end
+$$;
+
+create or replace function private.call_next_waiting_ticket(p_counter_label text default null)
+returns table (id uuid, ticket_number text, service_type_id uuid, service_type_name text, counter_label text, called_at timestamptz)
+language plpgsql
+security definer
+set search_path = ''
+as $$
+declare
+  v_ticket record;
+begin
+  if not private.has_queue_permission('queue.call') then
+    raise exception using errcode = 'P0001', message = 'Permission denied: queue.call';
+  end if;
+  select ticket.* into v_ticket
+  from public.tickets as ticket
+  join public.ticket_types as types on types.id = ticket.service_type_id
+  where ticket.business_date = private.business_date(pg_catalog.now())
+    and ticket.status = 'waiting'
+  order by
+    case types.priority when 'urgent' then 4 when 'high' then 3 when 'normal' then 2 when 'low' then 1 else 2 end desc,
+    ticket.created_at asc,
+    ticket.id asc
+  for update of ticket skip locked
+  limit 1;
+  if not found then raise exception using errcode = 'P0001', message = 'No waiting tickets'; end if;
+  update public.tickets as ticket
+  set status = 'called',
+      counter_label = nullif(pg_catalog.btrim(p_counter_label), ''),
+      called_at = pg_catalog.clock_timestamp(),
+      called_by = auth.uid(),
+      updated_at = pg_catalog.clock_timestamp()
+  where ticket.id = v_ticket.id
+  returning ticket.* into v_ticket;
+  return query
+    select event.id, event.ticket_number, event.service_type_id, event.service_type_name, event.counter_label, event.called_at
+    from public.display_calls as event
+    where event.ticket_number = v_ticket.ticket_number and event.service_type_id = v_ticket.service_type_id
+    order by event.called_at desc limit 1;
+end
+$$;
+
+create or replace function private.call_next_ticket(p_type_id uuid, p_counter_label text default null)
+returns table (id uuid, ticket_number text, service_type_id uuid, service_type_name text, counter_label text, called_at timestamptz)
+language plpgsql
+security definer
+set search_path = ''
+as $$
+declare
+  v_ticket public.tickets%rowtype;
+begin
+  if not private.has_queue_permission('queue.call') then
+    raise exception using errcode = 'P0001', message = 'Permission denied: queue.call';
+  end if;
+  select * into v_ticket from public.tickets as ticket
+  where ticket.business_date = private.business_date(pg_catalog.now())
+    and ticket.service_type_id = p_type_id and ticket.status = 'waiting'
+  order by ticket.sequence_number for update skip locked limit 1;
+  if not found then raise exception using errcode = 'P0001', message = 'No waiting tickets'; end if;
+  update public.tickets as ticket
+  set status = 'called',
+      counter_label = nullif(pg_catalog.btrim(p_counter_label), ''),
+      called_at = pg_catalog.clock_timestamp(),
+      called_by = auth.uid(),
+      updated_at = pg_catalog.clock_timestamp()
+  where ticket.id = v_ticket.id returning * into v_ticket;
+  return query
+    select event.id, event.ticket_number, event.service_type_id, event.service_type_name, event.counter_label, event.called_at
+    from public.display_calls as event where event.ticket_number = v_ticket.ticket_number
+      and event.service_type_id = v_ticket.service_type_id order by event.called_at desc limit 1;
+end
+$$;
+
+create or replace function private.repeat_ticket_call(p_ticket_id uuid)
+returns table (id uuid, ticket_number text, service_type_id uuid, service_type_name text, counter_label text, called_at timestamptz)
+language plpgsql
+security definer
+set search_path = ''
+as $$
+begin
+  if not private.has_queue_permission('queue.call') then
+    raise exception using errcode = 'P0001', message = 'Permission denied: queue.call';
+  end if;
+  update public.tickets as ticket
+  set called_at = pg_catalog.clock_timestamp(), updated_at = pg_catalog.clock_timestamp()
+  where ticket.id = p_ticket_id and ticket.status = 'called';
+  if not found then raise exception using errcode = 'P0001', message = 'Only a called ticket can be repeated'; end if;
+  return query
+    select event.id, event.ticket_number, event.service_type_id, event.service_type_name, event.counter_label, event.called_at
+    from public.display_calls as event join public.tickets as ticket
+      on ticket.service_type_id = event.service_type_id and ticket.ticket_number = event.ticket_number
+      and ticket.called_at = event.called_at
+    where ticket.id = p_ticket_id order by event.called_at desc limit 1;
+end
+$$;
+
+create or replace function private.transition_ticket(p_ticket_id uuid, p_to_status text)
+returns table (
+  id uuid, sequence_number integer, ticket_number text, customer_name text,
+  service_type_id uuid, service_type_name text, status text, counter_label text,
+  created_at timestamptz, called_at timestamptz, started_at timestamptz, completed_at timestamptz, cancelled_at timestamptz
+)
+language plpgsql
+security definer
+set search_path = ''
+as $$
+declare
+  v_ticket public.tickets%rowtype;
+begin
+  if not private.has_queue_permission('queue.serve') then
+    raise exception using errcode = 'P0001', message = 'Permission denied: queue.serve';
+  end if;
+  update public.tickets as ticket
+  set status = p_to_status,
+      started_at = case when p_to_status = 'serving' then pg_catalog.clock_timestamp() else ticket.started_at end,
+      served_by = case when p_to_status = 'serving' then auth.uid() else ticket.served_by end,
+      completed_at = case when p_to_status = 'cancelled' then pg_catalog.clock_timestamp() else ticket.completed_at end,
+      cancelled_at = case when p_to_status = 'cancelled' then pg_catalog.clock_timestamp() else ticket.cancelled_at end,
+      updated_at = pg_catalog.clock_timestamp()
+  where ticket.id = p_ticket_id
+    and (
+      (ticket.status = 'called' and p_to_status = 'serving')
+      or (ticket.status in ('waiting', 'called') and p_to_status = 'cancelled')
+    )
+  returning * into v_ticket;
+  if not found then raise exception using errcode = 'P0001', message = 'Invalid ticket status transition'; end if;
+  return query
+    select v_ticket.id, v_ticket.sequence_number, v_ticket.ticket_number, v_ticket.customer_name,
+      v_ticket.service_type_id, types.name, v_ticket.status, v_ticket.counter_label, v_ticket.created_at,
+      v_ticket.called_at, v_ticket.started_at, v_ticket.completed_at, v_ticket.cancelled_at
+    from public.ticket_types as types where types.id = v_ticket.service_type_id;
+end
+$$;
+
+create or replace function private.complete_ticket(p_ticket_id uuid, p_customer_request text)
+returns table (
+  id uuid, business_date date, sequence_number integer, ticket_number text, customer_name text,
+  customer_request text, service_type_id uuid, service_type_name text, service_priority text, status text,
+  counter_label text, created_at timestamptz, called_at timestamptz, started_at timestamptz,
+  completed_at timestamptz, cancelled_at timestamptz
+)
+language plpgsql
+security definer
+set search_path = ''
+as $$
+declare
+  v_ticket public.tickets%rowtype;
+  v_request text := pg_catalog.btrim(coalesce(p_customer_request, ''));
+begin
+  if not private.has_queue_permission('queue.serve') then
+    raise exception using errcode = 'P0001', message = 'Permission denied: queue.serve';
+  end if;
+  if v_request = '' then raise exception using errcode = 'P0001', message = 'Customer request required'; end if;
+  if pg_catalog.char_length(v_request) > 1000 then raise exception using errcode = 'P0001', message = 'Customer request too long'; end if;
+  update public.tickets as ticket
+  set customer_request = v_request,
+      status = 'completed',
+      completed_at = pg_catalog.clock_timestamp(),
+      updated_at = pg_catalog.clock_timestamp()
+  where ticket.id = p_ticket_id and ticket.status = 'serving'
+  returning * into v_ticket;
+  if not found then raise exception using errcode = 'P0001', message = 'Invalid ticket status transition'; end if;
+  return query
+    select v_ticket.id, v_ticket.business_date, v_ticket.sequence_number, v_ticket.ticket_number,
+      v_ticket.customer_name, v_ticket.customer_request, v_ticket.service_type_id, types.name, types.priority,
+      v_ticket.status, v_ticket.counter_label, v_ticket.created_at, v_ticket.called_at, v_ticket.started_at,
+      v_ticket.completed_at, v_ticket.cancelled_at
+    from public.ticket_types as types where types.id = v_ticket.service_type_id;
+end
+$$;
+
+create or replace function public.create_print_agent(p_name text, p_slug text default 'reception')
+returns table (id uuid, slug text, name text, token text, is_active boolean, created_at timestamptz, last_seen_at timestamptz)
+language plpgsql security definer set search_path = ''
+as $$
+declare
+  v_token text;
+  v_agent record;
+begin
+  if not private.has_queue_permission('printer.manage') then raise exception using errcode = 'P0001', message = 'Permission denied: printer.manage'; end if;
+  if p_name is null or char_length(pg_catalog.btrim(p_name)) < 2 then raise exception using errcode = 'P0001', message = 'Print agent name is required'; end if;
+  if p_slug is null or pg_catalog.btrim(p_slug) !~ '^[a-z0-9][a-z0-9_-]{1,39}$' then raise exception using errcode = 'P0001', message = 'Invalid print agent slug'; end if;
+  v_token := pg_catalog.replace(pg_catalog.gen_random_uuid()::text, '-', '') || pg_catalog.replace(pg_catalog.gen_random_uuid()::text, '-', '');
+  insert into private.print_agents as agent (slug, name, agent_token, is_active)
+    values (pg_catalog.btrim(p_slug), pg_catalog.btrim(p_name), v_token, true)
+    on conflict on constraint print_agents_slug_key
+    do update set name = excluded.name, agent_token = excluded.agent_token, is_active = true
+    returning agent.* into v_agent;
+  return query select v_agent.id, v_agent.slug, v_agent.name, v_token, v_agent.is_active, v_agent.created_at, v_agent.last_seen_at;
+end
+$$;
+
+create or replace function public.list_print_agents()
+returns table (id uuid, slug text, name text, is_active boolean, created_at timestamptz, last_seen_at timestamptz)
+language plpgsql security definer set search_path = ''
+as $$
+begin
+  if not private.has_queue_permission('printer.manage') then raise exception using errcode = 'P0001', message = 'Permission denied: printer.manage'; end if;
+  return query select agent.id, agent.slug, agent.name, agent.is_active, agent.created_at, agent.last_seen_at
+    from private.print_agents as agent order by agent.created_at;
+end
+$$;
+
+create or replace function public.request_ticket_print(p_ticket_id uuid, p_agent_slug text default 'reception')
+returns table (id uuid, status text)
+language plpgsql security definer set search_path = ''
+as $$
+declare
+  v_ticket record;
+  v_agent record;
+  v_service_name text;
+  v_job record;
+begin
+  if not private.has_queue_permission('queue.issue') then raise exception using errcode = 'P0001', message = 'Permission denied: queue.issue'; end if;
+  select * into v_ticket from public.tickets as ticket
+    where ticket.id = p_ticket_id and ticket.business_date = private.business_date(pg_catalog.now());
+  if not found then raise exception using errcode = 'P0001', message = 'Ticket not found for today'; end if;
+  select types.name into v_service_name from public.ticket_types as types where types.id = v_ticket.service_type_id;
+  select * into v_agent from private.print_agents as agent where agent.slug = p_agent_slug and agent.is_active;
+  if not found then raise exception using errcode = 'P0001', message = 'Print agent not configured'; end if;
+  insert into private.print_jobs (ticket_id, agent_id, requested_by, ticket_number, service_type_name, issued_at)
+    values (v_ticket.id, v_agent.id, auth.uid(), v_ticket.ticket_number, v_service_name, v_ticket.created_at)
+    returning * into v_job;
+  return query select v_job.id, v_job.status;
+end
+$$;
+
+notify pgrst, 'reload schema';
