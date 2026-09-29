@@ -6,6 +6,7 @@ import { ticketWhatsAppUrl } from '../../domain/whatsapp';
 import { callNextTicket, issueTicket, listQueueTickets, listTicketTypes, repeatTicketCall, subscribeToQueueChanges, transitionTicket } from '../../lib/supabase/queue-api';
 import { useAuth } from '../auth/AuthProvider';
 import { QueueColumn } from './QueueColumn';
+import { CurrentServicePanel } from './CurrentServicePanel';
 import { ServiceTypeSettings } from './ServiceTypeSettings';
 import { MediaSettings } from './MediaSettings';
 import { PrinterSettings } from './PrinterSettings';
@@ -29,6 +30,8 @@ export function StaffPage() {
   const [issueType, setIssueType] = useState<TicketType | null>(null);
   const [issuePhone, setIssuePhone] = useState('');
   const [issuedTicket, setIssuedTicket] = useState<QueueTicket | null>(null);
+  const [activeTicketId, setActiveTicketId] = useState<string | null>(null);
+  const [servicePanelMinimized, setServicePanelMinimized] = useState(false);
   const [day, setDay] = useState(todayInSaoPaulo);
 
   useEffect(() => {
@@ -51,8 +54,10 @@ export function StaffPage() {
       const [nextTypes, nextTickets] = await Promise.all([listTicketTypes(), listQueueTickets(day)]);
       setTypes(nextTypes.filter((type) => type.isActive));
       setTickets(nextTickets);
+      return nextTickets;
     } catch (cause) {
       setError(cause instanceof Error ? cause.message : 'Não foi possível atualizar a fila.');
+      return null;
     }
   }, [day]);
 
@@ -68,12 +73,18 @@ export function StaffPage() {
     return () => { active = false; void channel?.unsubscribe(); };
   }, [refresh]);
 
-  async function runAction(action: () => Promise<unknown>) {
-    setBusy(true); setError('');
-    try { await action(); await refresh(); }
-    catch (cause) { setError(cause instanceof Error ? cause.message : 'A ação não foi concluída.'); }
-    finally { setBusy(false); }
-  }
+  useEffect(() => {
+    const current = activeTicketId
+      ? tickets.find((ticket) => ticket.id === activeTicketId && (ticket.status === 'called' || ticket.status === 'serving'))
+      : null;
+    if (current) return;
+
+    const candidate = tickets
+      .filter((ticket) => (ticket.status === 'called' || ticket.status === 'serving') && ticket.counterLabel === counter)
+      .sort((a, b) => Date.parse(b.calledAt ?? b.createdAt) - Date.parse(a.calledAt ?? a.createdAt))[0] ?? null;
+
+    setActiveTicketId(candidate?.id ?? null);
+  }, [tickets, counter, activeTicketId]);
 
   function toggleTheme() {
     const nextTheme = theme === 'dark' ? 'light' : 'dark';
@@ -100,10 +111,72 @@ export function StaffPage() {
 
   function closeIssue() { setIssueType(null); setIssuePhone(''); setIssuedTicket(null); setError(''); }
 
+  async function callNext() {
+    setBusy(true); setError('');
+    try {
+      const call = await callNextTicket(counter);
+      const nextTickets = await refresh();
+      const calledTicket = nextTickets?.find((ticket) => ticket.ticketNumber === call.ticketNumber && ticket.status === 'called') ?? null;
+      if (calledTicket) {
+        setActiveTicketId(calledTicket.id);
+        setServicePanelMinimized(false);
+      }
+    } catch (cause) {
+      setError(cause instanceof Error ? cause.message : 'Não foi possível chamar a próxima senha.');
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  async function repeatCurrentTicket(ticketId: string) {
+    setBusy(true); setError('');
+    try {
+      await repeatTicketCall(ticketId);
+      await refresh();
+    } catch (cause) {
+      setError(cause instanceof Error ? cause.message : 'Não foi possível repetir a chamada.');
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  async function changeTicketStatus(ticketId: string, status: Extract<TicketStatus, 'serving' | 'completed' | 'cancelled'>) {
+    setBusy(true); setError('');
+    try {
+      await transitionTicket(ticketId, status);
+      const nextTickets = await refresh();
+
+      if (status === 'serving') {
+        setActiveTicketId(ticketId);
+        setServicePanelMinimized(false);
+      } else if (activeTicketId === ticketId) {
+        const nextActive = nextTickets
+          ?.filter((ticket) => (ticket.status === 'called' || ticket.status === 'serving') && ticket.counterLabel === counter)
+          .sort((a, b) => Date.parse(b.calledAt ?? b.createdAt) - Date.parse(a.calledAt ?? a.createdAt))[0] ?? null;
+        setActiveTicketId(nextActive?.id ?? null);
+        setServicePanelMinimized(false);
+      }
+    } catch (cause) {
+      setError(cause instanceof Error ? cause.message : 'Não foi possível atualizar o atendimento.');
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  function openCurrentTicket(ticketId: string) {
+    setActiveTicketId(ticketId);
+    setServicePanelMinimized(false);
+  }
+
   const waiting = tickets.filter((ticket) => ticket.status === 'waiting').length;
   const serving = tickets.filter((ticket) => ticket.status === 'serving' || ticket.status === 'called').length;
   const served = tickets.filter((ticket) => ticket.status === 'completed').length;
-  const transition = (ticketId: string, status: Extract<TicketStatus, 'serving' | 'completed' | 'cancelled'>) => runAction(() => transitionTicket(ticketId, status));
+  const currentTicket = activeTicketId
+    ? tickets.find((ticket) => ticket.id === activeTicketId && (ticket.status === 'called' || ticket.status === 'serving')) ?? null
+    : null;
+  const counterHasActive = tickets.some((ticket) =>
+    (ticket.status === 'called' || ticket.status === 'serving') && ticket.counterLabel === counter
+  );
 
   return <main className="staff-app">
     <header className="staff-topbar">
@@ -125,17 +198,29 @@ export function StaffPage() {
         <button className={tab === 'printer' ? 'selected' : ''} onClick={() => setTab('printer')}><Printer size={16} /> Impressora</button>
         {tab === 'queue' && <>
           <label className="counter-field">Balcão<input aria-label="Balcão de atendimento" value={counter} onChange={(event) => setCounter(event.target.value)} maxLength={40} /></label>
-          <button className="global-call-button" disabled={busy || waiting === 0} onClick={() => void runAction(() => callNextTicket(counter))}>
-            <Megaphone size={16} /> {waiting === 0 ? 'Fila vazia' : 'Chamar próximo'}
+          <button className="global-call-button" disabled={busy || waiting === 0 || counterHasActive} onClick={() => void callNext()}>
+            <Megaphone size={16} /> {counterHasActive ? 'Atendimento em andamento' : waiting === 0 ? 'Fila vazia' : 'Chamar próximo'}
           </button>
         </>}
       </nav>
       {error && <div className="staff-error" role="alert">{error}<button onClick={() => void refresh()}>Tentar novamente</button></div>}
-      {tab === 'queue' && <div className="queue-grid">{types.length === 0 ? <div className="empty-services"><Wrench size={22} /><h2>Nenhum atendimento ativo</h2><p>Cadastre um tipo de atendimento para começar a receber senhas.</p><button className="blue-button" onClick={() => setTab('services')}>Configurar atendimentos</button></div> : types.map((type) => <QueueColumn key={type.id} type={type} tickets={tickets.filter((ticket) => ticket.serviceTypeId === type.id)} busy={busy} onIssue={() => { setIssueType(type); setIssuedTicket(null); }} onRepeat={(id) => void runAction(() => repeatTicketCall(id))} onTransition={(id, status) => void transition(id, status)} />)}</div>}
+      {tab === 'queue' && <div className="queue-grid">{types.length === 0 ? <div className="empty-services"><Wrench size={22} /><h2>Nenhum atendimento ativo</h2><p>Cadastre um tipo de atendimento para começar a receber senhas.</p><button className="blue-button" onClick={() => setTab('services')}>Configurar atendimentos</button></div> : types.map((type) => <QueueColumn key={type.id} type={type} tickets={tickets.filter((ticket) => ticket.serviceTypeId === type.id)} busy={busy} onIssue={() => { setIssueType(type); setIssuedTicket(null); }} onOpen={openCurrentTicket} onTransition={(id, status) => void changeTicketStatus(id, status)} />)}</div>}
       {tab === 'services' && <ServiceTypeSettings onChanged={() => void refresh()} />}
       {tab === 'media' && <MediaSettings onChanged={() => void refresh()} />}
       {tab === 'printer' && <PrinterSettings />}
     </section>
+
+    {currentTicket && <CurrentServicePanel
+      ticket={currentTicket}
+      busy={busy}
+      minimized={servicePanelMinimized}
+      onMinimize={() => setServicePanelMinimized(true)}
+      onRestore={() => setServicePanelMinimized(false)}
+      onRepeat={() => void repeatCurrentTicket(currentTicket.id)}
+      onStart={() => void changeTicketStatus(currentTicket.id, 'serving')}
+      onComplete={() => void changeTicketStatus(currentTicket.id, 'completed')}
+      onCancel={() => void changeTicketStatus(currentTicket.id, 'cancelled')}
+    />}
 
     {issueType && <div className="issue-overlay" onMouseDown={(event) => { if (event.target === event.currentTarget) closeIssue(); }}><section className="issue-dialog" role="dialog" aria-modal="true" aria-labelledby="issue-title">
       <button className="issue-close" aria-label="Fechar" onClick={closeIssue}><X size={20} /></button>
