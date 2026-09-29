@@ -50,7 +50,7 @@ export function KioskPage() {
 
   function reset() { setSelectedType(null); setPhone(''); setTicket(null); setError(''); }
 
-  return <main className={`kiosk-page ${selectedType && !ticket ? 'kiosk-selection-active' : ''}`}>
+  return <main className="kiosk-page">
     <header className="kiosk-topbar no-print">
       <Link to="/" className="auth-back"><ArrowLeft size={17} /> Voltar</Link>
       <div className="kiosk-brand"><Ticket size={20} /><strong>RETIRADA DE SENHA</strong></div>
