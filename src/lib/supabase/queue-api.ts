@@ -1,12 +1,12 @@
 import type { RealtimeChannel } from '@supabase/supabase-js';
-import type { DisplayCall, MediaItem, QueueTicket, TicketStatus, TicketType } from '../../domain/queue';
+import type { DisplayCall, MediaItem, QueueTicket, TicketPriority, TicketStatus, TicketType } from '../../domain/queue';
 import { requireSupabase } from './client';
 
 type QueueRow = {
   id: string; business_date: string; service_type_id: string; sequence_number: number;
   ticket_number: string; customer_name: string | null; status: TicketStatus; counter_label: string | null;
   created_at: string; called_at: string | null; started_at: string | null; completed_at: string | null;
-  cancelled_at: string | null; ticket_types?: { name: string } | null;
+  cancelled_at: string | null; ticket_types?: { name: string; priority?: string } | null;
 };
 type ApiRow = Record<string, unknown>;
 export type QueueRealtimeResource = 'tickets' | 'ticket_types' | 'display_media';
@@ -145,11 +145,15 @@ function formatTicketNumber(value: string): string {
   return normalized.replace(/^([A-Z]+)(\d+)$/i, '$1-$2');
 }
 
+function normalizePriority(value: unknown): TicketPriority {
+  return value === 'low' || value === 'high' || value === 'urgent' ? value : 'normal';
+}
+
 function mapTicket(row: QueueRow, serviceTypeName = row.ticket_types?.name ?? ''): QueueTicket {
   return {
     id: row.id, ticketNumber: formatTicketNumber(row.ticket_number), sequenceNumber: row.sequence_number,
     businessDate: row.business_date, serviceTypeId: row.service_type_id, serviceTypeName,
-    customerName: row.customer_name, status: row.status, counterLabel: row.counter_label,
+    servicePriority: normalizePriority(row.ticket_types?.priority), customerName: row.customer_name, status: row.status, counterLabel: row.counter_label,
     createdAt: row.created_at, calledAt: row.called_at, servingAt: row.started_at,
     completedAt: row.completed_at, cancelledAt: row.cancelled_at,
   };
@@ -199,12 +203,12 @@ export async function transitionTicket(ticketId: string, toStatus: Extract<Ticke
 }
 
 export async function listTicketTypes(): Promise<TicketType[]> {
-  const { data, error } = await requireSupabase().from('ticket_types').select('id,name,prefix,is_active,sort_order').order('sort_order').order('name');
-  return (unwrap(data, error) as ApiRow[]).map((row) => ({ id: String(row.id), name: String(row.name), prefix: String(row.prefix), isActive: Boolean(row.is_active), sortOrder: Number(row.sort_order) }));
+  const { data, error } = await requireSupabase().from('ticket_types').select('id,name,prefix,priority,is_active,sort_order').order('sort_order').order('name');
+  return (unwrap(data, error) as ApiRow[]).map((row) => ({ id: String(row.id), name: String(row.name), prefix: String(row.prefix), priority: normalizePriority(row.priority), isActive: Boolean(row.is_active), sortOrder: Number(row.sort_order) }));
 }
 
 export async function listQueueTickets(businessDate: string): Promise<QueueTicket[]> {
-  const { data, error } = await requireSupabase().from('tickets').select('*, ticket_types(name)').eq('business_date', businessDate).order('created_at', { ascending: true });
+  const { data, error } = await requireSupabase().from('tickets').select('*, ticket_types(name,priority)').eq('business_date', businessDate).order('created_at', { ascending: true });
   return (unwrap(data, error) as unknown as QueueRow[]).map((row) => mapTicket(row));
 }
 
@@ -213,9 +217,9 @@ export async function isQueueAdmin(): Promise<boolean> {
   return Boolean(unwrap(data as boolean | null, error));
 }
 
-export async function saveTicketType(input: { id?: string; name: string; prefix: string; isActive: boolean }): Promise<void> {
+export async function saveTicketType(input: { id?: string; name: string; prefix: string; priority: TicketPriority; isActive: boolean }): Promise<void> {
   const client = requireSupabase();
-  const row = { name: input.name.trim(), prefix: input.prefix.trim().toUpperCase(), is_active: input.isActive };
+  const row = { name: input.name.trim(), prefix: input.prefix.trim().toUpperCase(), priority: input.priority, is_active: input.isActive };
   const query = input.id
     ? client.from('ticket_types').update(row).eq('id', input.id)
     : client.from('ticket_types').insert(row);
