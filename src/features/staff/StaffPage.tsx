@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from 'react';
-import { Activity, CalendarDays, Clapperboard, LogOut, Megaphone, MessageCircle, Moon, Printer, Settings2, Sun, TicketCheck, Wrench, X } from 'lucide-react';
+import { Activity, CalendarDays, Clapperboard, LogOut, Megaphone, MessageCircle, Moon, Printer, Settings2, Sun, TicketCheck, TicketPlus, Wrench, X } from 'lucide-react';
 import { Link } from 'react-router';
 import type { QueueTicket, TicketStatus, TicketType } from '../../domain/queue';
 import { ticketWhatsAppUrl } from '../../domain/whatsapp';
@@ -201,7 +201,7 @@ export function StaffPage() {
   return <main className="staff-app">
     <header className="staff-topbar">
       <Link to="/" className="staff-brand" aria-label="Página inicial"><span className="staff-brand-icon"><TicketCheck size={19} /></span><span><strong>PAINEL DE ATENDIMENTO</strong><small>GESTÃO DA FILA</small></span></Link>
-      <div className="staff-top-actions"><button className="staff-theme-toggle" type="button" onClick={toggleTheme} aria-label={theme === 'dark' ? 'Ativar tema claro' : 'Ativar tema escuro'} title={theme === 'dark' ? 'Ativar tema claro' : 'Ativar tema escuro'}>{theme === 'dark' ? <Sun size={16} /> : <Moon size={16} />}<span>{theme === 'dark' ? 'Claro' : 'Escuro'}</span></button><button className="staff-logout" onClick={() => void logout()}><LogOut size={16} /> Sair</button></div>
+      <div className="staff-top-actions"><Link className="staff-kiosk-link" to="/totem"><TicketPlus size={16} /> <span>Gerar senhas</span></Link><button className="staff-theme-toggle" type="button" onClick={toggleTheme} aria-label={theme === 'dark' ? 'Ativar tema claro' : 'Ativar tema escuro'} title={theme === 'dark' ? 'Ativar tema claro' : 'Ativar tema escuro'}>{theme === 'dark' ? <Sun size={16} /> : <Moon size={16} />}<span>{theme === 'dark' ? 'Claro' : 'Escuro'}</span></button><button className="staff-logout" onClick={() => void logout()}><LogOut size={16} /> Sair</button></div>
     </header>
 
     <section className="staff-main">

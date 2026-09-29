@@ -52,7 +52,7 @@ export function KioskPage() {
 
   return <main className="kiosk-page">
     <header className="kiosk-topbar no-print">
-      <Link to="/" className="auth-back"><ArrowLeft size={17} /> Voltar</Link>
+      <Link to="/painel" className="auth-back"><ArrowLeft size={17} /> Painel</Link>
       <div className="kiosk-brand"><Ticket size={20} /><strong>RETIRADA DE SENHA</strong></div>
       <span className="kiosk-help"><CircleHelp size={16} /> Precisa de ajuda? Chame nossa equipe</span>
     </header>

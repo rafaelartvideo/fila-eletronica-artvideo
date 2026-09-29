@@ -1664,3 +1664,36 @@ html[data-theme='light'] .service-request-feedback {
   border-color: #efc7ca;
   background: #fff2f3;
 }
+
+
+/* Staff-only ticket generator shortcut. */
+.staff-kiosk-link {
+  min-height: 38px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  padding: 0 13px;
+  border: 1px solid #2f78c8;
+  border-radius: 10px;
+  color: #fff;
+  background: linear-gradient(96deg, #175db8, #307ed8);
+  font-size: 10px;
+  font-weight: 750;
+  text-decoration: none;
+}
+.staff-kiosk-link:hover {
+  background: linear-gradient(96deg, #1a66c8, #3989e8);
+}
+html[data-theme='light'] .staff-kiosk-link {
+  color: #fff;
+  border-color: #2f78c8;
+  background: linear-gradient(96deg, #175db8, #307ed8);
+}
+@media (max-width: 620px) {
+  .staff-kiosk-link {
+    width: 38px;
+    padding: 0;
+  }
+  .staff-kiosk-link span { display: none; }
+}
