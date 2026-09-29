@@ -3,8 +3,11 @@ import { Pencil, Plus, UserRound, X } from 'lucide-react';
 import type { QueueRole, QueueUser } from '../../lib/supabase/queue-api';
 import { listQueueRoles, listQueueUsers, saveQueueUser } from '../../lib/supabase/queue-api';
 import { normalizeUsername } from '../auth/username';
+import { useAuth } from '../auth/AuthProvider';
 
 export function UsersSettings() {
+  const { hasPermission } = useAuth();
+  const canManage = hasPermission('users.manage');
   const [users, setUsers] = useState<QueueUser[]>([]);
   const [roles, setRoles] = useState<QueueRole[]>([]);
   const [editing, setEditing] = useState<QueueUser | null>(null);
@@ -77,7 +80,7 @@ export function UsersSettings() {
   return <section className="access-panel">
     <header className="panel-section-header">
       <div><span className="section-kicker">ACESSOS</span><h2>Usuários</h2><p>Crie logins por usuário e vincule cada pessoa ao seu cargo.</p></div>
-      <button className="blue-button" type="button" onClick={create}><Plus size={16} /> Novo usuário</button>
+      {canManage && <button className="blue-button" type="button" onClick={create}><Plus size={16} /> Novo usuário</button>}
     </header>
 
     {error && !open && <div className="staff-error" role="alert">{error}<button onClick={() => void load()}>Tentar novamente</button></div>}
@@ -88,7 +91,7 @@ export function UsersSettings() {
         <div><strong>{user.fullName}</strong><small>@{user.username}</small></div>
         <div><small>Cargo</small><strong>{user.roleName}</strong></div>
         <span className={`user-status ${user.isActive ? 'active' : 'inactive'}`}>{user.isActive ? 'Ativo' : 'Inativo'}</span>
-        <button className="subtle-button" type="button" onClick={() => edit(user)}><Pencil size={15} /> Editar</button>
+        {canManage && <button className="subtle-button" type="button" onClick={() => edit(user)}><Pencil size={15} /> Editar</button>}
       </article>)}
       {users.length === 0 && <div className="attendance-empty">Nenhum usuário cadastrado.</div>}
     </div>
