@@ -8,6 +8,43 @@ type QueueRow = {
   cancelled_at: string | null; ticket_types?: { name: string } | null;
 };
 type ApiRow = Record<string, unknown>;
+export type QueueRealtimeResource = 'tickets' | 'ticket_types' | 'display_media';
+
+const queueSyncTopic = 'queue-system-sync';
+
+async function broadcastQueueChange(resource: QueueRealtimeResource): Promise<void> {
+  try {
+    const client = requireSupabase();
+    const channel = client.channel(queueSyncTopic);
+    try {
+      await channel.send({ type: 'broadcast', event: 'changed', payload: { resource } });
+    } finally {
+      await client.removeChannel(channel);
+    }
+  } catch {
+    // Realtime sync is best-effort. The database write remains authoritative.
+  }
+}
+
+function announceQueueChange(resource: QueueRealtimeResource): void {
+  void broadcastQueueChange(resource);
+}
+
+export function subscribeToQueueChanges(
+  resources: QueueRealtimeResource[],
+  onChange: (resource: QueueRealtimeResource) => void,
+  onStatus: (status: string) => void = () => {},
+) {
+  return requireSupabase()
+    .channel(queueSyncTopic)
+    .on('broadcast', { event: 'changed' }, (message) => {
+      const resource = (message.payload as { resource?: unknown } | undefined)?.resource;
+      if (typeof resource === 'string' && resources.includes(resource as QueueRealtimeResource)) {
+        onChange(resource as QueueRealtimeResource);
+      }
+    })
+    .subscribe((status) => onStatus(status));
+}
 
 function explainError(message: string): string {
   if (/no waiting tickets/i.test(message)) return 'Não há senhas aguardando neste atendimento.';
@@ -50,23 +87,31 @@ export async function issueTicket(input: { typeId: string; customerName?: string
     p_type_id: input.typeId, p_customer_name: input.customerName?.trim() || null,
   });
   const row = unwrap((data as ApiRow[] | null)?.[0] ?? null, error);
-  return mapTicket({ ...row, customer_name: null, ticket_types: { name: String(row.service_type_name) } } as unknown as QueueRow);
+  const ticket = mapTicket({ ...row, customer_name: null, ticket_types: { name: String(row.service_type_name) } } as unknown as QueueRow);
+  announceQueueChange('tickets');
+  return ticket;
 }
 
 export async function callNextTicket(typeId: string, counterLabel = 'Balcão 1'): Promise<DisplayCall> {
   const { data, error } = await requireSupabase().rpc('call_next_ticket', { p_type_id: typeId, p_counter_label: counterLabel.trim() || null });
-  return mapDisplayCall(unwrap((data as ApiRow[] | null)?.[0] ?? null, error));
+  const call = mapDisplayCall(unwrap((data as ApiRow[] | null)?.[0] ?? null, error));
+  announceQueueChange('tickets');
+  return call;
 }
 
 export async function repeatTicketCall(ticketId: string): Promise<DisplayCall> {
   const { data, error } = await requireSupabase().rpc('repeat_ticket_call', { p_ticket_id: ticketId });
-  return mapDisplayCall(unwrap((data as ApiRow[] | null)?.[0] ?? null, error));
+  const call = mapDisplayCall(unwrap((data as ApiRow[] | null)?.[0] ?? null, error));
+  announceQueueChange('tickets');
+  return call;
 }
 
 export async function transitionTicket(ticketId: string, toStatus: Extract<TicketStatus, 'serving' | 'completed' | 'cancelled'>): Promise<QueueTicket> {
   const { data, error } = await requireSupabase().rpc('transition_ticket', { p_ticket_id: ticketId, p_to_status: toStatus });
   const row = unwrap((data as ApiRow[] | null)?.[0] ?? null, error);
-  return mapTicket({ ...row, ticket_types: { name: String(row.service_type_name) } } as unknown as QueueRow);
+  const ticket = mapTicket({ ...row, ticket_types: { name: String(row.service_type_name) } } as unknown as QueueRow);
+  announceQueueChange('tickets');
+  return ticket;
 }
 
 export async function listTicketTypes(): Promise<TicketType[]> {
@@ -92,6 +137,7 @@ export async function saveTicketType(input: { id?: string; name: string; prefix:
     : client.from('ticket_types').insert(row);
   const { error } = await query;
   if (error) throw new Error(explainError(error.message));
+  announceQueueChange('ticket_types');
 }
 
 export async function saveDisplayMedia(input: { id?: string; title: string; url: string; sortOrder: number; isActive: boolean }): Promise<void> {
@@ -100,6 +146,7 @@ export async function saveDisplayMedia(input: { id?: string; title: string; url:
   const query = input.id ? client.from('display_media').update(row).eq('id', input.id) : client.from('display_media').insert(row);
   const { error } = await query;
   if (error) throw new Error(explainError(error.message));
+  announceQueueChange('display_media');
 }
 
 export async function listDisplayMedia(): Promise<MediaItem[]> {
@@ -110,6 +157,7 @@ export async function listDisplayMedia(): Promise<MediaItem[]> {
 export async function deleteDisplayMedia(id: string): Promise<void> {
   const { error } = await requireSupabase().from('display_media').delete().eq('id', id);
   if (error) throw new Error(explainError(error.message));
+  announceQueueChange('display_media');
 }
 
 export async function listDisplayCalls(limit = 6): Promise<DisplayCall[]> {
