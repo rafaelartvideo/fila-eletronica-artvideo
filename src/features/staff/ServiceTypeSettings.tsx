@@ -1,7 +1,7 @@
 import { useEffect, useState, type FormEvent } from 'react';
 import { Plus, Power } from 'lucide-react';
 import type { TicketType } from '../../domain/queue';
-import { listTicketTypes, saveTicketType } from '../../lib/supabase/queue-api';
+import { listTicketTypes, saveTicketType, subscribeToQueueChanges } from '../../lib/supabase/queue-api';
 
 export function ServiceTypeSettings({ onChanged }: { onChanged: () => void }) {
   const [types, setTypes] = useState<TicketType[]>([]);
@@ -10,7 +10,21 @@ export function ServiceTypeSettings({ onChanged }: { onChanged: () => void }) {
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState('');
   async function refresh() { try { setTypes(await listTicketTypes()); } catch (cause) { setError(cause instanceof Error ? cause.message : 'Falha ao carregar serviços.'); } }
-  useEffect(() => { void refresh(); }, []);
+  useEffect(() => {
+    let active = true;
+    void refresh();
+    let channel: { unsubscribe: () => Promise<unknown> | unknown } | undefined;
+    try {
+      channel = subscribeToQueueChanges(['ticket_types'], () => {
+        if (active) void refresh();
+      }, (status) => {
+        if (active && status === 'SUBSCRIBED') void refresh();
+      });
+    } catch {
+      // The settings still work with the initial fetch if Realtime is unavailable.
+    }
+    return () => { active = false; void channel?.unsubscribe(); };
+  }, []);
 
   async function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault(); setBusy(true); setError('');
