@@ -1,9 +1,22 @@
 export type TicketStatus = 'waiting' | 'called' | 'serving' | 'completed' | 'cancelled';
+export type TicketPriority = 'low' | 'normal' | 'high' | 'urgent';
+
+export const ticketPriorityLabels: Record<TicketPriority, string> = {
+  low: 'Baixa',
+  normal: 'Normal',
+  high: 'Alta',
+  urgent: 'Urgente',
+};
+
+export function ticketPriorityLabel(priority: TicketPriority): string {
+  return ticketPriorityLabels[priority];
+}
 
 export interface TicketType {
   id: string;
   name: string;
   prefix: string;
+  priority: TicketPriority;
   isActive: boolean;
   sortOrder: number;
 }
@@ -15,6 +28,7 @@ export interface QueueTicket {
   businessDate: string;
   serviceTypeId: string;
   serviceTypeName: string;
+  servicePriority: TicketPriority;
   customerName: string | null;
   status: TicketStatus;
   counterLabel: string | null;
