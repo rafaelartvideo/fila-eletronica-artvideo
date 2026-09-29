@@ -125,13 +125,11 @@ function Build-TicketBytes($Job) {
   $issued = [DateTimeOffset]::Parse([string]$Job.issued_at).ToLocalTime()
   Add-Line ("Emitida em {0:dd/MM/yyyy HH:mm}" -f $issued)
 
-  # Apenas o avanço necessário para a área da guilhotina; não imprime separador.
-  Add-Bytes ([byte[]](0x1B,0x64,[byte]$feedLines))
-  if ($cutMode -eq 'full') {
-    Add-Bytes ([byte[]](0x1D,0x56,0x00))
-  } else {
-    Add-Bytes ([byte[]](0x1D,0x56,0x01))
-  }
+  # A i9 calcula a posição física da guilhotina.
+  # GS V 65/66 n: avança até a posição de corte + n unidades e corta.
+  # n = 0 mantém o cupom o mais curto possível sem cortar o conteúdo.
+  $cutCommand = if ($cutMode -eq 'full') { [byte]0x41 } else { [byte]0x42 }
+  Add-Bytes ([byte[]](0x1D,0x56,$cutCommand,0x00))
 
   return $bytes.ToArray()
 }
