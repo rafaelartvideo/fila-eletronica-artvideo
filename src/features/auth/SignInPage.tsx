@@ -1,9 +1,10 @@
 import { useState, type FormEvent } from 'react';
 import { ArrowLeft, Eye, EyeOff, LockKeyhole, UserRound } from 'lucide-react';
 import { Link, Navigate, useLocation } from 'react-router';
+import { Button, Notice, TextField } from '../../components/ui';
+import { supabase } from '../../lib/supabase/client';
 import { useAuth } from './AuthProvider';
 import { signInWithUsername } from './auth-api';
-import { supabase } from '../../lib/supabase/client';
 
 export function SignInPage() {
   const { session, isAdmin, loading } = useAuth();
@@ -39,49 +40,49 @@ export function SignInPage() {
         <span className="section-kicker">ÁREA RESTRITA</span>
         <h1>Bem-vindo de volta</h1>
         <p>Entre com seu usuário e senha para acessar o sistema de atendimento.</p>
-        {notice && <div className="form-notice">Este usuário não possui acesso ativo ao sistema.</div>}
-        {!supabase && <div className="form-error">Configure a conexão do Supabase para habilitar o login.</div>}
+
+        {notice && <Notice tone="warning">Este usuário não possui acesso ativo ao sistema.</Notice>}
+        {!supabase && <Notice tone="danger">Configure a conexão do Supabase para habilitar o login.</Notice>}
+
         <form onSubmit={submit}>
-          <label>
-            Usuário
-            <div className="auth-input-shell">
-              <span className="auth-input-icon"><UserRound size={17} /></span>
-              <input
-                type="text"
-                autoComplete="username"
-                spellCheck={false}
-                placeholder="Digite seu usuário"
-                value={username}
-                onChange={(event) => setUsername(event.target.value)}
-                required
-              />
-            </div>
-          </label>
-          <label>
-            Senha
-            <div className="auth-input-shell">
-              <span className="auth-input-icon"><LockKeyhole size={17} /></span>
-              <input
-                type={showPassword ? 'text' : 'password'}
-                autoComplete="current-password"
-                placeholder="Digite sua senha"
-                value={password}
-                onChange={(event) => setPassword(event.target.value)}
-                required
-              />
-              <button
-                className="auth-password-toggle"
+          <TextField
+            label="Usuário"
+            icon={<UserRound />}
+            type="text"
+            autoComplete="username"
+            spellCheck={false}
+            placeholder="Digite seu usuário"
+            value={username}
+            onChange={(event) => setUsername(event.target.value)}
+            required
+          />
+          <TextField
+            label="Senha"
+            icon={<LockKeyhole />}
+            type={showPassword ? 'text' : 'password'}
+            autoComplete="current-password"
+            placeholder="Digite sua senha"
+            value={password}
+            onChange={(event) => setPassword(event.target.value)}
+            required
+            trailing={
+              <Button
                 type="button"
+                variant="ghost"
+                size="sm"
+                iconOnly
                 aria-label={showPassword ? 'Ocultar senha' : 'Mostrar senha'}
                 aria-pressed={showPassword}
                 onClick={() => setShowPassword((visible) => !visible)}
               >
                 {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
-              </button>
-            </div>
-          </label>
-          {error && <div role="alert" className="form-error">{error}</div>}
-          <button className="auth-submit" type="submit" disabled={busy || !supabase}>{busy ? 'Entrando…' : <><LockKeyhole size={16} /> Entrar no painel</>}</button>
+              </Button>
+            }
+          />
+          {error && <Notice tone="danger">{error}</Notice>}
+          <Button variant="primary" type="submit" loading={busy} disabled={!supabase} startIcon={<LockKeyhole size={16} />}>
+            Entrar no painel
+          </Button>
         </form>
         <small>Acesso exclusivo para usuários autorizados.</small>
       </section>
