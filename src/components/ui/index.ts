@@ -3,3 +3,4 @@ export * from './Field';
 export * from './Surface';
 export * from './Badge';
 export * from './Checkbox';
+export * from './Tabs';
