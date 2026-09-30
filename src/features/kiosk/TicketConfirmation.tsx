@@ -36,7 +36,7 @@ export function TicketConfirmation({ ticket, phone = '', onNewTicket }: { ticket
 
   return <section className="issued-ticket-screen" aria-live="polite">
     <div className="ticket-success-mark"><Check size={25} /></div>
-    <span className="section-kicker">SENHA EMITIDA</span>
+    <span className="ui-eyebrow">SENHA EMITIDA</span>
     <h1>Pronto, sua vez está garantida.</h1>
     <p>Aguarde a chamada no painel de senhas.</p>
     <article className="print-ticket" aria-label="Sua senha">
