@@ -51,6 +51,11 @@
   --gold-100: #fff5d9;
 
   --app-bg: #081522;
+  --page-background: radial-gradient(circle at 80% 5%, #132f50 0, transparent 34%), var(--app-bg);
+  --header-bg: rgb(10 25 43 / 94%);
+  --header-border: #24384f;
+  --brand-icon-bg: #173658;
+  --brand-icon-text: #d9e9fb;
   --surface: #0d1f33;
   --surface-raised: #10253d;
   --surface-soft: #0a1a2b;
@@ -103,6 +108,11 @@
 
 html[data-theme='light'] {
   --app-bg: #f4f7fb;
+  --page-background: radial-gradient(circle at 70% 12%, #e5f0fd 0, transparent 31%), var(--app-bg);
+  --header-bg: rgb(255 255 255 / 94%);
+  --header-border: #dde6f0;
+  --brand-icon-bg: #eaf3fe;
+  --brand-icon-text: #286fba;
   --surface: #ffffff;
   --surface-raised: #ffffff;
   --surface-soft: #f7f9fc;
