@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { Activity, CalendarDays, Clapperboard, History, LogOut, Megaphone, MessageCircle, Moon, Printer, Settings2, ShieldCheck, Sun, TicketCheck, TicketPlus, Users, Wrench, X } from 'lucide-react';
 import { Link } from 'react-router';
-import { Button, Notice, Surface, TextField } from '../../components/ui';
+import { Button, Notice, Surface, TabButton, Tabs, TextField } from '../../components/ui';
 import type { QueueTicket, TicketStatus, TicketType } from '../../domain/queue';
 import { ticketWhatsAppUrl } from '../../domain/whatsapp';
 import { callNextTicket, completeTicket, issueTicket, listQueueTickets, listTicketTypes, repeatTicketCall, subscribeToQueueChanges, transitionTicket } from '../../lib/supabase/queue-api';
@@ -278,21 +278,21 @@ export function StaffPage() {
         <Surface tone="soft" className="staff-metric"><span className="metric-icon blue"><TicketCheck size={17} /></span><div><small>Concluídos hoje</small><strong>{served}</strong></div></Surface>
       </div>}
 
-      <nav className="staff-tabs staff-tabs-expanded" aria-label="Seções do painel">
-        {canQueue && <button className={tab === 'queue' ? 'selected' : ''} onClick={() => setTab('queue')}><TicketCheck size={16} /> Fila</button>}
-        {canAttendance && <button className={tab === 'attendance' ? 'selected' : ''} onClick={() => setTab('attendance')}><History size={16} /> Atendimentos</button>}
-        {canServices && <button className={tab === 'services' ? 'selected' : ''} onClick={() => setTab('services')}><Settings2 size={16} /> Tipos de atendimento</button>}
-        {canUsers && <button className={tab === 'users' ? 'selected' : ''} onClick={() => setTab('users')}><Users size={16} /> Usuários</button>}
-        {canRoles && <button className={tab === 'roles' ? 'selected' : ''} onClick={() => setTab('roles')}><ShieldCheck size={16} /> Cargos e permissões</button>}
-        {canMedia && <button className={tab === 'media' ? 'selected' : ''} onClick={() => setTab('media')}><Clapperboard size={16} /> Display</button>}
-        {canPrinter && <button className={tab === 'printer' ? 'selected' : ''} onClick={() => setTab('printer')}><Printer size={16} /> Impressora</button>}
+      <Tabs className="staff-tabs-expanded" aria-label="Seções do painel">
+        {canQueue && <TabButton selected={tab === 'queue'} onClick={() => setTab('queue')} icon={<TicketCheck size={16} />}>Fila</TabButton>}
+        {canAttendance && <TabButton selected={tab === 'attendance'} onClick={() => setTab('attendance')} icon={<History size={16} />}>Atendimentos</TabButton>}
+        {canServices && <TabButton selected={tab === 'services'} onClick={() => setTab('services')} icon={<Settings2 size={16} />}>Tipos de atendimento</TabButton>}
+        {canUsers && <TabButton selected={tab === 'users'} onClick={() => setTab('users')} icon={<Users size={16} />}>Usuários</TabButton>}
+        {canRoles && <TabButton selected={tab === 'roles'} onClick={() => setTab('roles')} icon={<ShieldCheck size={16} />}>Cargos e permissões</TabButton>}
+        {canMedia && <TabButton selected={tab === 'media'} onClick={() => setTab('media')} icon={<Clapperboard size={16} />}>Display</TabButton>}
+        {canPrinter && <TabButton selected={tab === 'printer'} onClick={() => setTab('printer')} icon={<Printer size={16} />}>Impressora</TabButton>}
         {tab === 'queue' && canCall && <>
           <TextField className="counter-field" label="Balcão" value={counter} onChange={(event) => setCounter(event.target.value)} maxLength={40} />
           <Button variant="primary" size="sm" className="global-call-button" disabled={busy || waiting === 0 || counterHasActive} onClick={() => void callNext()} startIcon={<Megaphone size={16} />}>
             {counterHasActive ? 'Atendimento em andamento' : waiting === 0 ? 'Fila vazia' : 'Chamar próximo'}
           </Button>
         </>}
-      </nav>
+      </Tabs>
 
       {error && <Notice tone="danger">{error}<Button variant="ghost" size="sm" onClick={() => void refresh()}>Tentar novamente</Button></Notice>}
 
