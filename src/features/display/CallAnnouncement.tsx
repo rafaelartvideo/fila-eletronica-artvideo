@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { Bell, Volume2, VolumeX } from 'lucide-react';
+import { Button } from '../../components/ui';
 import type { DisplayCall } from '../../domain/queue';
 
 function speak(call: DisplayCall) {
@@ -22,9 +23,9 @@ export function CallAnnouncement({ call }: { call: DisplayCall | null }) {
 
   return <section className="display-callout" aria-live="polite" aria-atomic="true">
     <div className="display-callout-head"><span><Bell size={16} /> SENHA CHAMADA</span>
-      <button className="voice-toggle" onClick={() => { if (voiceEnabled) { window.speechSynthesis?.cancel(); setVoiceEnabled(false); } else { setVoiceEnabled(true); if (call) announce(call); } }} aria-label={voiceEnabled ? 'Desativar voz' : 'Ativar voz'}>
-        {voiceEnabled ? <Volume2 size={16} /> : <VolumeX size={16} />}<small>{voiceEnabled ? 'Voz ativada' : 'Ativar voz'}</small>
-      </button>
+      <Button className="voice-toggle" variant="ghost" size="sm" onClick={() => { if (voiceEnabled) { window.speechSynthesis?.cancel(); setVoiceEnabled(false); } else { setVoiceEnabled(true); if (call) announce(call); } }} aria-label={voiceEnabled ? 'Desativar voz' : 'Ativar voz'} startIcon={voiceEnabled ? <Volume2 size={16} /> : <VolumeX size={16} />}>
+        {voiceEnabled ? 'Voz ativada' : 'Ativar voz'}
+      </Button>
     </div>
     {call ? <div key={`${call.id}-${call.calledAt}`} className="display-current-call display-current-call-animated"><strong>{call.ticketNumber}</strong><div><span>{call.serviceTypeName}</span><small>{call.counterLabel || 'Dirija-se ao balcão'}</small></div></div> : <div className="display-no-call"><span className="display-pulse" />Aguardando a próxima chamada</div>}
   </section>;
