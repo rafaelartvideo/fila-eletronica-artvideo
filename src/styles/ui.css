@@ -240,3 +240,88 @@ body {
 @media (max-width: 620px) {
   .ui-form-grid--2 { grid-template-columns: 1fr; }
 }
+
+
+/* Compatibility layer while legacy page-layout CSS is gradually removed. */
+:where(.auth-page, .staff-app, .kiosk-page, .tracking-page) {
+  color: var(--text);
+  background-color: var(--app-bg);
+}
+
+.section-kicker {
+  color: var(--text-muted);
+  font-size: var(--text-2xs);
+  font-weight: var(--weight-bold);
+  letter-spacing: .12em;
+}
+
+.ui-field.ui-field {
+  color: var(--text);
+  font-size: var(--text-sm);
+  font-weight: var(--weight-regular);
+}
+
+.ui-field .ui-field__control > .ui-field__input {
+  width: 100% !important;
+  min-height: calc(var(--control-md) - 2px) !important;
+  height: auto !important;
+  margin: 0 !important;
+  padding: 0 var(--space-3) !important;
+  border: 0 !important;
+  border-radius: 0 !important;
+  outline: 0 !important;
+  color: var(--input-text) !important;
+  background: transparent !important;
+  box-shadow: none !important;
+  caret-color: var(--input-text);
+  font-weight: var(--weight-regular) !important;
+  -webkit-text-fill-color: var(--input-text);
+}
+
+.ui-field .ui-field__control > .ui-field__textarea {
+  min-height: 96px !important;
+  padding-block: var(--space-3) !important;
+}
+
+.ui-field .ui-field__control > .ui-field__input:focus,
+.ui-field .ui-field__control > .ui-field__input:focus-visible {
+  border: 0 !important;
+  outline: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+}
+
+.ui-field .ui-field__control > .ui-field__input::placeholder {
+  color: var(--input-placeholder) !important;
+  font-weight: var(--weight-regular) !important;
+  opacity: 1 !important;
+  -webkit-text-fill-color: var(--input-placeholder);
+}
+
+.ui-field .ui-field__control > .ui-field__input:-webkit-autofill,
+.ui-field .ui-field__control > .ui-field__input:-webkit-autofill:hover,
+.ui-field .ui-field__control > .ui-field__input:-webkit-autofill:focus {
+  -webkit-text-fill-color: var(--input-text) !important;
+  caret-color: var(--input-text);
+  box-shadow: 0 0 0 1000px var(--input-bg) inset !important;
+}
+
+.settings-panel,
+.access-panel,
+.attendance-panel {
+  color: var(--text);
+}
+
+.settings-subheading strong,
+.setting-row strong,
+.user-row strong,
+.role-card strong {
+  color: var(--text);
+}
+
+.settings-subheading small,
+.setting-row small,
+.user-row small,
+.role-card small {
+  color: var(--text-muted);
+}
