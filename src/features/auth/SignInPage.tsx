@@ -6,17 +6,26 @@ import { supabase } from '../../lib/supabase/client';
 import { useAuth } from './AuthProvider';
 import { signInWithUsername } from './auth-api';
 
+type SignInLocationState = {
+  denied?: boolean;
+  from?: string;
+};
+
 export function SignInPage() {
   const { session, isAdmin, loading } = useAuth();
   const location = useLocation();
+  const routeState = (location.state as SignInLocationState | null) ?? null;
+  const returnTo = routeState?.from?.startsWith('/') && !routeState.from.startsWith('//')
+    ? routeState.from
+    : '/painel';
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState('');
-  const [notice] = useState(Boolean((location.state as { denied?: boolean } | null)?.denied));
+  const [notice] = useState(Boolean(routeState?.denied));
 
-  if (session && isAdmin && !loading) return <Navigate to="/painel" replace />;
+  if (session && isAdmin && !loading) return <Navigate to={returnTo} replace />;
 
   async function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();

@@ -30,6 +30,32 @@ export function KioskPage() {
   }, []);
 
   useEffect(() => {
+    const previousTitle = document.title;
+    const existingManifest = document.querySelector<HTMLLinkElement>('link[rel="manifest"]');
+    const manifest = existingManifest ?? document.createElement('link');
+    const previousManifestHref = existingManifest?.getAttribute('href') ?? null;
+
+    document.title = 'Gerar senha | Fila Artvideo';
+
+    if (!existingManifest) {
+      manifest.rel = 'manifest';
+      document.head.appendChild(manifest);
+    }
+    manifest.setAttribute('href', '/totem.webmanifest');
+
+    return () => {
+      document.title = previousTitle;
+      if (!existingManifest) {
+        manifest.remove();
+      } else if (previousManifestHref) {
+        manifest.setAttribute('href', previousManifestHref);
+      } else {
+        manifest.removeAttribute('href');
+      }
+    };
+  }, []);
+
+  useEffect(() => {
     let active = true;
     void loadTypes(true);
     let channel: { unsubscribe: () => Promise<unknown> | unknown } | undefined;

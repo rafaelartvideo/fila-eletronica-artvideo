@@ -1,0 +1,19 @@
+{
+  "id": "/totem",
+  "name": "Artvideo - Gerar senha",
+  "short_name": "Gerar senha",
+  "description": "Emissão de senhas do atendimento Artvideo.",
+  "start_url": "/totem",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#0d1d36",
+  "theme_color": "#0d1d36",
+  "icons": [
+    {
+      "src": "/assets/logo/logotelalogin.png",
+      "sizes": "any",
+      "type": "image/png",
+      "purpose": "any"
+    }
+  ]
+}
