@@ -25,8 +25,8 @@ export function MediaPlayer({ items }: { items: MediaItem[] }) {
   return <section className="display-media" aria-label="Vídeos da loja">
     <div className="display-media-heading"><span><Clapperboard size={15} /> NA ARTVIDEO</span>{usable.length > 1 && <Button variant="ghost" size="sm" iconOnly aria-label="Próximo vídeo" onClick={advance}><SkipForward size={15} /></Button>}</div>
     <div className="display-media-frame">
-      {source?.kind === 'direct-video' && <video key={current?.id} src={source.url} title={current?.title ?? 'Vídeo'} autoPlay muted playsInline onEnded={advance} onError={failCurrent} />}
-      {source?.kind === 'youtube' && <iframe key={current?.id} title={current?.title ?? 'YouTube'} src={`${source.url}?autoplay=1&mute=1&rel=0`} allow="autoplay; encrypted-media; picture-in-picture" referrerPolicy="strict-origin-when-cross-origin" onError={failCurrent} />}
+      {source?.kind === 'direct-video' && <video key={current?.id} src={source.url} title={current?.title ?? 'Vídeo'} autoPlay playsInline onEnded={advance} onError={failCurrent} />}
+      {source?.kind === 'youtube' && <iframe key={current?.id} title={current?.title ?? 'YouTube'} src={`${source.url}?autoplay=1&mute=0&rel=0`} allow="autoplay; encrypted-media; picture-in-picture" referrerPolicy="strict-origin-when-cross-origin" onError={failCurrent} />}
       {source?.kind === 'embed' && <iframe key={current?.id} title={current?.title ?? 'Vídeo incorporado'} src={source.url} sandbox="allow-scripts allow-same-origin allow-presentation" allow="autoplay; encrypted-media; picture-in-picture" referrerPolicy="strict-origin-when-cross-origin" onError={failCurrent} />}
       {!current && <div className="display-media-empty"><Clapperboard size={28} /><span>{items.length ? 'Nenhum link de vídeo pôde ser exibido.' : 'A fila de atendimento aparece ao lado.'}</span></div>}
     </div>
