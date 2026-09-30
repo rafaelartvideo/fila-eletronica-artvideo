@@ -1,5 +1,5 @@
 import { useState, type FormEvent } from 'react';
-import { ArrowLeft, LockKeyhole, UserRound } from 'lucide-react';
+import { ArrowLeft, Eye, EyeOff, LockKeyhole, UserRound } from 'lucide-react';
 import { Link, Navigate, useLocation } from 'react-router';
 import { useAuth } from './AuthProvider';
 import { signInWithUsername } from './auth-api';
@@ -10,6 +10,7 @@ export function SignInPage() {
   const location = useLocation();
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState('');
   const [notice] = useState(Boolean((location.state as { denied?: boolean } | null)?.denied));
@@ -41,8 +42,44 @@ export function SignInPage() {
         {notice && <div className="form-notice">Este usuário não possui acesso ativo ao sistema.</div>}
         {!supabase && <div className="form-error">Configure a conexão do Supabase para habilitar o login.</div>}
         <form onSubmit={submit}>
-          <label>Usuário<div className="auth-input-shell"><UserRound size={16} /><input type="text" autoComplete="username" spellCheck={false} value={username} onChange={(event) => setUsername(event.target.value)} required /></div></label>
-          <label>Senha<div className="auth-input-shell"><LockKeyhole size={16} /><input type="password" autoComplete="current-password" value={password} onChange={(event) => setPassword(event.target.value)} required /></div></label>
+          <label>
+            Usuário
+            <div className="auth-input-shell">
+              <span className="auth-input-icon"><UserRound size={17} /></span>
+              <input
+                type="text"
+                autoComplete="username"
+                spellCheck={false}
+                placeholder="Digite seu usuário"
+                value={username}
+                onChange={(event) => setUsername(event.target.value)}
+                required
+              />
+            </div>
+          </label>
+          <label>
+            Senha
+            <div className="auth-input-shell">
+              <span className="auth-input-icon"><LockKeyhole size={17} /></span>
+              <input
+                type={showPassword ? 'text' : 'password'}
+                autoComplete="current-password"
+                placeholder="Digite sua senha"
+                value={password}
+                onChange={(event) => setPassword(event.target.value)}
+                required
+              />
+              <button
+                className="auth-password-toggle"
+                type="button"
+                aria-label={showPassword ? 'Ocultar senha' : 'Mostrar senha'}
+                aria-pressed={showPassword}
+                onClick={() => setShowPassword((visible) => !visible)}
+              >
+                {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+              </button>
+            </div>
+          </label>
           {error && <div role="alert" className="form-error">{error}</div>}
           <button className="auth-submit" type="submit" disabled={busy || !supabase}>{busy ? 'Entrando…' : <><LockKeyhole size={16} /> Entrar no painel</>}</button>
         </form>
