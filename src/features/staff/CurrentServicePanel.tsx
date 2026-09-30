@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { Check, Maximize2, Minimize2, Play, RotateCcw, UserRound, X } from 'lucide-react';
+import { Button, TextAreaField } from '../../components/ui';
 import type { QueueTicket } from '../../domain/queue';
 import { ticketPriorityLabel } from '../../domain/queue';
 
@@ -78,9 +79,9 @@ export function CurrentServicePanel({
           <span className={`service-session-status ${tone}`}><i /> {statusLabel}</span>
           <small>ATENDIMENTO ATUAL</small>
         </div>
-        <button type="button" className="service-session-minimize" onClick={onMinimize} aria-label="Minimizar atendimento" title="Minimizar">
+        <Button variant="ghost" size="sm" iconOnly type="button" className="service-session-minimize" onClick={onMinimize} aria-label="Minimizar atendimento" title="Minimizar">
           <Minimize2 size={19} />
-        </button>
+        </Button>
       </header>
 
       <div className="service-session-hero">
@@ -96,10 +97,9 @@ export function CurrentServicePanel({
         {ticket.customerName && <div><small>Cliente</small><strong><UserRound size={14} /> {ticket.customerName}</strong></div>}
       </div>
 
-      {!isCalled && canServe && <div className={`service-customer-request ${requestError ? 'has-error' : ''}`}>
-        <label htmlFor={`customer-request-${ticket.id}`}>O que o cliente queria <span>*</span></label>
-        <textarea
-          id={`customer-request-${ticket.id}`}
+      {!isCalled && canServe && <div className="service-customer-request">
+        <TextAreaField
+          label="O que o cliente queria *"
           value={request}
           onChange={(event) => {
             setRequest(event.target.value);
@@ -110,19 +110,16 @@ export function CurrentServicePanel({
           rows={4}
           required
           aria-invalid={Boolean(requestError)}
-          aria-describedby={requestError ? `customer-request-error-${ticket.id}` : undefined}
+          error={requestError || undefined}
+          hint={`${request.length}/1000 · obrigatório para encerrar`}
         />
-        <div className="service-request-meta">
-          <small>{request.length}/1000 · obrigatório para encerrar</small>
-        </div>
-        {requestError && <div id={`customer-request-error-${ticket.id}`} className="service-request-feedback" role="alert">{requestError}</div>}
       </div>}
 
       <footer className="service-session-actions">
-        {isCalled && canCall && <button type="button" className="service-action secondary" disabled={busy} onClick={onRepeat}><RotateCcw size={17} /> Repetir chamada</button>}
-        {isCalled && canServe && <button type="button" className="service-action primary" disabled={busy} onClick={onStart}><Play size={17} /> Iniciar atendimento</button>}
-        {!isCalled && canServe && <button type="button" className="service-action success" disabled={busy} onClick={complete}><Check size={17} /> Encerrar atendimento</button>}
-        {isCalled && canServe && <button type="button" className="service-action danger" disabled={busy} onClick={onCancel}><X size={17} /> Cancelar</button>}
+        {isCalled && canCall && <Button variant="secondary" disabled={busy} onClick={onRepeat} startIcon={<RotateCcw size={17} />}>Repetir chamada</Button>}
+        {isCalled && canServe && <Button variant="primary" disabled={busy} onClick={onStart} startIcon={<Play size={17} />}>Iniciar atendimento</Button>}
+        {!isCalled && canServe && <Button variant="success" disabled={busy} onClick={complete} startIcon={<Check size={17} />}>Encerrar atendimento</Button>}
+        {isCalled && canServe && <Button variant="danger" disabled={busy} onClick={onCancel} startIcon={<X size={17} />}>Cancelar</Button>}
       </footer>
     </section>
   </div>;
