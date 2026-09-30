@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { Check, MessageCircle, Printer, RotateCcw, TicketCheck } from 'lucide-react';
+import { Button, Notice } from '../../components/ui';
 import type { QueueTicket } from '../../domain/queue';
 import { ticketWhatsAppUrl } from '../../domain/whatsapp';
 import { getPrintJobStatus, requestTicketPrint } from '../../lib/supabase/queue-api';
@@ -48,12 +49,19 @@ export function TicketConfirmation({ ticket, phone = '', onNewTicket }: { ticket
     </article>
     {ticket.trackingToken && <TicketTrackingQr token={ticket.trackingToken} />}
     <div className="kiosk-controls no-print" data-testid="kiosk-controls">
-      {whatsappUrl && <a className="whatsapp-button" href={whatsappUrl} target="_blank" rel="noopener noreferrer"><MessageCircle size={20} /> Enviar pelo WhatsApp</a>}
-      {phone && !whatsappUrl && <small className="phone-error">Número inválido. Use DDD + número brasileiro para enviar pelo WhatsApp.</small>}
-      <button className="kiosk-print-button" onClick={() => void printDirect()} disabled={printState === 'sending' || printState === 'waiting' || printState === 'printed'}><Printer size={19} /> {printState === 'sending' ? 'Enviando…' : printState === 'waiting' ? 'Aguardando impressora…' : printState === 'printed' ? 'Senha impressa' : 'Imprimir senha'}</button>
-      {printMessage && <small className={'print-status ' + printState}>{printMessage}</small>}
-      {printState === 'error' && <button className="kiosk-new-button" onClick={() => window.print()}><Printer size={17} /> Usar impressão do navegador</button>}
-      <button className="kiosk-new-button" onClick={onNewTicket}><RotateCcw size={17} /> Emitir outra senha</button>
+      {whatsappUrl && <a className="ui-button ui-button--success ui-button--md whatsapp-button" href={whatsappUrl} target="_blank" rel="noopener noreferrer"><MessageCircle size={18} /> <span className="ui-button__label">Enviar pelo WhatsApp</span></a>}
+      {phone && !whatsappUrl && <Notice tone="warning" className="phone-error">Número inválido. Use DDD + número brasileiro para enviar pelo WhatsApp.</Notice>}
+      <Button
+        variant="primary"
+        onClick={() => void printDirect()}
+        disabled={printState === 'sending' || printState === 'waiting' || printState === 'printed'}
+        startIcon={<Printer size={18} />}
+      >
+        {printState === 'sending' ? 'Enviando…' : printState === 'waiting' ? 'Aguardando impressora…' : printState === 'printed' ? 'Senha impressa' : 'Imprimir senha'}
+      </Button>
+      {printMessage && <Notice tone={printState === 'error' ? 'danger' : printState === 'printed' ? 'success' : 'info'} className={'print-status ' + printState}>{printMessage}</Notice>}
+      {printState === 'error' && <Button variant="secondary" onClick={() => window.print()} startIcon={<Printer size={17} />}>Usar impressão do navegador</Button>}
+      <Button variant="secondary" onClick={onNewTicket} startIcon={<RotateCcw size={17} />}>Emitir outra senha</Button>
     </div>
   </section>;
 }
