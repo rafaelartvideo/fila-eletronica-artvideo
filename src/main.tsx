@@ -9,7 +9,8 @@ import './styles/polish.css';
 const THEME_STORAGE_KEY = 'fila-theme';
 
 function applyTheme(theme: string | null) {
-  const resolvedTheme = theme === 'light' ? 'light' : 'dark';
+  const displayLockedDark = document.documentElement.dataset.displayThemeLock === 'dark';
+  const resolvedTheme = displayLockedDark ? 'dark' : theme === 'light' ? 'light' : 'dark';
   document.documentElement.dataset.theme = resolvedTheme;
   document.documentElement.style.colorScheme = resolvedTheme;
 }
