@@ -5,6 +5,7 @@ import App from './app/App';
 import './styles/tokens.css';
 import './styles/global.css';
 import './styles/polish.css';
+import './styles/ui.css';
 
 const THEME_STORAGE_KEY = 'fila-theme';
 
