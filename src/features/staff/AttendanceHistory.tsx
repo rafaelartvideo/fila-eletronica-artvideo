@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import { CalendarDays, Clock3, Search } from 'lucide-react';
+import { Button, EmptyState, Notice, SectionHeader, SelectField, TextField } from '../../components/ui';
 import type { AttendanceRecord } from '../../lib/supabase/queue-api';
 import { listAttendanceHistory } from '../../lib/supabase/queue-api';
 
@@ -74,32 +75,30 @@ export function AttendanceHistory() {
   }, [records, status, query]);
 
   return <section className="attendance-panel">
-    <header className="panel-section-header">
-      <div>
-        <span className="section-kicker">HISTÓRICO</span>
-        <h2>Atendimentos</h2>
-        <p>Consulte todas as senhas, pedidos dos clientes, status e tempos da operação.</p>
-      </div>
-      <div className="attendance-count"><strong>{filtered.length}</strong><small>registros</small></div>
-    </header>
+    <SectionHeader
+      eyebrow="HISTÓRICO"
+      title="Atendimentos"
+      description="Consulte todas as senhas, pedidos dos clientes, status e tempos da operação."
+      actions={<div className="attendance-count"><strong>{filtered.length}</strong><small>registros</small></div>}
+    />
 
     <div className="attendance-filters">
-      <label><CalendarDays size={15} /><span>De</span><input type="date" value={from} onChange={(event) => setFrom(event.target.value)} /></label>
-      <label><CalendarDays size={15} /><span>Até</span><input type="date" value={to} onChange={(event) => setTo(event.target.value)} /></label>
-      <label className="attendance-search"><Search size={15} /><input placeholder="Buscar senha, pedido ou atendente" value={query} onChange={(event) => setQuery(event.target.value)} /></label>
-      <select aria-label="Status do atendimento" value={status} onChange={(event) => setStatus(event.target.value)}>
+      <TextField label="De" icon={<CalendarDays size={15} />} type="date" value={from} onChange={(event) => setFrom(event.target.value)} />
+      <TextField label="Até" icon={<CalendarDays size={15} />} type="date" value={to} onChange={(event) => setTo(event.target.value)} />
+      <TextField className="attendance-search" label="Buscar" icon={<Search size={15} />} placeholder="Senha, pedido ou atendente" value={query} onChange={(event) => setQuery(event.target.value)} />
+      <SelectField label="Status" aria-label="Status do atendimento" value={status} onChange={(event) => setStatus(event.target.value)}>
         <option value="all">Todos os status</option>
         <option value="waiting">Aguardando</option>
         <option value="called">Aguardando cliente</option>
         <option value="serving">Em atendimento</option>
         <option value="completed">Concluído</option>
         <option value="cancelled">Cancelado</option>
-      </select>
+      </SelectField>
     </div>
 
-    {error && <div className="staff-error" role="alert">{error}<button onClick={() => void load()}>Tentar novamente</button></div>}
-    {loading ? <div className="attendance-empty"><Clock3 size={20} /> Carregando atendimentos…</div> :
-      filtered.length === 0 ? <div className="attendance-empty">Nenhum atendimento encontrado nesse período.</div> :
+    {error && <Notice tone="danger">{error}<Button variant="ghost" size="sm" onClick={() => void load()}>Tentar novamente</Button></Notice>}
+    {loading ? <EmptyState icon={<Clock3 size={20} />}>Carregando atendimentos…</EmptyState> :
+      filtered.length === 0 ? <EmptyState>Nenhum atendimento encontrado nesse período.</EmptyState> :
       <div className="attendance-table-wrap">
         <table className="attendance-table">
           <thead><tr>
