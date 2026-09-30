@@ -2272,3 +2272,147 @@ html[data-theme='light'] .auth-input-shell input::placeholder {
 html[data-display-theme-lock='dark'] {
   color-scheme: dark;
 }
+
+
+/* Login field system — theme-safe alignment and contrast. */
+html:not([data-theme='light']) .auth-card {
+  --auth-field-bg: #0b1a2d;
+  --auth-field-border: #304660;
+  --auth-field-border-focus: #4c83bd;
+  --auth-field-text: #eef5fd;
+  --auth-field-placeholder: #5f7389;
+  --auth-icon-color: #79b5f4;
+  --auth-icon-bg: rgb(47 119 199 / 18%);
+  --auth-icon-border: rgb(111 169 232 / 12%);
+  --auth-eye-color: #71869d;
+  --auth-eye-active: #9fc8f3;
+}
+
+html[data-theme='light'] .auth-card {
+  --auth-field-bg: #ffffff;
+  --auth-field-border: #d9e1eb;
+  --auth-field-border-focus: #8eb5df;
+  --auth-field-text: #16233a;
+  --auth-field-placeholder: #7f8c9d;
+  --auth-icon-color: #286fba;
+  --auth-icon-bg: #eaf3fe;
+  --auth-icon-border: #dceafb;
+  --auth-eye-color: #6a7f94;
+  --auth-eye-active: #245f9e;
+}
+
+.auth-card .auth-input-shell {
+  position: relative;
+  display: block;
+  min-height: 48px;
+  padding: 0;
+  overflow: hidden;
+  border: 1px solid var(--auth-field-border);
+  border-radius: 10px;
+  color: var(--auth-field-text);
+  background: var(--auth-field-bg);
+}
+
+.auth-card .auth-input-shell:focus-within {
+  border-color: var(--auth-field-border-focus);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--auth-field-border-focus) 18%, transparent);
+}
+
+.auth-card .auth-input-icon {
+  position: absolute;
+  z-index: 2;
+  top: 50%;
+  left: 7px;
+  width: 34px;
+  height: 34px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0;
+  overflow: hidden;
+  border: 1px solid var(--auth-icon-border);
+  border-radius: 9px;
+  color: var(--auth-icon-color);
+  background: var(--auth-icon-bg);
+  box-shadow: none;
+  line-height: 0;
+  transform: translateY(-50%);
+  pointer-events: none;
+}
+
+.auth-card .auth-input-icon svg {
+  display: block;
+  width: 17px;
+  height: 17px;
+  margin: 0;
+  color: currentColor !important;
+  transform: none;
+}
+
+.auth-card .auth-input-shell > input {
+  width: 100%;
+  height: 46px !important;
+  min-height: 46px !important;
+  margin: 0;
+  padding: 0 12px 0 50px !important;
+  border: 0 !important;
+  border-radius: 0 !important;
+  outline: 0 !important;
+  color: var(--auth-field-text) !important;
+  background: transparent !important;
+  box-shadow: none !important;
+  font-weight: 400 !important;
+  -webkit-text-fill-color: var(--auth-field-text);
+}
+
+.auth-card .auth-input-shell:has(.auth-password-toggle) > input {
+  padding-right: 46px !important;
+}
+
+.auth-card .auth-input-shell > input::placeholder {
+  color: var(--auth-field-placeholder) !important;
+  font-weight: 400 !important;
+  opacity: 1;
+  -webkit-text-fill-color: var(--auth-field-placeholder);
+}
+
+.auth-card .auth-password-toggle {
+  position: absolute;
+  z-index: 2;
+  top: 50%;
+  right: 6px;
+  width: 34px;
+  height: 34px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0;
+  padding: 0;
+  border: 0 !important;
+  border-radius: 0;
+  outline: 0 !important;
+  color: var(--auth-eye-color);
+  background: transparent !important;
+  box-shadow: none !important;
+  transform: translateY(-50%);
+  cursor: pointer;
+}
+
+.auth-card .auth-password-toggle:hover,
+.auth-card .auth-password-toggle:focus,
+.auth-card .auth-password-toggle:focus-visible,
+.auth-card .auth-password-toggle:active {
+  border: 0 !important;
+  outline: 0 !important;
+  color: var(--auth-eye-active);
+  background: transparent !important;
+  box-shadow: none !important;
+}
+
+.auth-card .auth-password-toggle svg {
+  display: block;
+  width: 18px;
+  height: 18px;
+  margin: 0;
+  color: currentColor !important;
+}
