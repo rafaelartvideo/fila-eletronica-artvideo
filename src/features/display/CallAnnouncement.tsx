@@ -13,7 +13,7 @@ function speak(call: DisplayCall) {
 }
 
 export function CallAnnouncement({ call }: { call: DisplayCall | null }) {
-  const [voiceEnabled, setVoiceEnabled] = useState(true);
+  const [voiceEnabled, setVoiceEnabled] = useState(false);
   const lastSpoken = useRef('');
   function announce(nextCall: DisplayCall) {
     lastSpoken.current = `${nextCall.id}-${nextCall.calledAt}`;

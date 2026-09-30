@@ -83,15 +83,14 @@ describe('public display', () => {
     expect(await screen.findByTitle('Vídeo 2')).toBeInTheDocument();
   });
 
-  it('starts spoken calls enabled by default and allows disabling them', () => {
+  it('requires a user gesture to enable spoken calls', () => {
     const speak = vi.fn();
-    const cancel = vi.fn();
-    Object.defineProperty(window, 'speechSynthesis', { configurable: true, value: { speak, cancel } });
+    Object.defineProperty(window, 'speechSynthesis', { configurable: true, value: { speak, cancel: vi.fn() } });
     Object.defineProperty(window, 'SpeechSynthesisUtterance', { configurable: true, value: class { constructor(public text: string) {} } });
     render(<CallAnnouncement call={call} />);
+    expect(speak).not.toHaveBeenCalled();
+    fireEvent.click(screen.getByRole('button', { name: /ativar voz/i }));
     expect(speak).toHaveBeenCalledOnce();
     expect(speak.mock.calls[0][0].text).toContain('C008');
-    fireEvent.click(screen.getByRole('button', { name: /desativar voz/i }));
-    expect(cancel).toHaveBeenCalled();
   });
 });
