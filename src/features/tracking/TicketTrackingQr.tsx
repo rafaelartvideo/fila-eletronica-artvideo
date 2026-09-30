@@ -28,11 +28,11 @@ export function TicketTrackingQr({ token, compact = false }: { token: string; co
     : '';
 
   return <>
-    {compact ? <Button className="tracking-qr-trigger no-print" variant="secondary" type="button" onClick={() => setExpanded(true)}>
+    {compact ? <button className="tracking-qr-trigger no-print" type="button" onClick={() => setExpanded(true)}>
       <span className="tracking-qr-trigger-icon"><QrCode size={22} /></span>
       <span><strong>Mostrar QR Code</strong><small>Abra para o cliente escanear e acompanhar a fila.</small></span>
       <Maximize2 size={18} />
-    </Button> : <Surface className="tracking-qr-card no-print">
+    </button> : <Surface className="tracking-qr-card no-print">
       <QrVisual matrix={matrix} size={size} path={path} />
       <div>
         <strong>Acompanhe sua fila</strong>
