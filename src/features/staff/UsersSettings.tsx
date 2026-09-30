@@ -1,5 +1,6 @@
 import { useEffect, useState, type FormEvent } from 'react';
 import { Pencil, Plus, UserRound, X } from 'lucide-react';
+import { Badge, Button, Checkbox, EmptyState, Notice, SectionHeader, SelectField, Surface, TextField } from '../../components/ui';
 import type { QueueRole, QueueUser } from '../../lib/supabase/queue-api';
 import { listQueueRoles, listQueueUsers, saveQueueUser } from '../../lib/supabase/queue-api';
 import { normalizeUsername } from '../auth/username';
@@ -78,43 +79,58 @@ export function UsersSettings() {
   }
 
   return <section className="access-panel">
-    <header className="panel-section-header">
-      <div><span className="section-kicker">ACESSOS</span><h2>Usuários</h2><p>Crie logins por usuário e vincule cada pessoa ao seu cargo.</p></div>
-      {canManage && <button className="blue-button" type="button" onClick={create}><Plus size={16} /> Novo usuário</button>}
-    </header>
+    <SectionHeader
+      eyebrow="ACESSOS"
+      title="Usuários"
+      description="Crie logins por usuário e vincule cada pessoa ao seu cargo."
+      actions={canManage ? <Button variant="primary" type="button" onClick={create} startIcon={<Plus size={16} />}>Novo usuário</Button> : null}
+    />
 
-    {error && !open && <div className="staff-error" role="alert">{error}<button onClick={() => void load()}>Tentar novamente</button></div>}
+    {error && !open && <Notice tone="danger">{error}<Button variant="ghost" size="sm" onClick={() => void load()}>Tentar novamente</Button></Notice>}
 
     <div className="users-list">
-      {users.map((user) => <article key={user.userId} className="user-row">
+      {users.map((user) => <Surface tone="soft" as="article" key={user.userId} className="user-row">
         <span className="user-avatar"><UserRound size={19} /></span>
         <div><strong>{user.fullName}</strong><small>@{user.username}</small></div>
         <div><small>Cargo</small><strong>{user.roleName}</strong></div>
-        <span className={`user-status ${user.isActive ? 'active' : 'inactive'}`}>{user.isActive ? 'Ativo' : 'Inativo'}</span>
-        {canManage && <button className="subtle-button" type="button" onClick={() => edit(user)}><Pencil size={15} /> Editar</button>}
-      </article>)}
-      {users.length === 0 && <div className="attendance-empty">Nenhum usuário cadastrado.</div>}
+        <Badge tone={user.isActive ? 'success' : 'neutral'}>{user.isActive ? 'Ativo' : 'Inativo'}</Badge>
+        {canManage && <Button variant="secondary" size="sm" type="button" onClick={() => edit(user)} startIcon={<Pencil size={15} />}>Editar</Button>}
+      </Surface>)}
+      {users.length === 0 && <EmptyState icon={<UserRound size={18} />}>Nenhum usuário cadastrado.</EmptyState>}
     </div>
 
     {open && <div className="service-type-modal-overlay" onMouseDown={(event) => { if (event.target === event.currentTarget && !busy) setOpen(false); }}>
-      <section className="service-type-modal user-modal" role="dialog" aria-modal="true">
-        <button className="service-type-modal-close" type="button" onClick={() => setOpen(false)} disabled={busy} aria-label="Fechar"><X size={19} /></button>
-        <span className="section-kicker">{editing ? 'EDITAR USUÁRIO' : 'NOVO USUÁRIO'}</span>
+      <Surface tone="raised" className="service-type-modal user-modal" role="dialog" aria-modal="true">
+        <Button className="service-type-modal-close" variant="ghost" size="sm" iconOnly type="button" onClick={() => setOpen(false)} disabled={busy} aria-label="Fechar"><X size={19} /></Button>
+        <span className="ui-eyebrow">{editing ? 'EDITAR USUÁRIO' : 'NOVO USUÁRIO'}</span>
         <h2>{editing ? editing.fullName : 'Criar usuário'}</h2>
         <p>O login será feito pelo campo Usuário. O e-mail técnico do Supabase não fica visível para o atendente.</p>
-        <form className="service-type-modal-form" onSubmit={submit}>
-          <label>Nome<input value={fullName} onChange={(event) => setFullName(event.target.value)} required maxLength={120} /></label>
-          <label>Usuário<input value={username} onChange={(event) => setUsername(normalizeUsername(event.target.value))} required minLength={3} maxLength={32} autoComplete="off" spellCheck={false} placeholder="ex.: joao.silva" /></label>
-          <label>Cargo<select value={roleId} onChange={(event) => setRoleId(event.target.value)} required>
+
+        <form className="ui-form-grid" onSubmit={submit}>
+          <TextField label="Nome" value={fullName} onChange={(event) => setFullName(event.target.value)} required maxLength={120} />
+          <TextField label="Usuário" value={username} onChange={(event) => setUsername(normalizeUsername(event.target.value))} required minLength={3} maxLength={32} autoComplete="off" spellCheck={false} placeholder="ex.: joao.silva" />
+          <SelectField label="Cargo" value={roleId} onChange={(event) => setRoleId(event.target.value)} required>
             <option value="">Selecione</option>
             {roles.map((role) => <option key={role.id} value={role.id}>{role.name}</option>)}
-          </select></label>
-          <label>{editing ? 'Nova senha (opcional)' : 'Senha'}<input type="password" value={password} onChange={(event) => setPassword(event.target.value)} required={!editing} minLength={8} autoComplete="new-password" placeholder={editing ? 'Deixe vazio para manter' : 'Mínimo de 8 caracteres'} /></label>
-          <label className="user-active-toggle"><input type="checkbox" checked={active} onChange={(event) => setActive(event.target.checked)} /> <span>Usuário ativo</span></label>
-          {error && <div className="form-error" role="alert">{error}</div>}
-          <div className="service-type-modal-actions"><button className="subtle-button" type="button" onClick={() => setOpen(false)} disabled={busy}>Cancelar</button><button className="blue-button" disabled={busy}>{busy ? 'Salvando…' : 'Salvar'}</button></div>
+          </SelectField>
+          <TextField
+            label={editing ? 'Nova senha (opcional)' : 'Senha'}
+            type="password"
+            value={password}
+            onChange={(event) => setPassword(event.target.value)}
+            required={!editing}
+            minLength={8}
+            autoComplete="new-password"
+            placeholder={editing ? 'Deixe vazio para manter' : 'Mínimo de 8 caracteres'}
+          />
+          <Checkbox label="Usuário ativo" checked={active} onChange={(event) => setActive(event.target.checked)} />
+          {error && <Notice tone="danger">{error}</Notice>}
+          <div className="ui-modal-actions">
+            <Button variant="secondary" type="button" onClick={() => setOpen(false)} disabled={busy}>Cancelar</Button>
+            <Button variant="primary" type="submit" loading={busy}>Salvar</Button>
+          </div>
         </form>
-      </section>
+      </Surface>
     </div>}
   </section>;
 }
