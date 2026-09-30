@@ -37,7 +37,7 @@ export function SignInPage() {
       <Link to="/" className="auth-back"><ArrowLeft size={16} /> Voltar ao início</Link>
       <section className="auth-card">
         <div className="auth-logo"><LockKeyhole size={24} /></div>
-        <span className="section-kicker">ÁREA RESTRITA</span>
+        <span className="ui-eyebrow">ÁREA RESTRITA</span>
         <h1>Bem-vindo de volta</h1>
         <p>Entre com seu usuário e senha para acessar o sistema de atendimento.</p>
 
