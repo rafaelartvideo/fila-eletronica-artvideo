@@ -107,16 +107,16 @@ export function KioskPage() {
           </Button>
         </Surface> : types.length === 0 ? <EmptyState>Nenhum atendimento está disponível neste momento. Por favor, chame nossa equipe.</EmptyState> :
           <div className="kiosk-service-grid">
-            {types.map((type) => <Button
+            {types.map((type) => <button
               key={type.id}
-              variant="secondary"
+              type="button"
               className="kiosk-service-card"
               onClick={() => { setSelectedType(type); setError(''); }}
             >
               <span className="kiosk-service-icon"><ClipboardList size={21} /></span>
               <span><strong>{type.name}</strong><small>Retire uma senha</small></span>
               <ArrowRight className="kiosk-service-arrow" size={19} />
-            </Button>)}
+            </button>)}
           </div>
         }
 
