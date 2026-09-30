@@ -34,8 +34,7 @@ export function Button({
 
   return <button className={classes} disabled={disabled || loading} {...props}>
     {startIcon && <span className="ui-button__icon" aria-hidden="true">{startIcon}</span>}
-    {!iconOnly && <span className="ui-button__label">{loading ? 'Aguarde…' : children}</span>}
-    {iconOnly && children}
+    {iconOnly ? children : loading ? 'Aguarde…' : children}
     {endIcon && <span className="ui-button__icon" aria-hidden="true">{endIcon}</span>}
   </button>;
 }
