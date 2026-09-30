@@ -2028,11 +2028,16 @@ html[data-theme='light'] .staff-kiosk-link {
   gap: 8px;
   min-height: 44px;
   padding: 0 11px;
-  border: 1px solid #d9e1eb;
+  border: 1px solid #304660;
   border-radius: 10px;
-  background: #fff;
+  color: #eef5fd;
+  background: #0b1a2d;
 }
-.auth-input-shell svg { flex: 0 0 auto; color: #2e6fb5; }
+.auth-input-shell:focus-within {
+  border-color: #4c83bd;
+  box-shadow: 0 0 0 3px rgb(76 131 189 / 18%);
+}
+.auth-input-shell svg { flex: 0 0 auto; color: #6fa9e8; }
 .auth-input-shell input {
   width: 100%;
   min-height: 40px !important;
@@ -2098,4 +2103,95 @@ html[data-theme='light'] .permission-row { border-color: #e7ecf1; }
   .user-row .user-status,
   .user-row .subtle-button { grid-column: 2; width: fit-content; }
   .role-fields { grid-template-columns: 1fr; }
+}
+
+
+/* Dark form controls consistency. */
+html:not([data-theme='light']) {
+  color-scheme: dark;
+}
+
+html:not([data-theme='light']) :where(
+  .auth-card,
+  .settings-panel,
+  .service-type-modal,
+  .issue-dialog,
+  .attendance-panel,
+  .access-panel
+) :where(
+  input:not([type='checkbox']):not([type='radio']),
+  select,
+  textarea
+) {
+  color: #eef5fd;
+  border-color: #304660;
+  background-color: #0b1a2d;
+  caret-color: #eef5fd;
+}
+
+html:not([data-theme='light']) :where(
+  .auth-card,
+  .settings-panel,
+  .service-type-modal,
+  .issue-dialog,
+  .attendance-panel,
+  .access-panel
+) :where(
+  input:not([type='checkbox']):not([type='radio']),
+  textarea
+)::placeholder {
+  color: #6f849b;
+  opacity: 1;
+}
+
+html:not([data-theme='light']) :where(
+  .auth-card,
+  .settings-panel,
+  .service-type-modal,
+  .issue-dialog,
+  .attendance-panel,
+  .access-panel
+) select option {
+  color: #eef5fd;
+  background: #0b1a2d;
+}
+
+html:not([data-theme='light']) .auth-input-shell {
+  color: #eef5fd;
+  border-color: #304660;
+  background: #0b1a2d;
+}
+
+html:not([data-theme='light']) .auth-input-shell input {
+  color: #eef5fd !important;
+  -webkit-text-fill-color: #eef5fd;
+}
+
+html:not([data-theme='light']) .auth-card input:-webkit-autofill,
+html:not([data-theme='light']) .auth-card input:-webkit-autofill:hover,
+html:not([data-theme='light']) .auth-card input:-webkit-autofill:focus,
+html:not([data-theme='light']) .service-type-modal input:-webkit-autofill,
+html:not([data-theme='light']) .service-type-modal input:-webkit-autofill:hover,
+html:not([data-theme='light']) .service-type-modal input:-webkit-autofill:focus {
+  -webkit-text-fill-color: #eef5fd;
+  caret-color: #eef5fd;
+  box-shadow: 0 0 0 1000px #0b1a2d inset !important;
+  transition: background-color 9999s ease-out 0s;
+}
+
+html[data-theme='light'] .auth-input-shell {
+  color: #16233a;
+  border-color: #d9e1eb;
+  background: #fff;
+}
+
+html[data-theme='light'] .auth-input-shell:focus-within {
+  border-color: #8eb5df;
+  box-shadow: 0 0 0 3px rgb(66 126 191 / 12%);
+}
+
+html[data-theme='light'] .auth-input-shell svg { color: #2e6fb5; }
+html[data-theme='light'] .auth-input-shell input {
+  color: #16233a !important;
+  -webkit-text-fill-color: #16233a;
 }

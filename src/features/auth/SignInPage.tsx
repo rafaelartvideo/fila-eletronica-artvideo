@@ -42,7 +42,7 @@ export function SignInPage() {
         {!supabase && <div className="form-error">Configure a conexão do Supabase para habilitar o login.</div>}
         <form onSubmit={submit}>
           <label>Usuário<div className="auth-input-shell"><UserRound size={16} /><input type="text" autoComplete="username" spellCheck={false} value={username} onChange={(event) => setUsername(event.target.value)} required /></div></label>
-          <label>Senha<input type="password" autoComplete="current-password" value={password} onChange={(event) => setPassword(event.target.value)} required /></label>
+          <label>Senha<div className="auth-input-shell"><LockKeyhole size={16} /><input type="password" autoComplete="current-password" value={password} onChange={(event) => setPassword(event.target.value)} required /></div></label>
           {error && <div role="alert" className="form-error">{error}</div>}
           <button className="auth-submit" type="submit" disabled={busy || !supabase}>{busy ? 'Entrando…' : <><LockKeyhole size={16} /> Entrar no painel</>}</button>
         </form>
