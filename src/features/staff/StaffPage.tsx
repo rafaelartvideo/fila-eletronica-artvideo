@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { Activity, CalendarDays, Clapperboard, History, LogOut, Megaphone, MessageCircle, Moon, Printer, Settings2, ShieldCheck, Sun, TicketCheck, TicketPlus, Users, Wrench, X } from 'lucide-react';
 import { Link } from 'react-router';
+import { Button, Notice, Surface, TextField } from '../../components/ui';
 import type { QueueTicket, TicketStatus, TicketType } from '../../domain/queue';
 import { ticketWhatsAppUrl } from '../../domain/whatsapp';
 import { callNextTicket, completeTicket, issueTicket, listQueueTickets, listTicketTypes, repeatTicketCall, subscribeToQueueChanges, transitionTicket } from '../../lib/supabase/queue-api';
@@ -243,21 +244,38 @@ export function StaffPage() {
 
   return <main className="staff-app">
     <header className="staff-topbar">
-      <Link to="/" className="staff-brand" aria-label="Página inicial"><span className="staff-brand-icon"><TicketCheck size={19} /></span><span><strong>PAINEL DE ATENDIMENTO</strong><small>{userName || 'EQUIPE'} · {roleName || 'USUÁRIO'}</small></span></Link>
+      <Link to="/" className="staff-brand" aria-label="Página inicial">
+        <span className="staff-brand-icon"><TicketCheck size={19} /></span>
+        <span><strong>PAINEL DE ATENDIMENTO</strong><small>{userName || 'EQUIPE'} · {roleName || 'USUÁRIO'}</small></span>
+      </Link>
       <div className="staff-top-actions">
-        {canIssue && <Link className="staff-kiosk-link" to="/totem"><TicketPlus size={16} /> <span>Gerar senhas</span></Link>}
-        <button className="staff-theme-toggle" type="button" onClick={toggleTheme} aria-label={theme === 'dark' ? 'Ativar tema claro' : 'Ativar tema escuro'} title={theme === 'dark' ? 'Ativar tema claro' : 'Ativar tema escuro'}>{theme === 'dark' ? <Sun size={16} /> : <Moon size={16} />}<span>{theme === 'dark' ? 'Claro' : 'Escuro'}</span></button>
-        <button className="staff-logout" onClick={() => void logout()}><LogOut size={16} /> Sair</button>
+        {canIssue && <Link className="ui-button ui-button--primary ui-button--sm staff-kiosk-link" to="/totem"><TicketPlus size={16} /> <span className="ui-button__label">Gerar senhas</span></Link>}
+        <Button
+          className="staff-theme-toggle"
+          variant="secondary"
+          size="sm"
+          type="button"
+          onClick={toggleTheme}
+          aria-label={theme === 'dark' ? 'Ativar tema claro' : 'Ativar tema escuro'}
+          title={theme === 'dark' ? 'Ativar tema claro' : 'Ativar tema escuro'}
+          startIcon={theme === 'dark' ? <Sun size={16} /> : <Moon size={16} />}
+        >
+          {theme === 'dark' ? 'Claro' : 'Escuro'}
+        </Button>
+        <Button variant="secondary" size="sm" onClick={() => void logout()} startIcon={<LogOut size={16} />}>Sair</Button>
       </div>
     </header>
 
     <section className="staff-main">
-      <div className="staff-heading"><div><span className="section-kicker">OPERAÇÃO DA LOJA</span><h1>{heading[0]}</h1><p>{heading[1]}</p></div><div className="date-pill"><CalendarDays size={16} /> {new Intl.DateTimeFormat('pt-BR', { timeZone: 'America/Sao_Paulo', dateStyle: 'full' }).format(new Date())}</div></div>
+      <div className="staff-heading">
+        <div><span className="ui-eyebrow">OPERAÇÃO DA LOJA</span><h1>{heading[0]}</h1><p>{heading[1]}</p></div>
+        <div className="date-pill"><CalendarDays size={16} /> {new Intl.DateTimeFormat('pt-BR', { timeZone: 'America/Sao_Paulo', dateStyle: 'full' }).format(new Date())}</div>
+      </div>
 
       {canQueue && <div className="staff-metrics">
-        <div className="staff-metric waiting-metric"><span className="metric-icon amber"><Activity size={17} /></span><div><small>Aguardando</small><strong>{waiting}</strong></div></div>
-        <div className="staff-metric called-metric"><span className="metric-icon green"><TicketCheck size={17} /></span><div><small>Chamadas / atendimento</small><strong>{serving}</strong></div></div>
-        <div className="staff-metric"><span className="metric-icon blue"><TicketCheck size={17} /></span><div><small>Concluídos hoje</small><strong>{served}</strong></div></div>
+        <Surface tone="soft" className="staff-metric waiting-metric"><span className="metric-icon amber"><Activity size={17} /></span><div><small>Aguardando</small><strong>{waiting}</strong></div></Surface>
+        <Surface tone="soft" className="staff-metric called-metric"><span className="metric-icon green"><TicketCheck size={17} /></span><div><small>Chamadas / atendimento</small><strong>{serving}</strong></div></Surface>
+        <Surface tone="soft" className="staff-metric"><span className="metric-icon blue"><TicketCheck size={17} /></span><div><small>Concluídos hoje</small><strong>{served}</strong></div></Surface>
       </div>}
 
       <nav className="staff-tabs staff-tabs-expanded" aria-label="Seções do painel">
@@ -269,22 +287,27 @@ export function StaffPage() {
         {canMedia && <button className={tab === 'media' ? 'selected' : ''} onClick={() => setTab('media')}><Clapperboard size={16} /> Display</button>}
         {canPrinter && <button className={tab === 'printer' ? 'selected' : ''} onClick={() => setTab('printer')}><Printer size={16} /> Impressora</button>}
         {tab === 'queue' && canCall && <>
-          <label className="counter-field">Balcão<input aria-label="Balcão de atendimento" value={counter} onChange={(event) => setCounter(event.target.value)} maxLength={40} /></label>
-          <button className="global-call-button" disabled={busy || waiting === 0 || counterHasActive} onClick={() => void callNext()}>
-            <Megaphone size={16} /> {counterHasActive ? 'Atendimento em andamento' : waiting === 0 ? 'Fila vazia' : 'Chamar próximo'}
-          </button>
+          <TextField className="counter-field" label="Balcão" value={counter} onChange={(event) => setCounter(event.target.value)} maxLength={40} />
+          <Button variant="primary" size="sm" className="global-call-button" disabled={busy || waiting === 0 || counterHasActive} onClick={() => void callNext()} startIcon={<Megaphone size={16} />}>
+            {counterHasActive ? 'Atendimento em andamento' : waiting === 0 ? 'Fila vazia' : 'Chamar próximo'}
+          </Button>
         </>}
       </nav>
 
-      {error && <div className="staff-error" role="alert">{error}<button onClick={() => void refresh()}>Tentar novamente</button></div>}
-      {tab === 'queue' && canQueue && <div className="queue-grid">{types.length === 0 ? <div className="empty-services"><Wrench size={22} /><h2>Nenhum atendimento ativo</h2><p>Cadastre um tipo de atendimento para começar a receber senhas.</p>{canServices && <button className="blue-button" onClick={() => setTab('services')}>Configurar atendimentos</button>}</div> : types.map((type) => <QueueColumn key={type.id} type={type} tickets={tickets.filter((ticket) => ticket.serviceTypeId === type.id)} busy={busy} canIssue={canIssue} canServe={canServe} onIssue={() => { setIssueType(type); setIssuedTicket(null); }} onOpen={openCurrentTicket} onTransition={(id, status) => void changeTicketStatus(id, status)} />)}</div>}
+      {error && <Notice tone="danger">{error}<Button variant="ghost" size="sm" onClick={() => void refresh()}>Tentar novamente</Button></Notice>}
+
+      {tab === 'queue' && canQueue && <div className="queue-grid">
+        {types.length === 0
+          ? <Surface tone="soft" className="empty-services"><Wrench size={22} /><h2>Nenhum atendimento ativo</h2><p>Cadastre um tipo de atendimento para começar a receber senhas.</p>{canServices && <Button variant="primary" onClick={() => setTab('services')}>Configurar atendimentos</Button>}</Surface>
+          : types.map((type) => <QueueColumn key={type.id} type={type} tickets={tickets.filter((ticket) => ticket.serviceTypeId === type.id)} busy={busy} canIssue={canIssue} canServe={canServe} onIssue={() => { setIssueType(type); setIssuedTicket(null); }} onOpen={openCurrentTicket} onTransition={(id, status) => void changeTicketStatus(id, status)} />)}
+      </div>}
       {tab === 'attendance' && canAttendance && <AttendanceHistory />}
       {tab === 'services' && canServices && <ServiceTypeSettings onChanged={() => void refresh()} />}
       {tab === 'users' && canUsers && <UsersSettings />}
       {tab === 'roles' && canRoles && <RolesSettings />}
       {tab === 'media' && canMedia && <MediaSettings onChanged={() => void refresh()} />}
       {tab === 'printer' && canPrinter && <PrinterSettings />}
-      {availableTabs.length === 0 && <div className="attendance-empty">Seu usuário não possui nenhum módulo liberado.</div>}
+      {availableTabs.length === 0 && <Notice tone="warning">Seu usuário não possui nenhum módulo liberado.</Notice>}
     </section>
 
     {currentTicket && canQueue && <CurrentServicePanel
@@ -301,12 +324,27 @@ export function StaffPage() {
       onCancel={() => void changeTicketStatus(currentTicket.id, 'cancelled')}
     />}
 
-    {issueType && canIssue && <div className="issue-overlay" onMouseDown={(event) => { if (event.target === event.currentTarget) closeIssue(); }}><section className="issue-dialog" role="dialog" aria-modal="true" aria-labelledby="issue-title">
-      <button className="issue-close" aria-label="Fechar" onClick={closeIssue}><X size={20} /></button>
-      <span className="section-kicker">GERAR SENHA</span>
-      <h2 id="issue-title">{issuedTicket ? 'Senha gerada' : issueType.name}</h2>
-      {issuedTicket ? <><strong className="issue-result">{issuedTicket.ticketNumber}</strong>{issuedTicket.trackingToken && <TicketTrackingQr token={issuedTicket.trackingToken} compact />}<p>Entregue ou informe a senha ao cliente.</p>{issuePhone && ticketWhatsAppUrl(issuePhone, issuedTicket) ? <a className="whatsapp-button" href={ticketWhatsAppUrl(issuePhone, issuedTicket)!} target="_blank" rel="noopener noreferrer"><MessageCircle size={20} /> Enviar pelo WhatsApp</a> : issuePhone && <small className="phone-error">Número inválido. Use DDD + número brasileiro.</small>}<button className="kiosk-new-button" onClick={closeIssue}>Fechar</button></> : <><p>O número do WhatsApp é opcional. O envio será confirmado no aplicativo após a emissão.</p><label htmlFor="staff-phone">WhatsApp do cliente</label><input id="staff-phone" type="tel" inputMode="tel" placeholder="(11) 91234-5678" autoComplete="tel" maxLength={20} value={issuePhone} onChange={(event) => setIssuePhone(event.target.value)} /><button className="kiosk-generate-button" disabled={busy} onClick={() => void issueFromStaff()}>{busy ? 'Gerando…' : 'Confirmar e gerar'}</button></>}
-    </section></div>}
+    {issueType && canIssue && <div className="issue-overlay" onMouseDown={(event) => { if (event.target === event.currentTarget) closeIssue(); }}>
+      <Surface tone="raised" className="issue-dialog" role="dialog" aria-modal="true" aria-labelledby="issue-title">
+        <Button className="issue-close" variant="ghost" size="sm" iconOnly aria-label="Fechar" onClick={closeIssue}><X size={20} /></Button>
+        <span className="ui-eyebrow">GERAR SENHA</span>
+        <h2 id="issue-title">{issuedTicket ? 'Senha gerada' : issueType.name}</h2>
+
+        {issuedTicket ? <>
+          <strong className="issue-result">{issuedTicket.ticketNumber}</strong>
+          {issuedTicket.trackingToken && <TicketTrackingQr token={issuedTicket.trackingToken} compact />}
+          <p>Entregue ou informe a senha ao cliente.</p>
+          {issuePhone && ticketWhatsAppUrl(issuePhone, issuedTicket)
+            ? <a className="ui-button ui-button--success ui-button--md whatsapp-button" href={ticketWhatsAppUrl(issuePhone, issuedTicket)!} target="_blank" rel="noopener noreferrer"><MessageCircle size={18} /> <span className="ui-button__label">Enviar pelo WhatsApp</span></a>
+            : issuePhone && <Notice tone="warning">Número inválido. Use DDD + número brasileiro.</Notice>}
+          <Button variant="secondary" onClick={closeIssue}>Fechar</Button>
+        </> : <>
+          <p>O número do WhatsApp é opcional. O envio será confirmado no aplicativo após a emissão.</p>
+          <TextField label="WhatsApp do cliente" type="tel" inputMode="tel" placeholder="(11) 91234-5678" autoComplete="tel" maxLength={20} value={issuePhone} onChange={(event) => setIssuePhone(event.target.value)} />
+          <Button variant="primary" size="lg" loading={busy} onClick={() => void issueFromStaff()}>Confirmar e gerar</Button>
+        </>}
+      </Surface>
+    </div>}
 
     <footer className="system-footer">• Senhas do dia reiniciam automaticamente às 00h em São Paulo.</footer>
   </main>;
