@@ -40,7 +40,7 @@ export function HomePage() {
 
         <section className="entry-section" aria-labelledby="entry-title">
           <div className="section-heading">
-            <div><span className="section-kicker">ACESSOS DO SISTEMA</span><h2 id="entry-title">Por onde vamos começar?</h2></div>
+            <div><span className="ui-eyebrow">ACESSOS DO SISTEMA</span><h2 id="entry-title">Por onde vamos começar?</h2></div>
             <p>Escolha uma área para continuar.</p>
           </div>
           <div className="entry-grid">
