@@ -1,7 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { BellRing, CheckCircle2, Clock3, MapPin, TicketCheck, Volume2 } from 'lucide-react';
 import { useParams } from 'react-router';
-import type { TicketStatus } from '../../domain/queue';
 import { getTicketTracking, type TicketTracking } from '../../lib/supabase/queue-api';
 
 function statusContent(tracking: TicketTracking) {
@@ -23,7 +22,6 @@ export function TrackingPage() {
   const [tracking, setTracking] = useState<TicketTracking | null>(null);
   const [error, setError] = useState('');
   const [alertsEnabled, setAlertsEnabled] = useState(false);
-  const previousStatus = useRef<TicketStatus | null>(null);
   const audioContext = useRef<AudioContext | null>(null);
 
   const load = useCallback(async () => {
@@ -65,14 +63,24 @@ export function TrackingPage() {
   }
 
   useEffect(() => {
-    if (!tracking) return;
-    const becameCalled = tracking.status === 'called' && previousStatus.current !== 'called';
-    if (becameCalled) {
-      if ('vibrate' in navigator) navigator.vibrate([280, 120, 280, 120, 420]);
-      if (alertsEnabled) playSound();
+    if (tracking?.status !== 'called') {
+      if ('vibrate' in navigator) navigator.vibrate(0);
+      return;
     }
-    previousStatus.current = tracking.status;
-  }, [tracking, alertsEnabled]);
+
+    const alertPulse = () => {
+      if ('vibrate' in navigator) navigator.vibrate([350, 150, 350, 150, 650]);
+      if (alertsEnabled) playSound();
+    };
+
+    alertPulse();
+    const alertTimer = window.setInterval(alertPulse, 1800);
+
+    return () => {
+      window.clearInterval(alertTimer);
+      if ('vibrate' in navigator) navigator.vibrate(0);
+    };
+  }, [tracking?.status, alertsEnabled]);
 
   async function enableAlerts() {
     setAlertsEnabled(true);
