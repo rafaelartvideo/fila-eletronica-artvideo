@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { BellRing, CheckCircle2, Clock3, MapPin, TicketCheck, Volume2 } from 'lucide-react';
+import { Button, Notice, Surface } from '../../components/ui';
 import { useParams } from 'react-router';
 import { getTicketTracking, type TicketTracking } from '../../lib/supabase/queue-api';
 
@@ -102,28 +103,28 @@ export function TrackingPage() {
     </header>
 
     <section className="tracking-shell">
-      {error ? <div className="tracking-error" role="alert">{error}</div> : !tracking || !content ? <div className="tracking-loading">Carregando sua posição…</div> : <>
-        <div className={`tracking-status-card ${content.tone}`}>
+      {error ? <Notice tone="danger" className="tracking-error">{error}</Notice> : !tracking || !content ? <div className="tracking-loading">Carregando sua posição…</div> : <>
+        <Surface tone="soft" className={`tracking-status-card ${content.tone}`}>
           <span className="tracking-status-icon">{tracking.status === 'completed' ? <CheckCircle2 size={23} /> : tracking.status === 'called' ? <BellRing size={23} /> : <Clock3 size={23} />}</span>
           <div><small>STATUS DA SUA SENHA</small><h1>{content.title}</h1><p>{content.text}</p></div>
-        </div>
+        </Surface>
 
-        <div className={`tracking-ticket-number ${tracking.status === 'called' ? 'called' : ''}`}>
+        <Surface className={`tracking-ticket-number ${tracking.status === 'called' ? 'called' : ''}`}>
           <small>SUA SENHA</small>
           <strong>{tracking.ticketNumber}</strong>
           <span>{tracking.serviceTypeName}</span>
-        </div>
+        </Surface>
 
-        {tracking.status === 'waiting' && <div className="tracking-position">
+        {tracking.status === 'waiting' && <Surface tone="soft" className="tracking-position">
           <span>{tracking.queueAhead}</span>
           <div><strong>{tracking.queueAhead === 1 ? 'senha na sua frente' : 'senhas na sua frente'}</strong><small>A posição considera a prioridade dos atendimentos.</small></div>
-        </div>}
+        </Surface>}
 
-        {tracking.status === 'called' && tracking.counterLabel && <div className="tracking-counter"><MapPin size={20} /><div><small>DIRIJA-SE AO</small><strong>{tracking.counterLabel}</strong></div></div>}
+        {tracking.status === 'called' && tracking.counterLabel && <Surface tone="soft" className="tracking-counter"><MapPin size={20} /><div><small>DIRIJA-SE AO</small><strong>{tracking.counterLabel}</strong></div></Surface>}
 
-        <button className={`tracking-alert-button ${alertsEnabled ? 'enabled' : ''}`} type="button" onClick={() => void enableAlerts()}>
-          <Volume2 size={18} /> {alertsEnabled ? 'Alertas de som e vibração ativados' : 'Ativar som e vibração'}
-        </button>
+        <Button className={`tracking-alert-button ${alertsEnabled ? 'enabled' : ''}`} variant={alertsEnabled ? 'success' : 'primary'} type="button" onClick={() => void enableAlerts()} startIcon={<Volume2 size={18} />}>
+          {alertsEnabled ? 'Alertas de som e vibração ativados' : 'Ativar som e vibração'}
+        </Button>
         <p className="tracking-alert-hint">Mantenha esta página aberta. A posição é atualizada automaticamente.</p>
       </>}
     </section>
