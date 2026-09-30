@@ -1,5 +1,6 @@
 import { useEffect, useState, type FormEvent } from 'react';
 import { Download, KeyRound, Printer, RefreshCw } from 'lucide-react';
+import { Button, EmptyState, Notice, SectionHeader, Surface, TextField } from '../../components/ui';
 import { getPublicSupabaseConfig } from '../../lib/supabase/client';
 import { createPrintAgent, listPrintAgents, type CreatedPrintAgent, type PrintAgent } from '../../lib/supabase/queue-api';
 
@@ -16,8 +17,11 @@ export function PrinterSettings() {
   const [error, setError] = useState('');
 
   async function refresh() {
-    try { setAgents(await listPrintAgents()); }
-    catch (cause) { setError(cause instanceof Error ? cause.message : 'Não foi possível carregar os agentes de impressão.'); }
+    try {
+      setAgents(await listPrintAgents());
+    } catch (cause) {
+      setError(cause instanceof Error ? cause.message : 'Não foi possível carregar os agentes de impressão.');
+    }
   }
 
   useEffect(() => {
@@ -63,27 +67,40 @@ export function PrinterSettings() {
   }
 
   return <section className="settings-panel printer-settings">
-    <header><div><span className="section-kicker">IMPRESSÃO DIRETA</span><h2>Agente da impressora</h2><p>Conecte a Elgin i9 ao PC da recepção para imprimir senhas diretamente, sem abrir a janela do navegador.</p></div><div className="printer-header-actions"><a className="subtle-button" href="/print-agent/artvideo-print-agent.zip" download><Download size={15} /> Baixar agente atualizado</a><button className="subtle-button" onClick={() => void refresh()}><RefreshCw size={15} /> Atualizar</button></div></header>
-    <div className="printer-update-notice"><strong>Para aplicar mudanças de impressão no PC:</strong> baixe o agente atualizado, extraia por cima da pasta atual sem apagar o <code>config.json</code> e execute <code>setup.ps1</code>. Depois disso, o setup passa a buscar automaticamente a versão mais recente do agente.</div>
-    {error && <div role="alert" className="form-error">{error}</div>}
+    <SectionHeader
+      eyebrow="IMPRESSÃO DIRETA"
+      title="Agente da impressora"
+      description="Conecte a Elgin i9 ao PC da recepção para imprimir senhas diretamente, sem abrir a janela do navegador."
+      actions={<>
+        <a className="ui-button ui-button--secondary ui-button--md" href="/print-agent/artvideo-print-agent.zip" download><Download size={15} /> <span className="ui-button__label">Baixar agente atualizado</span></a>
+        <Button variant="secondary" onClick={() => void refresh()} startIcon={<RefreshCw size={15} />}>Atualizar</Button>
+      </>}
+    />
+
+    <Notice tone="info" className="printer-update-notice">
+      <span><strong>Para aplicar mudanças de impressão no PC:</strong> baixe o agente atualizado, extraia por cima da pasta atual sem apagar o <code>config.json</code> e execute <code>setup.ps1</code>. Depois disso, o setup passa a buscar automaticamente a versão mais recente do agente.</span>
+    </Notice>
+
+    {error && <Notice tone="danger">{error}</Notice>}
+
     <form className="printer-agent-form" onSubmit={generate}>
-      <label>Nome do computador<input value={name} onChange={(event) => setName(event.target.value)} maxLength={80} required /></label>
-      <label>Identificador<input value={slug} onChange={(event) => setSlug(event.target.value.toLowerCase().replace(/[^a-z0-9_-]/g, '').slice(0, 40))} maxLength={40} required /></label>
-      <button className="blue-button" disabled={busy}><KeyRound size={16} /> {busy ? 'Gerando…' : 'Gerar nova chave'}</button>
+      <TextField label="Nome do computador" value={name} onChange={(event) => setName(event.target.value)} maxLength={80} required />
+      <TextField label="Identificador" value={slug} onChange={(event) => setSlug(event.target.value.toLowerCase().replace(/[^a-z0-9_-]/g, '').slice(0, 40))} maxLength={40} required />
+      <Button variant="primary" type="submit" loading={busy} startIcon={<KeyRound size={16} />}>Gerar nova chave</Button>
     </form>
 
-    {created && <div className="printer-key-card">
+    {created && <Surface tone="soft" className="printer-key-card">
       <div><strong>Configuração criada</strong><small>A chave abaixo só é exibida agora. Gerar outra chave invalida a anterior desse identificador.</small></div>
       <code>{created.token}</code>
-      <button className="blue-button" onClick={downloadConfig}><Download size={16} /> Baixar config.json</button>
-    </div>}
+      <Button variant="primary" type="button" onClick={downloadConfig} startIcon={<Download size={16} />}>Baixar config.json</Button>
+    </Surface>}
 
     <div className="settings-list printer-agent-list">
-      {agents.map((agent) => <div key={agent.id} className="setting-row">
-        <div className={'printer-status-dot ' + (agentOnline(agent.lastSeenAt) ? 'online' : '')}><Printer size={16} /></div>
+      {agents.map((agent) => <Surface tone="soft" as="article" key={agent.id} className="setting-row">
+        <div className={`printer-status-dot ${agentOnline(agent.lastSeenAt) ? 'online' : ''}`}><Printer size={16} /></div>
         <div><strong>{agent.name}</strong><small>{agent.slug} · {agentOnline(agent.lastSeenAt) ? 'Conectado' : agent.lastSeenAt ? 'Offline' : 'Ainda não conectado'}</small></div>
-      </div>)}
-      {agents.length === 0 && <div className="printer-empty">Nenhum agente configurado.</div>}
+      </Surface>)}
+      {agents.length === 0 && <EmptyState icon={<Printer size={18} />}>Nenhum agente configurado.</EmptyState>}
     </div>
   </section>;
 }
