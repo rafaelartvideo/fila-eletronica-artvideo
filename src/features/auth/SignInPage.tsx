@@ -1,7 +1,7 @@
 import { useState, type FormEvent } from 'react';
 import { ArrowLeft, Eye, EyeOff, LockKeyhole, UserRound } from 'lucide-react';
 import { Link, Navigate, useLocation } from 'react-router';
-import { Button, Notice, TextField } from '../../components/ui';
+import { Button, Notice, Surface, TextField } from '../../components/ui';
 import { supabase } from '../../lib/supabase/client';
 import { useAuth } from './AuthProvider';
 import { signInWithUsername } from './auth-api';
@@ -35,7 +35,7 @@ export function SignInPage() {
   return (
     <main className="auth-page">
       <Link to="/" className="auth-back"><ArrowLeft size={16} /> Voltar ao início</Link>
-      <section className="auth-card">
+      <Surface tone="raised" className="auth-card">
         <div className="auth-logo"><LockKeyhole size={24} /></div>
         <span className="ui-eyebrow">ÁREA RESTRITA</span>
         <h1>Bem-vindo de volta</h1>
@@ -85,7 +85,7 @@ export function SignInPage() {
           </Button>
         </form>
         <small>Acesso exclusivo para usuários autorizados.</small>
-      </section>
+      </Surface>
       <footer className="system-footer">• Senhas do dia reiniciam automaticamente às 00h em São Paulo.</footer>
     </main>
   );
