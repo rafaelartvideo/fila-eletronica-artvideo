@@ -7,10 +7,41 @@ import { DisplayEnvironment } from './DisplayEnvironment';
 import { MediaPlayer } from './MediaPlayer';
 import { useDisplayCalls } from './useDisplayCalls';
 
+const THEME_STORAGE_KEY = 'fila-theme';
+
 export function DisplayPage() {
   const { currentCall, recentCalls, connection } = useDisplayCalls();
   const [media, setMedia] = useState<MediaItem[]>([]);
   const [notices, setNotices] = useState<string[]>([]);
+
+  useEffect(() => {
+    const root = document.documentElement;
+
+    const enforceDarkDisplay = () => {
+      root.dataset.displayThemeLock = 'dark';
+      root.dataset.theme = 'dark';
+      root.style.colorScheme = 'dark';
+    };
+
+    enforceDarkDisplay();
+    window.addEventListener('storage', enforceDarkDisplay);
+    window.addEventListener('focus', enforceDarkDisplay);
+
+    return () => {
+      window.removeEventListener('storage', enforceDarkDisplay);
+      window.removeEventListener('focus', enforceDarkDisplay);
+      delete root.dataset.displayThemeLock;
+
+      let storedTheme: string | null = null;
+      try {
+        storedTheme = window.localStorage.getItem(THEME_STORAGE_KEY);
+      } catch {}
+
+      const restoredTheme = storedTheme === 'light' ? 'light' : 'dark';
+      root.dataset.theme = restoredTheme;
+      root.style.colorScheme = restoredTheme;
+    };
+  }, []);
 
   const refreshContent = useCallback(async () => {
     try {
