@@ -364,3 +364,33 @@ body {
   .ui-tabs { overflow-x: auto; scrollbar-width: thin; }
   .ui-tab { flex: 0 0 auto; }
 }
+
+
+/* Theme chrome now reads only semantic tokens. */
+html[data-theme] body,
+html[data-theme] #root {
+  color: var(--text);
+  background: var(--page-background);
+}
+
+html[data-theme] :is(.home-page, .staff-app, .kiosk-page, .auth-page) {
+  color: var(--text);
+  background: transparent;
+}
+
+html[data-theme] :is(.topbar, .staff-topbar, .kiosk-topbar) {
+  color: var(--text);
+  border-color: var(--header-border);
+  background: var(--header-bg);
+  box-shadow: var(--shadow-sm);
+}
+
+html[data-theme] :is(.brand-copy small, .staff-brand small, .system-chip, .auth-back, .kiosk-help) {
+  color: var(--text-muted);
+}
+
+html[data-theme] :is(.brand-mark, .staff-brand-icon, .kiosk-service-icon) {
+  color: var(--brand-icon-text);
+  background: var(--brand-icon-bg);
+  box-shadow: none;
+}
