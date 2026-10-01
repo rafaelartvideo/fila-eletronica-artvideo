@@ -184,6 +184,9 @@ export function subscribeToQueueChanges(
 function explainError(message: string): string {
   if (/no waiting tickets/i.test(message)) return 'Não há senhas aguardando na fila.';
   if (/active service type not found/i.test(message)) return 'Esse tipo de atendimento está inativo ou não existe.';
+  if (/only quick service tickets can be called individually/i.test(message)) return 'Somente atendimentos rápidos podem ser chamados individualmente.';
+  if (/service type has ticket history/i.test(message)) return 'Esse tipo já possui senhas vinculadas. Inative-o para preservar o histórico dos atendimentos.';
+  if (/foreign key constraint|violates foreign key/i.test(message)) return 'Esse registro possui dados vinculados e não pode ser excluído sem apagar o histórico.';
   if (/customer request required/i.test(message)) return 'Informe o que o cliente queria antes de encerrar o atendimento.';
   if (/invalid ticket status transition/i.test(message)) return 'Essa mudança de status não é permitida.';
   if (/ticket issuance is limited to staff|admin access required|permission denied/i.test(message)) return 'Somente a equipe autorizada pode gerar senhas.';
@@ -257,6 +260,16 @@ export async function callNextTicket(counterLabel = 'Balcão 1'): Promise<Displa
   return call;
 }
 
+export async function callTicketById(ticketId: string, counterLabel = 'Balcão 1'): Promise<DisplayCall> {
+  const { data, error } = await requireSupabase().rpc('call_waiting_ticket', {
+    p_ticket_id: ticketId,
+    p_counter_label: counterLabel.trim() || null,
+  });
+  const call = mapDisplayCall(unwrap((data as ApiRow[] | null)?.[0] ?? null, error));
+  announceQueueChange('tickets');
+  return call;
+}
+
 export async function repeatTicketCall(ticketId: string): Promise<DisplayCall> {
   const { data, error } = await requireSupabase().rpc('repeat_ticket_call', { p_ticket_id: ticketId });
   const call = mapDisplayCall(unwrap((data as ApiRow[] | null)?.[0] ?? null, error));
@@ -273,8 +286,33 @@ export async function transitionTicket(ticketId: string, toStatus: Extract<Ticke
 }
 
 export async function listTicketTypes(): Promise<TicketType[]> {
-  const { data, error } = await requireSupabase().from('ticket_types').select('id,name,prefix,priority,is_active,sort_order').order('sort_order').order('name');
-  return (unwrap(data, error) as ApiRow[]).map((row) => ({ id: String(row.id), name: String(row.name), prefix: String(row.prefix), priority: normalizePriority(row.priority), isActive: Boolean(row.is_active), sortOrder: Number(row.sort_order) }));
+  const client = requireSupabase();
+  let result = await client
+    .from('ticket_types')
+    .select('id,name,prefix,description,icon,priority,is_quick,is_pinned,is_active,sort_order')
+    .order('sort_order')
+    .order('name');
+
+  if (result.error && /icon|is_quick|is_pinned|schema cache|PGRST204|does not exist/i.test(result.error.message)) {
+    result = await client
+      .from('ticket_types')
+      .select('id,name,prefix,description,priority,is_active,sort_order')
+      .order('sort_order')
+      .order('name');
+  }
+
+  return (unwrap(result.data, result.error) as ApiRow[]).map((row) => ({
+    id: String(row.id),
+    name: String(row.name),
+    prefix: String(row.prefix),
+    description: row.description ? String(row.description) : null,
+    icon: row.icon ? String(row.icon) : 'clipboard',
+    priority: normalizePriority(row.priority),
+    isQuick: Boolean(row.is_quick),
+    isPinned: Boolean(row.is_pinned),
+    isActive: Boolean(row.is_active),
+    sortOrder: Number(row.sort_order),
+  }));
 }
 
 export async function listQueueTickets(businessDate: string): Promise<QueueTicket[]> {
@@ -328,14 +366,74 @@ export async function isQueueAdmin(): Promise<boolean> {
   return Boolean(unwrap(data as boolean | null, error));
 }
 
-export async function saveTicketType(input: { id?: string; name: string; prefix: string; priority: TicketPriority; isActive: boolean }): Promise<void> {
+export async function saveTicketType(input: {
+  id?: string;
+  name: string;
+  prefix: string;
+  description?: string | null;
+  icon?: string;
+  priority: TicketPriority;
+  isQuick?: boolean;
+  isPinned?: boolean;
+  isActive: boolean;
+  sortOrder?: number;
+}): Promise<void> {
   const client = requireSupabase();
-  const row = { name: input.name.trim(), prefix: input.prefix.trim().toUpperCase(), priority: input.priority, is_active: input.isActive };
-  const query = input.id
-    ? client.from('ticket_types').update(row).eq('id', input.id)
-    : client.from('ticket_types').insert(row);
-  const { error } = await query;
-  if (error) throw new Error(explainError(error.message));
+  const fullRow = {
+    name: input.name.trim(),
+    prefix: input.prefix.trim().toUpperCase(),
+    description: input.description?.trim() || null,
+    icon: input.icon?.trim() || 'clipboard',
+    priority: input.priority,
+    is_quick: Boolean(input.isQuick),
+    is_pinned: Boolean(input.isPinned),
+    is_active: input.isActive,
+    sort_order: input.sortOrder ?? 0,
+  };
+  const legacyRow = {
+    name: fullRow.name,
+    prefix: fullRow.prefix,
+    description: fullRow.description,
+    priority: fullRow.priority,
+    is_active: fullRow.is_active,
+    sort_order: fullRow.sort_order,
+  };
+
+  let result = input.id
+    ? await client.from('ticket_types').update(fullRow).eq('id', input.id)
+    : await client.from('ticket_types').insert(fullRow);
+
+  if (result.error && /icon|is_quick|is_pinned|schema cache|PGRST204|does not exist/i.test(result.error.message)) {
+    result = input.id
+      ? await client.from('ticket_types').update(legacyRow).eq('id', input.id)
+      : await client.from('ticket_types').insert(legacyRow);
+  }
+
+  if (result.error) throw new Error(explainError(result.error.message));
+  announceQueueChange('ticket_types');
+}
+
+export async function reorderTicketTypes(ids: string[]): Promise<void> {
+  const client = requireSupabase();
+  const { error } = await client.rpc('reorder_ticket_types', { p_ids: ids });
+  if (error && /reorder_ticket_types|PGRST202|could not find the function/i.test(error.message)) {
+    for (let index = 0; index < ids.length; index += 1) {
+      const fallback = await client.from('ticket_types').update({ sort_order: index }).eq('id', ids[index]);
+      if (fallback.error) throw new Error(explainError(fallback.error.message));
+    }
+  } else if (error) {
+    throw new Error(explainError(error.message));
+  }
+  announceQueueChange('ticket_types');
+}
+
+export async function deleteTicketType(id: string): Promise<void> {
+  const client = requireSupabase();
+  let result = await client.rpc('delete_ticket_type', { p_id: id });
+  if (result.error && /delete_ticket_type|PGRST202|could not find the function/i.test(result.error.message)) {
+    result = await client.from('ticket_types').delete().eq('id', id);
+  }
+  if (result.error) throw new Error(explainError(result.error.message));
   announceQueueChange('ticket_types');
 }
 
