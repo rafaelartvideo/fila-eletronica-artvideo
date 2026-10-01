@@ -394,3 +394,135 @@ html[data-theme] :is(.brand-mark, .staff-brand-icon, .kiosk-service-icon) {
   background: var(--brand-icon-bg);
   box-shadow: none;
 }
+
+
+/* Kiosk viewport, spacing and configurable service visuals. */
+.kiosk-page {
+  height: 100dvh;
+  min-height: 100dvh;
+  overflow: hidden;
+}
+.kiosk-page > .kiosk-topbar,
+.kiosk-page > .system-footer {
+  flex: 0 0 auto;
+}
+.kiosk-page > .system-footer {
+  position: static;
+}
+.kiosk-content {
+  min-height: 0;
+  flex: 1 1 auto;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  padding-block: clamp(24px, 4.5vh, 52px);
+}
+.kiosk-step-card {
+  display: grid;
+  gap: 22px;
+  width: min(620px, 100%);
+  padding: clamp(24px, 3vw, 34px);
+}
+.kiosk-step-card > .ui-button {
+  width: 100%;
+}
+.selected-service {
+  margin: 0;
+}
+.selected-service-copy {
+  min-width: 0;
+  display: grid;
+  flex: 1;
+  gap: 4px;
+}
+.selected-service-icon {
+  width: 44px;
+  height: 44px;
+  display: grid;
+  place-items: center;
+  flex: 0 0 auto;
+}
+.issued-ticket-screen {
+  width: 100%;
+  min-height: 100%;
+  justify-content: center;
+  padding-block: 8px 16px;
+}
+.print-ticket {
+  margin-block: 24px 20px;
+}
+.kiosk-controls {
+  gap: 12px;
+}
+.service-type-icon-image {
+  display: block;
+  max-width: 100%;
+  max-height: 100%;
+  object-fit: contain;
+  border-radius: 6px;
+}
+.kiosk-service-icon .service-type-icon-image,
+.selected-service-icon .service-type-icon-image,
+.service-type-icon-preview .service-type-icon-image {
+  object-fit: contain;
+}
+.service-type-visual-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 84px;
+  align-items: end;
+  gap: 12px;
+}
+.service-type-visual-preview {
+  min-height: 72px;
+  display: grid;
+  place-items: center;
+  align-content: center;
+  gap: 5px;
+  padding: 9px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-control);
+  background: var(--surface-soft);
+}
+.service-type-visual-preview > span {
+  width: 38px;
+  height: 38px;
+  display: grid;
+  place-items: center;
+  color: var(--input-icon);
+}
+.service-type-visual-preview small {
+  color: var(--text-muted);
+  font-size: var(--text-2xs);
+}
+@media (max-width: 620px) {
+  .kiosk-content {
+    width: min(100% - 28px, 960px);
+    padding-block: 22px;
+  }
+  .kiosk-step-card {
+    gap: 20px;
+    padding: 22px 18px;
+  }
+  .issued-ticket-screen {
+    justify-content: flex-start;
+    min-height: auto;
+  }
+  .service-type-visual-row {
+    grid-template-columns: 1fr;
+  }
+  .service-type-visual-preview {
+    min-height: 58px;
+    grid-template-columns: auto auto;
+    justify-content: start;
+    padding-inline: 12px;
+  }
+}
+@media print {
+  .kiosk-page {
+    height: auto !important;
+    min-height: 78mm !important;
+    overflow: visible !important;
+  }
+  .kiosk-content {
+    overflow: visible !important;
+  }
+}
