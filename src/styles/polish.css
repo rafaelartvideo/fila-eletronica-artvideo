@@ -3208,3 +3208,27 @@ html[data-theme='light'] .kiosk-icon-info-modal > .ui-modal-actions {
     padding-inline: 18px;
   }
 }
+
+
+/* Kiosk supplemental icons stay on a single row. */
+.kiosk-service-card > .kiosk-service-extra-icons,
+.selected-service .kiosk-service-extra-icons {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  flex-wrap: nowrap;
+  gap: 6px;
+  overflow-x: auto;
+  overflow-y: hidden;
+  scrollbar-width: none;
+}
+
+.kiosk-service-card > .kiosk-service-extra-icons::-webkit-scrollbar,
+.selected-service .kiosk-service-extra-icons::-webkit-scrollbar {
+  display: none;
+}
+
+.kiosk-service-card > .kiosk-service-extra-icons > button,
+.selected-service .kiosk-service-extra-icons > button {
+  flex: 0 0 auto;
+}
