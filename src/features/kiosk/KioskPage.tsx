@@ -1,7 +1,8 @@
 import { useCallback, useEffect, useState } from 'react';
-import { ArrowLeft, ArrowRight, CircleHelp, ClipboardList, Phone, Ticket } from 'lucide-react';
+import { ArrowLeft, ArrowRight, CircleHelp, Phone, Ticket } from 'lucide-react';
 import { Link } from 'react-router';
 import { Button, EmptyState, Notice, Surface, TextField } from '../../components/ui';
+import { ServiceTypeIcon } from '../../components/ServiceTypeIcon';
 import type { QueueTicket, TicketType } from '../../domain/queue';
 import { issueTicket, listTicketTypes, subscribeToQueueChanges } from '../../lib/supabase/queue-api';
 import { TicketConfirmation } from './TicketConfirmation';
@@ -99,7 +100,7 @@ export function KioskPage() {
         <div className="kiosk-welcome">
           <span className="ui-eyebrow">GERAR SENHA</span>
           <h1>{selectedType ? 'Confirme seu atendimento' : 'Como podemos ajudar?'}</h1>
-          <p>{selectedType ? `Você selecionou ${selectedType.name}. Seu WhatsApp é opcional.` : 'Escolha o atendimento para gerar sua senha.'}</p>
+          <p>{selectedType ? (selectedType.description || `Você selecionou ${selectedType.name}. Seu WhatsApp é opcional.`) : 'Escolha o atendimento para gerar sua senha.'}</p>
         </div>
 
         {error && <Notice tone="danger" className="kiosk-error">
@@ -139,8 +140,8 @@ export function KioskPage() {
               className="kiosk-service-card"
               onClick={() => { setSelectedType(type); setError(''); }}
             >
-              <span className="kiosk-service-icon"><ClipboardList size={21} /></span>
-              <span><strong>{type.name}</strong><small>Retire uma senha</small></span>
+              <span className="kiosk-service-icon"><ServiceTypeIcon name={type.icon} size={22} /></span>
+              <span><strong>{type.name}</strong><small>{type.description || 'Retire uma senha'}</small></span>
               <ArrowRight className="kiosk-service-arrow" size={19} />
             </button>)}
           </div>
