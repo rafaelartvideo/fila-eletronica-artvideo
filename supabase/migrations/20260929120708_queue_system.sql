@@ -1152,7 +1152,7 @@ language sql
 stable
 security definer
 set search_path = ''
-as $$
+as $
   select auth.uid() is not null and exists (
     select 1
     from public.queue_users as queue_user
@@ -1161,9 +1161,9 @@ as $$
     where queue_user.user_id = auth.uid()
       and queue_user.is_active
       and role.is_active
-      and role_permission.permission_key = p_permission_key
+      and role_permission.permission_key in (p_permission_key, 'system.admin')
   )
-$$;
+$;
 
 create or replace function private.is_queue_admin()
 returns boolean
