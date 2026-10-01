@@ -6,6 +6,7 @@ import { normalizeMediaUrl } from '../../domain/media';
 
 type YouTubePlayer = {
   destroy: () => void;
+  getIframe: () => HTMLIFrameElement;
   mute: () => void;
   playVideo: () => void;
   seekTo: (seconds: number, allowSeekAhead?: boolean) => void;
@@ -13,8 +14,18 @@ type YouTubePlayer = {
 
 type YouTubeApi = {
   Player: new (
-    element: HTMLIFrameElement,
+    element: HTMLElement,
     options: {
+      width?: string;
+      height?: string;
+      videoId: string;
+      playerVars?: {
+        autoplay?: number;
+        controls?: number;
+        rel?: number;
+        playsinline?: number;
+        origin?: string;
+      };
       events?: {
         onReady?: (event: { target: YouTubePlayer }) => void;
         onStateChange?: (event: { data: number; target: YouTubePlayer }) => void;
@@ -38,6 +49,7 @@ function loadYouTubeApi() {
 
   youtubeApiPromise = new Promise<YouTubeApi>((resolve, reject) => {
     const previousReady = youtubeWindow.onYouTubeIframeAPIReady;
+
     youtubeWindow.onYouTubeIframeAPIReady = () => {
       previousReady?.();
       if (youtubeWindow.YT?.Player) resolve(youtubeWindow.YT);
@@ -45,34 +57,35 @@ function loadYouTubeApi() {
     };
 
     const existing = document.querySelector<HTMLScriptElement>('script[src="https://www.youtube.com/iframe_api"]');
-    if (existing) return;
-
-    const script = document.createElement('script');
-    script.src = 'https://www.youtube.com/iframe_api';
-    script.async = true;
-    script.onerror = () => reject(new Error('Não foi possível carregar a API do YouTube.'));
-    document.head.appendChild(script);
+    if (!existing) {
+      const script = document.createElement('script');
+      script.src = 'https://www.youtube.com/iframe_api';
+      script.async = true;
+      script.onerror = () => {
+        youtubeApiPromise = null;
+        reject(new Error('Não foi possível carregar a API do YouTube.'));
+      };
+      document.head.appendChild(script);
+    }
   });
 
   return youtubeApiPromise;
 }
 
 function YouTubeVideo({
-  url,
+  videoId,
   title,
   repeat,
   onEnded,
   onError,
 }: {
-  url: string;
+  videoId: string;
   title: string;
   repeat: boolean;
   onEnded: () => void;
   onError: () => void;
 }) {
-  const iframeRef = useRef<HTMLIFrameElement>(null);
-  const videoId = url.split('/').filter(Boolean).at(-1) ?? '';
-  const playerUrl = `${url}?autoplay=1&mute=1&rel=0&playsinline=1&enablejsapi=1&origin=${encodeURIComponent(window.location.origin)}${repeat ? `&loop=1&playlist=${encodeURIComponent(videoId)}` : ''}`;
+  const hostRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     let disposed = false;
@@ -80,40 +93,69 @@ function YouTubeVideo({
 
     void loadYouTubeApi()
       .then((youtube) => {
-        if (disposed || !iframeRef.current) return;
-        player = new youtube.Player(iframeRef.current, {
+        if (disposed || !hostRef.current) return;
+
+        player = new youtube.Player(hostRef.current, {
+          width: '100%',
+          height: '100%',
+          videoId,
+          playerVars: {
+            autoplay: 1,
+            controls: 1,
+            rel: 0,
+            playsinline: 1,
+            origin: window.location.origin,
+          },
           events: {
             onReady: (event) => {
+              if (disposed) return;
+              const iframe = event.target.getIframe();
+              iframe.title = title;
+              iframe.style.position = 'absolute';
+              iframe.style.inset = '0';
+              iframe.style.width = '100%';
+              iframe.style.height = '100%';
+              iframe.style.border = '0';
+
               event.target.mute();
               event.target.playVideo();
             },
             onStateChange: (event) => {
-              if (event.data !== 0) return;
+              if (disposed || event.data !== 0) return;
+
               if (repeat) {
                 event.target.seekTo(0, true);
                 event.target.playVideo();
                 return;
               }
+
               onEnded();
             },
-            onError,
+            onError: () => {
+              if (!disposed) onError();
+            },
           },
         });
       })
-      .catch(onError);
+      .catch(() => {
+        if (!disposed) onError();
+      });
 
     return () => {
       disposed = true;
-      player?.destroy();
+      try {
+        player?.destroy();
+      } catch {
+        // The YouTube player may already have disposed its iframe.
+      }
     };
-  }, [onEnded, onError, repeat, url]);
+  }, [videoId, title, repeat, onEnded, onError]);
 
-  return <iframe
-    ref={iframeRef}
-    title={title}
-    src={playerUrl}
-    allow="autoplay; encrypted-media; picture-in-picture"
-    referrerPolicy="strict-origin-when-cross-origin"
+  return <div
+    ref={hostRef}
+    className="display-youtube-player"
+    style={{ position: 'absolute', inset: 0, width: '100%', height: '100%' }}
+    aria-label={title}
   />;
 }
 
@@ -124,7 +166,10 @@ export function MediaPlayer({ items }: { items: MediaItem[] }) {
   const current = usable.length ? usable[index % usable.length] : null;
   const source = current ? normalizeMediaUrl(current.url) : null;
 
-  useLayoutEffect(() => { setFailed([]); setIndex(0); }, [items]);
+  useLayoutEffect(() => {
+    setFailed([]);
+    setIndex(0);
+  }, [items]);
 
   const advance = useCallback(() => {
     if (!usable.length) return;
@@ -137,11 +182,15 @@ export function MediaPlayer({ items }: { items: MediaItem[] }) {
     setIndex(0);
   }, [current]);
 
+  const youtubeVideoId = source?.kind === 'youtube'
+    ? source.url.split('/').filter(Boolean).at(-1) ?? ''
+    : '';
+
   return <section className="display-media" aria-label="Vídeos da loja">
     <div className="display-media-heading"><span><Clapperboard size={15} /> NA ARTVIDEO</span>{usable.length > 1 && <Button variant="ghost" size="sm" iconOnly aria-label="Próximo vídeo" onClick={advance}><SkipForward size={15} /></Button>}</div>
     <div className="display-media-frame">
       {source?.kind === 'direct-video' && <video key={current?.id} src={source.url} title={current?.title ?? 'Vídeo'} autoPlay muted playsInline loop={usable.length === 1} onEnded={usable.length > 1 ? advance : undefined} onError={failCurrent} />}
-      {source?.kind === 'youtube' && <YouTubeVideo key={current?.id} url={source.url} title={current?.title ?? 'YouTube'} repeat={usable.length === 1} onEnded={advance} onError={failCurrent} />}
+      {source?.kind === 'youtube' && youtubeVideoId && <YouTubeVideo key={current?.id} videoId={youtubeVideoId} title={current?.title ?? 'YouTube'} repeat={usable.length === 1} onEnded={advance} onError={failCurrent} />}
       {source?.kind === 'embed' && <iframe key={current?.id} title={current?.title ?? 'Vídeo incorporado'} src={source.url} sandbox="allow-scripts allow-same-origin allow-presentation" allow="autoplay; encrypted-media; picture-in-picture" referrerPolicy="strict-origin-when-cross-origin" onError={failCurrent} />}
       {!current && <div className="display-media-empty"><Clapperboard size={28} /><span>{items.length ? 'Nenhum link de vídeo pôde ser exibido.' : 'A fila de atendimento aparece ao lado.'}</span></div>}
     </div>
