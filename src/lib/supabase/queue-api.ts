@@ -287,21 +287,26 @@ export async function transitionTicket(ticketId: string, toStatus: Extract<Ticke
 
 export async function listTicketTypes(): Promise<TicketType[]> {
   const client = requireSupabase();
-  let result = await client
+  const enhancedResult = await client
     .from('ticket_types')
     .select('id,name,prefix,description,icon,priority,is_quick,is_pinned,is_active,sort_order')
     .order('sort_order')
     .order('name');
 
-  if (result.error && /icon|is_quick|is_pinned|schema cache|PGRST204|does not exist/i.test(result.error.message)) {
-    result = await client
+  let data = enhancedResult.data as unknown as ApiRow[] | null;
+  let error = enhancedResult.error;
+
+  if (error && /icon|is_quick|is_pinned|schema cache|PGRST204|does not exist/i.test(error.message)) {
+    const legacyResult = await client
       .from('ticket_types')
       .select('id,name,prefix,description,priority,is_active,sort_order')
       .order('sort_order')
       .order('name');
+    data = legacyResult.data as unknown as ApiRow[] | null;
+    error = legacyResult.error;
   }
 
-  return (unwrap(result.data, result.error) as ApiRow[]).map((row) => ({
+  return (unwrap(data, error) as ApiRow[]).map((row) => ({
     id: String(row.id),
     name: String(row.name),
     prefix: String(row.prefix),
