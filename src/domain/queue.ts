@@ -16,7 +16,11 @@ export interface TicketType {
   id: string;
   name: string;
   prefix: string;
+  description: string | null;
+  icon: string;
   priority: TicketPriority;
+  isQuick: boolean;
+  isPinned: boolean;
   isActive: boolean;
   sortOrder: number;
 }
