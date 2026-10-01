@@ -3,8 +3,28 @@
 
 alter table public.ticket_types
   add column if not exists icon text not null default 'clipboard',
+  add column if not exists extra_icons text[] not null default array[]::text[],
   add column if not exists is_quick boolean not null default false,
   add column if not exists is_pinned boolean not null default false;
+
+update public.ticket_types
+set extra_icons = extra_icons[1:4]
+where cardinality(extra_icons) > 4;
+
+do $constraint$
+begin
+  if not exists (
+    select 1
+    from pg_constraint
+    where conname = 'ticket_types_extra_icons_max_four'
+      and conrelid = 'public.ticket_types'::regclass
+  ) then
+    alter table public.ticket_types
+      add constraint ticket_types_extra_icons_max_four
+      check (cardinality(extra_icons) <= 4);
+  end if;
+end
+$constraint$;
 
 create index if not exists ticket_types_display_order_idx
   on public.ticket_types (sort_order, name);

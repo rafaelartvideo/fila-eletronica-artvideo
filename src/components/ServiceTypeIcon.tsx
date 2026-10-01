@@ -24,6 +24,9 @@ export const serviceTypeIconOptions = [
   { value: 'settings', label: 'Configuração' },
   { value: 'quick', label: 'Rápido' },
   { value: 'help', label: 'Ajuda' },
+] as const;
+
+export const serviceTypeExtraIconOptions = [
   { value: 'priority', label: 'Atendimento prioritário' },
   { value: 'accessibility', label: 'Acessibilidade' },
   { value: 'neurodiversity', label: 'Autismo / neurodiversidade' },

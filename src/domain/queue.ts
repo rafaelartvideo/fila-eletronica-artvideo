@@ -18,6 +18,7 @@ export interface TicketType {
   prefix: string;
   description: string | null;
   icon: string;
+  extraIcons: string[];
   priority: TicketPriority;
   isQuick: boolean;
   isPinned: boolean;

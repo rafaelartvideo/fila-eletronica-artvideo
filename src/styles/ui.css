@@ -465,33 +465,130 @@ html[data-theme] :is(.brand-mark, .staff-brand-icon, .kiosk-service-icon) {
 .service-type-icon-preview .service-type-icon-image {
   object-fit: contain;
 }
-.service-type-visual-row {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) 84px;
-  align-items: end;
-  gap: 12px;
+.kiosk-service-copy {
+  min-width: 0;
+  display: grid !important;
+  flex: 1;
+  gap: 6px;
 }
-.service-type-visual-preview {
-  min-height: 72px;
-  display: grid;
+.kiosk-service-extra-icons,
+.service-type-extra-icons {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+.kiosk-service-extra-icons > span,
+.service-type-extra-icons > span {
+  width: 26px;
+  height: 26px;
+  display: inline-grid;
   place-items: center;
-  align-content: center;
-  gap: 5px;
-  padding: 9px;
+  flex: 0 0 auto;
   border: 1px solid var(--border);
-  border-radius: var(--radius-control);
+  border-radius: 8px;
+  color: var(--text-secondary);
   background: var(--surface-soft);
 }
-.service-type-visual-preview > span {
-  width: 38px;
-  height: 38px;
-  display: grid;
-  place-items: center;
-  color: var(--input-icon);
+.kiosk-service-extra-icons .service-type-icon-image,
+.service-type-extra-icons .service-type-icon-image {
+  max-width: 18px;
+  max-height: 18px;
+  border-radius: 4px;
 }
-.service-type-visual-preview small {
+.service-extra-editor {
+  display: grid;
+  gap: 12px;
+  padding: 14px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-card);
+  background: var(--surface-soft);
+}
+.service-extra-editor-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+}
+.service-extra-editor-head > div {
+  display: grid;
+  gap: 3px;
+}
+.service-extra-editor-head strong {
+  color: var(--text);
+  font-size: var(--text-sm);
+}
+.service-extra-editor-head small {
   color: var(--text-muted);
+  font-size: var(--text-xs);
+}
+.service-extra-editor-head > span {
+  min-width: 34px;
+  padding: 4px 7px;
+  border-radius: 999px;
+  color: var(--text-secondary);
+  background: var(--surface);
   font-size: var(--text-2xs);
+  font-weight: var(--weight-bold);
+  text-align: center;
+}
+.service-extra-options {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+}
+.service-extra-option {
+  min-height: 42px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 10px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-control);
+  color: var(--text-secondary);
+  background: var(--surface);
+  font: inherit;
+  font-size: var(--text-xs);
+  text-align: left;
+  cursor: pointer;
+}
+.service-extra-option.is-selected {
+  color: var(--info-text);
+  border-color: var(--info-border);
+  background: var(--info-bg);
+}
+.service-extra-option:disabled {
+  opacity: .45;
+  cursor: not-allowed;
+}
+.service-extra-url-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: end;
+  gap: 8px;
+}
+.service-extra-custom-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 7px;
+}
+.service-extra-custom-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 34px;
+  padding: 5px 8px;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  color: var(--text-secondary);
+  background: var(--surface);
+  font: inherit;
+  font-size: var(--text-2xs);
+  cursor: pointer;
+}
+.service-extra-custom-chip .service-type-icon-image {
+  max-width: 18px;
+  max-height: 18px;
 }
 @media (max-width: 620px) {
   .kiosk-content {
@@ -506,14 +603,14 @@ html[data-theme] :is(.brand-mark, .staff-brand-icon, .kiosk-service-icon) {
     justify-content: flex-start;
     min-height: auto;
   }
-  .service-type-visual-row {
+  .service-extra-options {
     grid-template-columns: 1fr;
   }
-  .service-type-visual-preview {
-    min-height: 58px;
-    grid-template-columns: auto auto;
-    justify-content: start;
-    padding-inline: 12px;
+  .service-extra-url-row {
+    grid-template-columns: 1fr;
+  }
+  .service-extra-url-row > .ui-button {
+    width: 100%;
   }
 }
 @media print {
