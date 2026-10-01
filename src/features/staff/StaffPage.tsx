@@ -356,17 +356,26 @@ export function StaffPage() {
         <h2 id="issue-title">{issuedTicket ? 'Senha gerada' : issueType.name}</h2>
 
         {issuedTicket ? <>
-          <strong className="issue-result">{issuedTicket.ticketNumber}</strong>
-          {issuedTicket.trackingToken && <TicketTrackingQr token={issuedTicket.trackingToken} compact />}
-          <p>Entregue ou informe a senha ao cliente.</p>
-          {issuePhone && ticketWhatsAppUrl(issuePhone, issuedTicket)
-            ? <a className="ui-button ui-button--success ui-button--md whatsapp-button" href={ticketWhatsAppUrl(issuePhone, issuedTicket)!} target="_blank" rel="noopener noreferrer"><MessageCircle size={18} /> <span className="ui-button__label">Enviar pelo WhatsApp</span></a>
-            : issuePhone && <Notice tone="warning">Número inválido. Use DDD + número brasileiro.</Notice>}
-          <Button variant="secondary" onClick={closeIssue}>Fechar</Button>
+          <div className="issue-dialog-body">
+            <strong className="issue-result">{issuedTicket.ticketNumber}</strong>
+            {issuedTicket.trackingToken && <TicketTrackingQr token={issuedTicket.trackingToken} compact />}
+            <p>Entregue ou informe a senha ao cliente.</p>
+            {issuePhone && !ticketWhatsAppUrl(issuePhone, issuedTicket) && <Notice tone="warning">Número inválido. Use DDD + número brasileiro.</Notice>}
+          </div>
+          <div className="issue-dialog-actions">
+            {issuePhone && ticketWhatsAppUrl(issuePhone, issuedTicket)
+              ? <a className="ui-button ui-button--success ui-button--md whatsapp-button" href={ticketWhatsAppUrl(issuePhone, issuedTicket)!} target="_blank" rel="noopener noreferrer"><MessageCircle size={18} /> <span className="ui-button__label">Enviar pelo WhatsApp</span></a>
+              : null}
+            <Button variant="secondary" onClick={closeIssue}>Fechar</Button>
+          </div>
         </> : <>
-          <p>O número do WhatsApp é opcional. O envio será confirmado no aplicativo após a emissão.</p>
-          <TextField label="WhatsApp do cliente" type="tel" inputMode="tel" placeholder="(11) 91234-5678" autoComplete="tel" maxLength={20} value={issuePhone} onChange={(event) => setIssuePhone(event.target.value)} />
-          <Button variant="primary" size="lg" loading={busy} onClick={() => void issueFromStaff()}>Confirmar e gerar</Button>
+          <div className="issue-dialog-body">
+            <p>O número do WhatsApp é opcional. O envio será confirmado no aplicativo após a emissão.</p>
+            <TextField label="WhatsApp do cliente" type="tel" inputMode="tel" placeholder="(11) 91234-5678" autoComplete="tel" maxLength={20} value={issuePhone} onChange={(event) => setIssuePhone(event.target.value)} />
+          </div>
+          <div className="issue-dialog-actions">
+            <Button variant="primary" size="lg" loading={busy} onClick={() => void issueFromStaff()}>Confirmar e gerar</Button>
+          </div>
         </>}
       </Surface>
     </div>}
