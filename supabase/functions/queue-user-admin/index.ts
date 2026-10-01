@@ -42,10 +42,10 @@ async function canManageUsers(userId: string) {
     .from("queue_role_permissions")
     .select("permission_key")
     .eq("role_id", queueUser.role_id)
-    .eq("permission_key", "users.manage")
-    .maybeSingle();
+    .in("permission_key", ["system.admin", "users.manage"])
+    .limit(1);
   if (permissionError) throw permissionError;
-  return Boolean(data);
+  return Boolean(data?.length);
 }
 
 async function ensureRole(roleId: string) {
