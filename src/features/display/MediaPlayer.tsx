@@ -1,8 +1,121 @@
-import { useLayoutEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import { Clapperboard, SkipForward } from 'lucide-react';
 import { Button } from '../../components/ui';
 import type { MediaItem } from '../../domain/queue';
 import { normalizeMediaUrl } from '../../domain/media';
+
+type YouTubePlayer = {
+  destroy: () => void;
+  mute: () => void;
+  playVideo: () => void;
+  seekTo: (seconds: number, allowSeekAhead?: boolean) => void;
+};
+
+type YouTubeApi = {
+  Player: new (
+    element: HTMLIFrameElement,
+    options: {
+      events?: {
+        onReady?: (event: { target: YouTubePlayer }) => void;
+        onStateChange?: (event: { data: number; target: YouTubePlayer }) => void;
+        onError?: () => void;
+      };
+    },
+  ) => YouTubePlayer;
+};
+
+type YouTubeWindow = Window & {
+  YT?: YouTubeApi;
+  onYouTubeIframeAPIReady?: () => void;
+};
+
+let youtubeApiPromise: Promise<YouTubeApi> | null = null;
+
+function loadYouTubeApi() {
+  const youtubeWindow = window as YouTubeWindow;
+  if (youtubeWindow.YT?.Player) return Promise.resolve(youtubeWindow.YT);
+  if (youtubeApiPromise) return youtubeApiPromise;
+
+  youtubeApiPromise = new Promise<YouTubeApi>((resolve, reject) => {
+    const previousReady = youtubeWindow.onYouTubeIframeAPIReady;
+    youtubeWindow.onYouTubeIframeAPIReady = () => {
+      previousReady?.();
+      if (youtubeWindow.YT?.Player) resolve(youtubeWindow.YT);
+      else reject(new Error('A API do YouTube não ficou disponível.'));
+    };
+
+    const existing = document.querySelector<HTMLScriptElement>('script[src="https://www.youtube.com/iframe_api"]');
+    if (existing) return;
+
+    const script = document.createElement('script');
+    script.src = 'https://www.youtube.com/iframe_api';
+    script.async = true;
+    script.onerror = () => reject(new Error('Não foi possível carregar a API do YouTube.'));
+    document.head.appendChild(script);
+  });
+
+  return youtubeApiPromise;
+}
+
+function YouTubeVideo({
+  url,
+  title,
+  repeat,
+  onEnded,
+  onError,
+}: {
+  url: string;
+  title: string;
+  repeat: boolean;
+  onEnded: () => void;
+  onError: () => void;
+}) {
+  const iframeRef = useRef<HTMLIFrameElement>(null);
+  const videoId = url.split('/').filter(Boolean).at(-1) ?? '';
+  const playerUrl = `${url}?autoplay=1&mute=1&rel=0&playsinline=1&enablejsapi=1&origin=${encodeURIComponent(window.location.origin)}${repeat ? `&loop=1&playlist=${encodeURIComponent(videoId)}` : ''}`;
+
+  useEffect(() => {
+    let disposed = false;
+    let player: YouTubePlayer | null = null;
+
+    void loadYouTubeApi()
+      .then((youtube) => {
+        if (disposed || !iframeRef.current) return;
+        player = new youtube.Player(iframeRef.current, {
+          events: {
+            onReady: (event) => {
+              event.target.mute();
+              event.target.playVideo();
+            },
+            onStateChange: (event) => {
+              if (event.data !== 0) return;
+              if (repeat) {
+                event.target.seekTo(0, true);
+                event.target.playVideo();
+                return;
+              }
+              onEnded();
+            },
+            onError,
+          },
+        });
+      })
+      .catch(onError);
+
+    return () => {
+      disposed = true;
+      player?.destroy();
+    };
+  }, [onEnded, onError, repeat, url]);
+
+  return <iframe
+    ref={iframeRef}
+    title={title}
+    src={playerUrl}
+    allow="autoplay; encrypted-media; picture-in-picture"
+    referrerPolicy="strict-origin-when-cross-origin"
+  />;
+}
 
 export function MediaPlayer({ items }: { items: MediaItem[] }) {
   const [failed, setFailed] = useState<string[]>([]);
@@ -13,23 +126,25 @@ export function MediaPlayer({ items }: { items: MediaItem[] }) {
 
   useLayoutEffect(() => { setFailed([]); setIndex(0); }, [items]);
 
-  function advance() {
-    if (usable.length > 1) setIndex((value) => (value + 1) % usable.length);
-  }
-  function failCurrent() {
+  const advance = useCallback(() => {
+    if (!usable.length) return;
+    setIndex((value) => (value + 1) % usable.length);
+  }, [usable.length]);
+
+  const failCurrent = useCallback(() => {
     if (!current) return;
     setFailed((value) => value.includes(current.id) ? value : [...value, current.id]);
     setIndex(0);
-  }
+  }, [current]);
 
   return <section className="display-media" aria-label="Vídeos da loja">
     <div className="display-media-heading"><span><Clapperboard size={15} /> NA ARTVIDEO</span>{usable.length > 1 && <Button variant="ghost" size="sm" iconOnly aria-label="Próximo vídeo" onClick={advance}><SkipForward size={15} /></Button>}</div>
     <div className="display-media-frame">
-      {source?.kind === 'direct-video' && <video key={current?.id} src={source.url} title={current?.title ?? 'Vídeo'} autoPlay muted playsInline onEnded={advance} onError={failCurrent} />}
-      {source?.kind === 'youtube' && <iframe key={current?.id} title={current?.title ?? 'YouTube'} src={`${source.url}?autoplay=1&mute=1&rel=0`} allow="autoplay; encrypted-media; picture-in-picture" referrerPolicy="strict-origin-when-cross-origin" onError={failCurrent} />}
+      {source?.kind === 'direct-video' && <video key={current?.id} src={source.url} title={current?.title ?? 'Vídeo'} autoPlay muted playsInline loop={usable.length === 1} onEnded={usable.length > 1 ? advance : undefined} onError={failCurrent} />}
+      {source?.kind === 'youtube' && <YouTubeVideo key={current?.id} url={source.url} title={current?.title ?? 'YouTube'} repeat={usable.length === 1} onEnded={advance} onError={failCurrent} />}
       {source?.kind === 'embed' && <iframe key={current?.id} title={current?.title ?? 'Vídeo incorporado'} src={source.url} sandbox="allow-scripts allow-same-origin allow-presentation" allow="autoplay; encrypted-media; picture-in-picture" referrerPolicy="strict-origin-when-cross-origin" onError={failCurrent} />}
       {!current && <div className="display-media-empty"><Clapperboard size={28} /><span>{items.length ? 'Nenhum link de vídeo pôde ser exibido.' : 'A fila de atendimento aparece ao lado.'}</span></div>}
     </div>
-    {current && <div className="display-media-caption"><strong>{current.title || 'Vídeo da loja'}</strong><small>{usable.length > 1 ? `${index + 1} de ${usable.length}` : 'Vídeo informativo'}</small></div>}
+    {current && <div className="display-media-caption"><strong>{current.title || 'Vídeo da loja'}</strong><small>{usable.length > 1 ? `${(index % usable.length) + 1} de ${usable.length}` : 'Vídeo informativo'}</small></div>}
   </section>;
 }
