@@ -33,6 +33,10 @@ export const serviceTypeExtraIconOptions = [
   { value: 'family', label: 'Gestante / criança' },
 ] as const;
 
+export function serviceTypeExtraIconLabel(value: string): string {
+  return serviceTypeExtraIconOptions.find((option) => option.value === value)?.label ?? 'Informação adicional';
+}
+
 export function isServiceTypeImageUrl(value?: string | null): boolean {
   return /^https?:\/\//i.test(String(value ?? '').trim());
 }
