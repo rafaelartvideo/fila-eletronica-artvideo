@@ -289,12 +289,22 @@ export async function listTicketTypes(): Promise<TicketType[]> {
   const client = requireSupabase();
   const enhancedResult = await client
     .from('ticket_types')
-    .select('id,name,prefix,description,icon,extra_icons,priority,is_quick,is_pinned,is_active,sort_order')
+    .select('id,name,prefix,description,icon,extra_icons,extra_icon_descriptions,priority,is_quick,is_pinned,is_active,sort_order')
     .order('sort_order')
     .order('name');
 
   let data = enhancedResult.data as unknown as ApiRow[] | null;
   let error = enhancedResult.error;
+
+  if (error && /extra_icon_descriptions|schema cache|PGRST204|does not exist/i.test(error.message)) {
+    const extraIconsResult = await client
+      .from('ticket_types')
+      .select('id,name,prefix,description,icon,extra_icons,priority,is_quick,is_pinned,is_active,sort_order')
+      .order('sort_order')
+      .order('name');
+    data = extraIconsResult.data as unknown as ApiRow[] | null;
+    error = extraIconsResult.error;
+  }
 
   if (error && /extra_icons|schema cache|PGRST204|does not exist/i.test(error.message)) {
     const currentResult = await client
@@ -323,6 +333,9 @@ export async function listTicketTypes(): Promise<TicketType[]> {
     description: row.description ? String(row.description) : null,
     icon: row.icon ? String(row.icon) : 'clipboard',
     extraIcons: Array.isArray(row.extra_icons) ? row.extra_icons.map(String).slice(0, 4) : [],
+    extraIconDescriptions: row.extra_icon_descriptions && typeof row.extra_icon_descriptions === 'object' && !Array.isArray(row.extra_icon_descriptions)
+      ? Object.fromEntries(Object.entries(row.extra_icon_descriptions as Record<string, unknown>).map(([key, value]) => [key, String(value ?? '')]))
+      : {},
     priority: normalizePriority(row.priority),
     isQuick: Boolean(row.is_quick),
     isPinned: Boolean(row.is_pinned),
@@ -389,6 +402,7 @@ export async function saveTicketType(input: {
   description?: string | null;
   icon?: string;
   extraIcons?: string[];
+  extraIconDescriptions?: Record<string, string>;
   priority: TicketPriority;
   isQuick?: boolean;
   isPinned?: boolean;
@@ -402,11 +416,27 @@ export async function saveTicketType(input: {
     description: input.description?.trim() || null,
     icon: input.icon?.trim() || 'clipboard',
     extra_icons: (input.extraIcons ?? []).map((value) => value.trim()).filter(Boolean).slice(0, 4),
+    extra_icon_descriptions: Object.fromEntries(
+      (input.extraIcons ?? []).map((value) => value.trim()).filter(Boolean).slice(0, 4)
+        .map((value) => [value, input.extraIconDescriptions?.[value]?.trim() || '']),
+    ),
     priority: input.priority,
     is_quick: Boolean(input.isQuick),
     is_pinned: Boolean(input.isPinned),
     is_active: input.isActive,
     sort_order: input.sortOrder ?? 0,
+  };
+  const extraIconsRow = {
+    name: fullRow.name,
+    prefix: fullRow.prefix,
+    description: fullRow.description,
+    icon: fullRow.icon,
+    extra_icons: fullRow.extra_icons,
+    priority: fullRow.priority,
+    is_quick: fullRow.is_quick,
+    is_pinned: fullRow.is_pinned,
+    is_active: fullRow.is_active,
+    sort_order: fullRow.sort_order,
   };
   const currentRow = {
     name: fullRow.name,
@@ -431,6 +461,12 @@ export async function saveTicketType(input: {
   let result = input.id
     ? await client.from('ticket_types').update(fullRow).eq('id', input.id)
     : await client.from('ticket_types').insert(fullRow);
+
+  if (result.error && /extra_icon_descriptions|schema cache|PGRST204|does not exist/i.test(result.error.message)) {
+    result = input.id
+      ? await client.from('ticket_types').update(extraIconsRow).eq('id', input.id)
+      : await client.from('ticket_types').insert(extraIconsRow);
+  }
 
   if (result.error && /extra_icons|schema cache|PGRST204|does not exist/i.test(result.error.message)) {
     result = input.id
