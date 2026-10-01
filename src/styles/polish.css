@@ -2710,3 +2710,13 @@ html[data-theme='light'] .display-content-settings .settings-list .setting-row {
   border-color: #e3e9f1;
   background: transparent;
 }
+
+
+/* Permission-aware kiosk header keeps the title centered when panel navigation is hidden. */
+.kiosk-topbar {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+}
+.kiosk-topbar > .auth-back { justify-self: start; }
+.kiosk-topbar > .kiosk-brand { justify-self: center; }
+.kiosk-topbar > .kiosk-help { justify-self: end; }
