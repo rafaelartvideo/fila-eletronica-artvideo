@@ -1,5 +1,5 @@
 import { useEffect, useState, type FormEvent } from 'react';
-import { Pencil, Plus, UserRound, X } from 'lucide-react';
+import { Pause, Pencil, Play, Plus, UserRound, X } from 'lucide-react';
 import { Badge, Button, Checkbox, EmptyState, Notice, SectionHeader, SelectField, Surface, TextField } from '../../components/ui';
 import type { QueueRole, QueueUser } from '../../lib/supabase/queue-api';
 import { listQueueRoles, listQueueUsers, saveQueueUser } from '../../lib/supabase/queue-api';
@@ -78,6 +78,26 @@ export function UsersSettings() {
     }
   }
 
+  async function toggleUser(user: QueueUser) {
+    setBusy(true);
+    setError('');
+    try {
+      await saveQueueUser({
+        userId: user.userId,
+        fullName: user.fullName,
+        username: user.username,
+        roleId: user.roleId,
+        password: '',
+        isActive: !user.isActive,
+      });
+      await load();
+    } catch (cause) {
+      setError(cause instanceof Error ? cause.message : 'Não foi possível alterar o status do usuário.');
+    } finally {
+      setBusy(false);
+    }
+  }
+
   return <section className="access-panel">
     <SectionHeader
       eyebrow="ACESSOS"
@@ -94,7 +114,22 @@ export function UsersSettings() {
         <div><strong>{user.fullName}</strong><small>@{user.username}</small></div>
         <div><small>Cargo</small><strong>{user.roleName}</strong></div>
         <Badge tone={user.isActive ? 'success' : 'neutral'}>{user.isActive ? 'Ativo' : 'Inativo'}</Badge>
-        {canManage && <Button variant="secondary" size="sm" type="button" onClick={() => edit(user)} startIcon={<Pencil size={15} />}>Editar</Button>}
+        {canManage && <div className="user-row-actions">
+          <Button variant="secondary" size="sm" type="button" disabled={busy} onClick={() => edit(user)} startIcon={<Pencil size={15} />}>Editar</Button>
+          <Button
+            className={`user-active-toggle ${user.isActive ? 'pause' : 'play'}`}
+            variant="ghost"
+            size="sm"
+            iconOnly
+            type="button"
+            disabled={busy}
+            onClick={() => void toggleUser(user)}
+            aria-label={user.isActive ? `Inativar ${user.fullName}` : `Ativar ${user.fullName}`}
+            title={user.isActive ? 'Inativar usuário' : 'Ativar usuário'}
+          >
+            {user.isActive ? <Pause size={16} /> : <Play size={16} />}
+          </Button>
+        </div>}
       </Surface>)}
       {users.length === 0 && <EmptyState icon={<UserRound size={18} />}>Nenhum usuário cadastrado.</EmptyState>}
     </div>
