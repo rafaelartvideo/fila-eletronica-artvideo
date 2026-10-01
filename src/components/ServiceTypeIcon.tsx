@@ -1,4 +1,4 @@
-import { CircleHelp, ClipboardList, Monitor, Settings, ShoppingBag, Smartphone, Wrench, Zap } from 'lucide-react';
+import { Accessibility, Baby, CircleHelp, ClipboardList, HeartHandshake, Infinity as InfinityIcon, Monitor, Settings, ShoppingBag, Smartphone, Wrench, Zap } from 'lucide-react';
 
 const iconMap: Record<string, typeof ClipboardList> = {
   clipboard: ClipboardList,
@@ -9,6 +9,10 @@ const iconMap: Record<string, typeof ClipboardList> = {
   settings: Settings,
   quick: Zap,
   help: CircleHelp,
+  accessibility: Accessibility,
+  neurodiversity: InfinityIcon,
+  priority: HeartHandshake,
+  family: Baby,
 };
 
 export const serviceTypeIconOptions = [
@@ -20,9 +24,31 @@ export const serviceTypeIconOptions = [
   { value: 'settings', label: 'Configuração' },
   { value: 'quick', label: 'Rápido' },
   { value: 'help', label: 'Ajuda' },
+  { value: 'priority', label: 'Atendimento prioritário' },
+  { value: 'accessibility', label: 'Acessibilidade' },
+  { value: 'neurodiversity', label: 'Autismo / neurodiversidade' },
+  { value: 'family', label: 'Gestante / criança' },
 ] as const;
 
+export function isServiceTypeImageUrl(value?: string | null): boolean {
+  return /^https?:\/\//i.test(String(value ?? '').trim());
+}
+
 export function ServiceTypeIcon({ name, size = 20, className }: { name?: string | null; size?: number; className?: string }) {
-  const Icon = iconMap[name || 'clipboard'] ?? ClipboardList;
+  const normalized = String(name || 'clipboard').trim();
+
+  if (isServiceTypeImageUrl(normalized)) {
+    return <img
+      className={['service-type-icon-image', className].filter(Boolean).join(' ')}
+      src={normalized}
+      width={size}
+      height={size}
+      alt=""
+      loading="lazy"
+      referrerPolicy="no-referrer"
+    />;
+  }
+
+  const Icon = iconMap[normalized] ?? ClipboardList;
   return <Icon size={size} className={className} />;
 }
