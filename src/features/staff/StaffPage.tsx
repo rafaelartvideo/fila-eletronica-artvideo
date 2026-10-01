@@ -306,13 +306,18 @@ export function StaffPage() {
         {canRoles && <TabButton selected={tab === 'roles'} onClick={() => setTab('roles')} icon={<ShieldCheck size={16} />}>Cargos e permissões</TabButton>}
         {canMedia && <TabButton selected={tab === 'media'} onClick={() => setTab('media')} icon={<Clapperboard size={16} />}>Display</TabButton>}
         {canPrinter && <TabButton selected={tab === 'printer'} onClick={() => setTab('printer')} icon={<Printer size={16} />}>Impressora</TabButton>}
-        {tab === 'queue' && canCall && <>
-          <TextField className="counter-field" label="Balcão" value={counter} onChange={(event) => setCounter(event.target.value)} maxLength={40} />
-          <Button variant="primary" size="sm" className="global-call-button" disabled={busy || waiting === 0 || counterHasActive} onClick={() => void callNext()} startIcon={<Megaphone size={16} />}>
-            {counterHasActive ? 'Atendimento em andamento' : waiting === 0 ? 'Fila vazia' : 'Chamar próximo'}
-          </Button>
-        </>}
       </Tabs>
+
+      {tab === 'queue' && canQueue && canCall && <Surface tone="soft" className="queue-primary-actions">
+        <div className="queue-primary-actions-copy">
+          <span className="ui-eyebrow">CHAMADA DA FILA</span>
+          <strong>{counterHasActive ? 'Finalize o atendimento atual para chamar outra senha.' : waiting === 0 ? 'Nenhuma senha aguardando agora.' : 'Pronto para chamar a próxima senha.'}</strong>
+        </div>
+        <TextField className="counter-field queue-counter-field" label="Balcão" value={counter} onChange={(event) => setCounter(event.target.value)} maxLength={40} />
+        <Button variant="primary" size="lg" className="global-call-button queue-call-primary" disabled={busy || waiting === 0 || counterHasActive} onClick={() => void callNext()} startIcon={<Megaphone size={20} />}>
+          {counterHasActive ? 'Atendimento em andamento' : waiting === 0 ? 'Fila vazia' : 'Chamar próximo'}
+        </Button>
+      </Surface>}
 
       {error && <Notice tone="danger">{error}<Button variant="ghost" size="sm" onClick={() => void refresh()}>Tentar novamente</Button></Notice>}
 
