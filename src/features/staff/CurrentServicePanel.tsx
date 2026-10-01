@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Check, Maximize2, Minimize2, Play, RotateCcw, UserRound, X } from 'lucide-react';
 import { Button, TextAreaField } from '../../components/ui';
+import { ModalPortal } from '../../components/ModalPortal';
 import type { QueueTicket } from '../../domain/queue';
 import { ticketPriorityLabel } from '../../domain/queue';
 
@@ -72,7 +73,7 @@ export function CurrentServicePanel({
     </button>;
   }
 
-  return <div className="service-session-overlay">
+  return <ModalPortal><div className="service-session-overlay">
     <section className={`service-session-modal ${tone}`} role="dialog" aria-modal="true" aria-labelledby="service-session-title">
       <header className="service-session-header">
         <div>
@@ -124,5 +125,5 @@ export function CurrentServicePanel({
         {isCalled && canServe && <Button variant="danger" disabled={busy} onClick={onCancel} startIcon={<X size={17} />}>Cancelar</Button>}
       </footer>
     </section>
-  </div>;
+  </div></ModalPortal>;
 }
