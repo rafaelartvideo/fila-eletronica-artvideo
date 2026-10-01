@@ -48,7 +48,7 @@ export function StaffPage() {
   ].filter(Boolean) as Tab[], [canQueue, canAttendance, canServices, canUsers, canRoles, canMedia, canPrinter]);
 
   const [theme, setTheme] = useState<'dark' | 'light'>(() => document.documentElement.dataset.theme === 'light' ? 'light' : 'dark');
-  const [tab, setTab] = useState<Tab>('queue');
+  const [tab, setTab] = useState<Tab>(() => availableTabs[0] ?? 'queue');
   const [types, setTypes] = useState<TicketType[]>([]);
   const [tickets, setTickets] = useState<QueueTicket[]>([]);
   const [busy, setBusy] = useState(false);
