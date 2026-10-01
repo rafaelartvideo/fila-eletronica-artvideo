@@ -6,6 +6,7 @@ import { ServiceTypeIcon } from '../../components/ServiceTypeIcon';
 import type { QueueTicket, TicketType } from '../../domain/queue';
 import { issueTicket, listTicketTypes, subscribeToQueueChanges } from '../../lib/supabase/queue-api';
 import { TicketConfirmation } from './TicketConfirmation';
+import { formatBrazilianPhone } from '../../domain/whatsapp';
 
 export function KioskPage({ showPanelBack = true }: { showPanelBack?: boolean }) {
   const [types, setTypes] = useState<TicketType[]>([]);
@@ -112,7 +113,8 @@ export function KioskPage({ showPanelBack = true }: { showPanelBack?: boolean })
 
         {loading ? <EmptyState>Carregando atendimentos…</EmptyState> : selectedType ? <Surface className="kiosk-step-card">
           <div className="selected-service">
-            <div><small>ATENDIMENTO</small><strong>{selectedType.name}</strong></div>
+            <span className="selected-service-icon"><ServiceTypeIcon name={selectedType.icon} size={24} /></span>
+            <div className="selected-service-copy"><small>ATENDIMENTO</small><strong>{selectedType.name}</strong></div>
             <Button variant="ghost" size="sm" onClick={() => { setSelectedType(null); setError(''); }}>Alterar</Button>
           </div>
 
@@ -122,9 +124,9 @@ export function KioskPage({ showPanelBack = true }: { showPanelBack?: boolean })
             type="tel"
             inputMode="tel"
             value={phone}
-            onChange={(event) => setPhone(event.target.value)}
+            onChange={(event) => setPhone(formatBrazilianPhone(event.target.value))}
             placeholder="(11) 91234-5678"
-            maxLength={20}
+            maxLength={15}
             autoComplete="tel"
             hint="Após gerar, você poderá abrir uma mensagem pronta no WhatsApp. O envio precisa ser confirmado no aplicativo."
           />
