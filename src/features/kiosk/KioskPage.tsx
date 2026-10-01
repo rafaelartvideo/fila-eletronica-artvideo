@@ -6,8 +6,12 @@ import { ServiceTypeIcon } from '../../components/ServiceTypeIcon';
 import type { QueueTicket, TicketType } from '../../domain/queue';
 import { issueTicket, listTicketTypes, subscribeToQueueChanges } from '../../lib/supabase/queue-api';
 import { TicketConfirmation } from './TicketConfirmation';
+import { useAuth } from '../auth/AuthProvider';
+import { canAccessPanel } from '../auth/access-rules';
 
 export function KioskPage() {
+  const { hasPermission } = useAuth();
+  const canReturnToPanel = canAccessPanel(hasPermission);
   const [types, setTypes] = useState<TicketType[]>([]);
   const [selectedType, setSelectedType] = useState<TicketType | null>(null);
   const [phone, setPhone] = useState('');
@@ -90,7 +94,7 @@ export function KioskPage() {
 
   return <main className="kiosk-page">
     <header className="kiosk-topbar no-print">
-      <Link to="/painel" className="auth-back"><ArrowLeft size={17} /> Painel</Link>
+      {canReturnToPanel && <Link to="/painel" className="auth-back"><ArrowLeft size={17} /> Painel</Link>}
       <div className="kiosk-brand"><Ticket size={20} /><strong>RETIRADA DE SENHA</strong></div>
       <span className="kiosk-help"><CircleHelp size={16} /> Precisa de ajuda? Chame nossa equipe</span>
     </header>
