@@ -4,7 +4,7 @@ import { Link } from 'react-router';
 import { Button, Notice, Surface, TabButton, Tabs, TextField } from '../../components/ui';
 import type { QueueTicket, TicketStatus, TicketType } from '../../domain/queue';
 import { ticketWhatsAppUrl } from '../../domain/whatsapp';
-import { callNextTicket, completeTicket, issueTicket, listQueueTickets, listTicketTypes, repeatTicketCall, subscribeToQueueChanges, transitionTicket } from '../../lib/supabase/queue-api';
+import { callNextTicket, callTicketById, completeTicket, issueTicket, listQueueTickets, listTicketTypes, repeatTicketCall, subscribeToQueueChanges, transitionTicket } from '../../lib/supabase/queue-api';
 import { useAuth } from '../auth/AuthProvider';
 import { QueueColumn } from './QueueColumn';
 import { CurrentServicePanel } from './CurrentServicePanel';
@@ -84,7 +84,9 @@ export function StaffPage() {
     setError('');
     try {
       const [nextTypes, nextTickets] = await Promise.all([listTicketTypes(), listQueueTickets(day)]);
-      setTypes(nextTypes.filter((type) => type.isActive));
+      setTypes(nextTypes
+        .filter((type) => type.isActive)
+        .sort((a, b) => Number(b.isPinned) - Number(a.isPinned) || a.sortOrder - b.sortOrder || a.name.localeCompare(b.name)));
       setTickets(nextTickets);
       return nextTickets;
     } catch (cause) {
@@ -156,6 +158,24 @@ export function StaffPage() {
       }
     } catch (cause) {
       setError(cause instanceof Error ? cause.message : 'Não foi possível chamar a próxima senha.');
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  async function callSpecificTicket(ticketId: string) {
+    if (!canCall) return;
+    setBusy(true); setError('');
+    try {
+      const call = await callTicketById(ticketId, counter);
+      const nextTickets = await refresh();
+      const calledTicket = nextTickets?.find((ticket) => ticket.ticketNumber === call.ticketNumber && ticket.status === 'called') ?? null;
+      if (calledTicket) {
+        setActiveTicketId(calledTicket.id);
+        setServicePanelMinimized(false);
+      }
+    } catch (cause) {
+      setError(cause instanceof Error ? cause.message : 'Não foi possível chamar esta senha.');
     } finally {
       setBusy(false);
     }
@@ -299,7 +319,7 @@ export function StaffPage() {
       {tab === 'queue' && canQueue && <div className="queue-grid">
         {types.length === 0
           ? <Surface tone="soft" className="empty-services"><Wrench size={22} /><h2>Nenhum atendimento ativo</h2><p>Cadastre um tipo de atendimento para começar a receber senhas.</p>{canServices && <Button variant="primary" onClick={() => setTab('services')}>Configurar atendimentos</Button>}</Surface>
-          : types.map((type) => <QueueColumn key={type.id} type={type} tickets={tickets.filter((ticket) => ticket.serviceTypeId === type.id)} busy={busy} canIssue={canIssue} canServe={canServe} onIssue={() => { setIssueType(type); setIssuedTicket(null); }} onOpen={openCurrentTicket} onTransition={(id, status) => void changeTicketStatus(id, status)} />)}
+          : types.map((type) => <QueueColumn key={type.id} type={type} tickets={tickets.filter((ticket) => ticket.serviceTypeId === type.id)} busy={busy} canIssue={canIssue} canCall={canCall && !counterHasActive} canServe={canServe} onIssue={() => { setIssueType(type); setIssuedTicket(null); }} onCall={(id) => void callSpecificTicket(id)} onOpen={openCurrentTicket} onTransition={(id, status) => void changeTicketStatus(id, status)} />)}
       </div>}
       {tab === 'attendance' && canAttendance && <AttendanceHistory />}
       {tab === 'services' && canServices && <ServiceTypeSettings onChanged={() => void refresh()} />}
