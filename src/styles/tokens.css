@@ -157,3 +157,51 @@ html[data-theme='light'] {
 
 html[data-theme='dark'] { color-scheme: dark; }
 html[data-theme='light'] { color-scheme: light; }
+
+
+/* The customer kiosk is always dark, regardless of the staff theme. */
+html[data-theme='light']:has(.kiosk-page) {
+  --app-bg: #081522;
+  --page-background: radial-gradient(circle at 80% 5%, #132f50 0, transparent 34%), var(--app-bg);
+  --header-bg: rgb(10 25 43 / 94%);
+  --header-border: #24384f;
+  --brand-icon-bg: #173658;
+  --brand-icon-text: #d9e9fb;
+  --surface: #0d1f33;
+  --surface-raised: #10253d;
+  --surface-soft: #0a1a2b;
+  --surface-hover: #142a43;
+  --text: #edf4fb;
+  --text-secondary: #c6d3e0;
+  --text-muted: #8498ad;
+  --border: #293f56;
+  --border-strong: #36516d;
+  --focus-ring: rgb(78 146 220 / 22%);
+  --input-bg: #0b1a2d;
+  --input-border: #304660;
+  --input-border-focus: #4c83bd;
+  --input-text: #eef5fd;
+  --input-placeholder: #60758b;
+  --input-icon: #79b5f4;
+  --input-icon-bg: #132d49;
+  --button-primary-bg: #1762c5;
+  --button-primary-hover: #1d6ed7;
+  --button-primary-border: #2d75cd;
+  --button-primary-text: #fff;
+  --info-bg: #112d48;
+  --info-border: #2f5579;
+  --info-text: #b8d7f7;
+  --success-bg: #123329;
+  --success-border: #2f735a;
+  --success-text: #91e4bb;
+  --warning-bg: #3a2d18;
+  --warning-border: #7a5f2a;
+  --warning-text: #f3d58e;
+  --danger-bg: #351f26;
+  --danger-border: #71414c;
+  --danger-text: #ffb7bc;
+  --danger: #e66b78;
+  --shadow-sm: 0 6px 18px rgb(0 0 0 / 12%);
+  --shadow-md: 0 18px 50px rgb(0 0 0 / 22%);
+  color-scheme: dark;
+}
