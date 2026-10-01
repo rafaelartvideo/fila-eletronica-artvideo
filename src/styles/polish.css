@@ -2753,10 +2753,20 @@ html[data-theme='light'] .display-content-settings .settings-list .setting-row {
 .queue-primary-actions .queue-counter-field {
   width: 100%;
   margin: 0;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 8px;
+}
+.queue-primary-actions .queue-counter-field .ui-field__label {
+  flex: 0 0 auto;
+  margin: 0;
+  white-space: nowrap;
 }
 .queue-primary-actions .queue-counter-field .ui-field__control {
   width: 100%;
   min-width: 0;
+  flex: 1 1 auto;
 }
 .queue-call-primary {
   width: 100%;
