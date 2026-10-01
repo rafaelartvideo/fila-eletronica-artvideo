@@ -3232,3 +3232,93 @@ html[data-theme='light'] .kiosk-icon-info-modal > .ui-modal-actions {
 .selected-service .kiosk-service-extra-icons > button {
   flex: 0 0 auto;
 }
+
+
+/* Force the ticket kiosk and generation flow to stay dark. */
+html[data-theme='light']:has(.kiosk-page) body {
+  color: #edf4fb;
+  background: radial-gradient(circle at 80% 5%, #132f50 0, transparent 34%), #081522;
+}
+html[data-theme='light']:has(.kiosk-page) .kiosk-page {
+  color: #edf4fb;
+  background: radial-gradient(circle at 70% 12%, #123355, transparent 32%), #081321;
+}
+html[data-theme='light']:has(.kiosk-page) .kiosk-topbar {
+  color: #f4f7fb;
+  border-color: #24384f;
+  background: rgb(10 25 43 / 94%);
+  box-shadow: 0 10px 30px rgb(0 0 0 / 12%);
+}
+html[data-theme='light']:has(.kiosk-page) .kiosk-brand {
+  color: #dbeafb;
+}
+html[data-theme='light']:has(.kiosk-page) :is(.auth-back, .kiosk-help) {
+  color: #9fb2c8;
+}
+html[data-theme='light']:has(.kiosk-page) :is(.kiosk-service-card, .kiosk-step-card, .kiosk-loading, .kiosk-no-services) {
+  color: #f4f7fb;
+  border-color: #263b54;
+  background: #10233a;
+  box-shadow: 0 12px 34px rgb(0 0 0 / 15%);
+}
+html[data-theme='light']:has(.kiosk-page) .kiosk-service-card:hover {
+  border-color: #3b6087;
+  box-shadow: 0 16px 38px rgb(0 0 0 / 24%);
+}
+html[data-theme='light']:has(.kiosk-page) .kiosk-service-icon {
+  color: #bcd8f6;
+  background: transparent;
+}
+html[data-theme='light']:has(.kiosk-page) :is(.kiosk-welcome h1, .issued-ticket-screen h1, .kiosk-service-card strong, .selected-service strong) {
+  color: #f4f7fb;
+}
+html[data-theme='light']:has(.kiosk-page) :is(.kiosk-welcome p, .issued-ticket-screen > p, .kiosk-privacy, .kiosk-service-card small, .selected-service small) {
+  color: #9aacbf;
+}
+html[data-theme='light']:has(.kiosk-page) .selected-service {
+  border-color: #30455e;
+  background: transparent !important;
+}
+html[data-theme='light']:has(.kiosk-page) .print-ticket {
+  color: #f4f7fb;
+  border-color: #30455e;
+  background: #0d1e32;
+}
+html[data-theme='light']:has(.kiosk-page) .print-ticket-brand {
+  color: #aec9e7;
+}
+html[data-theme='light']:has(.kiosk-page) .print-ticket-number {
+  color: #ffd05f;
+}
+html[data-theme='light']:has(.kiosk-page) :is(.print-service-label, .print-ticket-date, .print-ticket-message) {
+  color: #9fb0c4;
+}
+html[data-theme='light']:has(.kiosk-page) .ticket-success-mark {
+  color: #67d5a5;
+  background: #123329;
+}
+html[data-theme='light']:has(.kiosk-page) .issued-ticket-screen .section-kicker {
+  color: #89acd4;
+}
+html[data-theme='light']:has(.kiosk-page) .system-footer {
+  color: #92a6bc;
+  border-color: #26394f;
+  background: rgb(8 19 33 / 96%);
+}
+html[data-theme='light']:has(.kiosk-page) .kiosk-icon-info-modal {
+  color: #f4f7fb;
+  border-color: #31485f;
+  background: #10233a;
+}
+html[data-theme='light']:has(.kiosk-page) .kiosk-icon-info-symbol {
+  color: #b9d9fb;
+  border-color: #31485f;
+  background: #153553;
+}
+html[data-theme='light']:has(.kiosk-page) .kiosk-icon-info-body p {
+  color: #9fb1c5;
+}
+html[data-theme='light']:has(.kiosk-page) .kiosk-icon-info-modal > .ui-modal-actions {
+  border-color: #2d435b;
+  background: #10233a;
+}
