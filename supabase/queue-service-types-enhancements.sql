@@ -4,6 +4,7 @@
 alter table public.ticket_types
   add column if not exists icon text not null default 'clipboard',
   add column if not exists extra_icons text[] not null default array[]::text[],
+  add column if not exists extra_icon_descriptions jsonb not null default '{}'::jsonb,
   add column if not exists is_quick boolean not null default false,
   add column if not exists is_pinned boolean not null default false;
 
@@ -22,6 +23,21 @@ begin
     alter table public.ticket_types
       add constraint ticket_types_extra_icons_max_four
       check (cardinality(extra_icons) <= 4);
+  end if;
+end
+$constraint$;
+
+do $constraint$
+begin
+  if not exists (
+    select 1
+    from pg_constraint
+    where conname = 'ticket_types_extra_icon_descriptions_object'
+      and conrelid = 'public.ticket_types'::regclass
+  ) then
+    alter table public.ticket_types
+      add constraint ticket_types_extra_icon_descriptions_object
+      check (jsonb_typeof(extra_icon_descriptions) = 'object');
   end if;
 end
 $constraint$;
