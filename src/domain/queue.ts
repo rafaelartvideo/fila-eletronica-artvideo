@@ -19,6 +19,7 @@ export interface TicketType {
   description: string | null;
   icon: string;
   extraIcons?: string[];
+  extraIconDescriptions?: Record<string, string>;
   priority: TicketPriority;
   isQuick: boolean;
   isPinned: boolean;
