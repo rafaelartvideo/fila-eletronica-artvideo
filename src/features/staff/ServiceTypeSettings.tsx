@@ -1,7 +1,7 @@
 import { useEffect, useState, type DragEvent, type FormEvent } from 'react';
 import { GripVertical, Pencil, Pin, Plus, Power, Trash2, X, Zap } from 'lucide-react';
 import { Button, Checkbox, Notice, SectionHeader, SelectField, Surface, TextAreaField, TextField } from '../../components/ui';
-import { ServiceTypeIcon, serviceTypeIconOptions } from '../../components/ServiceTypeIcon';
+import { isServiceTypeImageUrl, ServiceTypeIcon, serviceTypeIconOptions } from '../../components/ServiceTypeIcon';
 import type { TicketPriority, TicketType } from '../../domain/queue';
 import { ticketPriorityLabel } from '../../domain/queue';
 import { deleteTicketType, listTicketTypes, reorderTicketTypes, saveTicketType, subscribeToQueueChanges } from '../../lib/supabase/queue-api';
@@ -18,6 +18,7 @@ export function ServiceTypeSettings({ onChanged }: { onChanged: () => void }) {
   const [prefix, setPrefix] = useState('');
   const [description, setDescription] = useState('');
   const [icon, setIcon] = useState('clipboard');
+  const [iconUrl, setIconUrl] = useState('');
   const [priority, setPriority] = useState<TicketPriority>('normal');
   const [quick, setQuick] = useState(false);
   const [pinned, setPinned] = useState(false);
@@ -52,6 +53,7 @@ export function ServiceTypeSettings({ onChanged }: { onChanged: () => void }) {
     setPrefix('');
     setDescription('');
     setIcon('clipboard');
+    setIconUrl('');
     setPriority('normal');
     setQuick(false);
     setPinned(false);
@@ -64,7 +66,13 @@ export function ServiceTypeSettings({ onChanged }: { onChanged: () => void }) {
     setName(type.name);
     setPrefix(type.prefix);
     setDescription(type.description ?? '');
-    setIcon(type.icon || 'clipboard');
+    if (isServiceTypeImageUrl(type.icon)) {
+      setIcon('clipboard');
+      setIconUrl(type.icon);
+    } else {
+      setIcon(type.icon || 'clipboard');
+      setIconUrl('');
+    }
     setPriority(type.priority);
     setQuick(type.isQuick);
     setPinned(type.isPinned);
@@ -84,12 +92,16 @@ export function ServiceTypeSettings({ onChanged }: { onChanged: () => void }) {
     setBusy(true);
     setError('');
     try {
+      const visual = iconUrl.trim();
+      if (visual && !isServiceTypeImageUrl(visual)) {
+        throw new Error('Informe uma URL válida para a imagem ou remova o endereço.');
+      }
       await saveTicketType({
         id: editing?.id,
         name,
         prefix,
         description,
-        icon,
+        icon: visual || icon,
         priority,
         isQuick: quick,
         isPinned: pinned,
@@ -252,9 +264,23 @@ export function ServiceTypeSettings({ onChanged }: { onChanged: () => void }) {
           <TextAreaField label="Descrição" value={description} onChange={(event) => setDescription(event.target.value)} placeholder="Explique de forma curta quando o cliente deve escolher este atendimento." maxLength={180} rows={3} />
           <div className="service-type-form-row">
             <TextField label="Prefixo" value={prefix} onChange={(event) => setPrefix(event.target.value.toUpperCase().replace(/[^A-Z0-9]/g, '').slice(0, 3))} placeholder="C" required maxLength={3} />
-            <SelectField label="Ícone" value={icon} onChange={(event) => setIcon(event.target.value)}>
+            <SelectField label="Ícone pronto" value={icon} onChange={(event) => setIcon(event.target.value)}>
               {serviceTypeIconOptions.map((option) => <option key={option.value} value={option.value}>{option.label}</option>)}
             </SelectField>
+          </div>
+          <div className="service-type-visual-row">
+            <TextField
+              label="URL de imagem ou ícone (opcional)"
+              type="url"
+              value={iconUrl}
+              onChange={(event) => setIconUrl(event.target.value)}
+              placeholder="https://..."
+              hint="Se preenchida, a imagem substitui o ícone pronto. Prefira PNG, WebP ou SVG com fundo transparente."
+            />
+            <div className="service-type-visual-preview" aria-label="Prévia do ícone">
+              <span><ServiceTypeIcon name={iconUrl.trim() || icon} size={28} /></span>
+              <small>Prévia</small>
+            </div>
           </div>
           <SelectField label="Prioridade" value={priority} onChange={(event) => setPriority(event.target.value as TicketPriority)}>
             {priorities.map((value) => <option key={value} value={value}>{ticketPriorityLabel(value)}</option>)}
