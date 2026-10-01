@@ -128,12 +128,18 @@ export function MediaSettings({ onChanged }: { onChanged: () => void }) {
         />
         <Button variant="primary" type="submit" disabled={busy || !notice.trim()} startIcon={<Plus size={16} />}>Adicionar frase</Button>
       </form>
-      <div className="settings-list">
-        {notices.map((item, index) => <Surface tone="soft" key={item.id} className="setting-row">
-          <div className="media-index"><MessageSquareText size={16} /></div>
-          <div className="media-row-copy"><strong>{index + 1}. {item.text}</strong></div>
-          <Button variant="danger" size="sm" iconOnly aria-label={`Remover frase ${item.text}`} disabled={busy} onClick={() => void removeNotice(item)}><Trash2 size={16} /></Button>
-        </Surface>)}
+      <div className="display-content-list-area">
+        <div className="display-content-list-head">
+          <strong>Frases cadastradas</strong>
+          <span>{notices.length}</span>
+        </div>
+        <div className="settings-list">
+          {notices.map((item, index) => <Surface tone="soft" key={item.id} className="setting-row">
+            <div className="media-index"><MessageSquareText size={16} /></div>
+            <div className="media-row-copy"><strong>{index + 1}. {item.text}</strong></div>
+            <Button variant="danger" size="sm" iconOnly aria-label={`Remover frase ${item.text}`} disabled={busy} onClick={() => void removeNotice(item)}><Trash2 size={16} /></Button>
+          </Surface>)}
+        </div>
       </div>
     </Surface>
 
@@ -147,12 +153,18 @@ export function MediaSettings({ onChanged }: { onChanged: () => void }) {
         <TextField label="URL do vídeo ou player" type="url" value={url} onChange={(event) => setUrl(event.target.value)} placeholder="https://www.youtube.com/watch?v=..." required />
         <Button variant="primary" type="submit" disabled={busy} startIcon={<Plus size={16} />}>Adicionar vídeo</Button>
       </form>
-      <div className="settings-list">
-        {items.map((item, index) => <Surface tone="soft" key={item.id} className="setting-row">
-          <div className="media-index"><Clapperboard size={16} /></div>
-          <div className="media-row-copy"><strong>{index + 1}. {item.title}</strong><small>{item.url}</small></div>
-          <Button variant="danger" size="sm" iconOnly aria-label={`Remover ${item.title}`} disabled={busy} onClick={() => void removeVideo(item)}><Trash2 size={16} /></Button>
-        </Surface>)}
+      <div className="display-content-list-area">
+        <div className="display-content-list-head">
+          <strong>Vídeos cadastrados</strong>
+          <span>{items.length}</span>
+        </div>
+        <div className="settings-list">
+          {items.map((item, index) => <Surface tone="soft" key={item.id} className="setting-row">
+            <div className="media-index"><Clapperboard size={16} /></div>
+            <div className="media-row-copy"><strong>{index + 1}. {item.title}</strong><small>{item.url}</small></div>
+            <Button variant="danger" size="sm" iconOnly aria-label={`Remover ${item.title}`} disabled={busy} onClick={() => void removeVideo(item)}><Trash2 size={16} /></Button>
+          </Surface>)}
+        </div>
       </div>
     </Surface>
   </section>;
