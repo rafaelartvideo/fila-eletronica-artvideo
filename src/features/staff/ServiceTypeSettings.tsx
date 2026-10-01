@@ -2,6 +2,7 @@ import { useEffect, useState, type DragEvent, type FormEvent } from 'react';
 import { GripVertical, Pencil, Pin, Plus, Power, Trash2, X, Zap } from 'lucide-react';
 import { Button, Checkbox, Notice, SectionHeader, SelectField, Surface, TextAreaField, TextField } from '../../components/ui';
 import { isServiceTypeImageUrl, ServiceTypeIcon, serviceTypeExtraIconOptions, serviceTypeIconOptions } from '../../components/ServiceTypeIcon';
+import { ModalPortal } from '../../components/ModalPortal';
 import type { TicketPriority, TicketType } from '../../domain/queue';
 import { ticketPriorityLabel } from '../../domain/queue';
 import { deleteTicketType, listTicketTypes, reorderTicketTypes, saveTicketType, subscribeToQueueChanges } from '../../lib/supabase/queue-api';
@@ -273,7 +274,7 @@ export function ServiceTypeSettings({ onChanged }: { onChanged: () => void }) {
       </div>
     </div>
 
-    {modalOpen && <div className="service-type-modal-overlay" onMouseDown={(event) => { if (event.target === event.currentTarget) closeModal(); }}>
+    {modalOpen && <ModalPortal><div className="service-type-modal-overlay" onMouseDown={(event) => { if (event.target === event.currentTarget) closeModal(); }}>
       <Surface tone="raised" className="service-type-modal service-type-editor-modal" role="dialog" aria-modal="true" aria-labelledby="service-type-modal-title">
         <Button className="service-type-modal-close" variant="ghost" size="sm" iconOnly type="button" aria-label="Fechar" disabled={busy} onClick={closeModal}><X size={19} /></Button>
         <span className="ui-eyebrow">{editing ? 'EDITAR ATENDIMENTO' : 'NOVO ATENDIMENTO'}</span>
@@ -344,9 +345,9 @@ export function ServiceTypeSettings({ onChanged }: { onChanged: () => void }) {
           </div>
         </form>
       </Surface>
-    </div>}
+    </div></ModalPortal>}
 
-    {deleting && <div className="service-type-modal-overlay" onMouseDown={(event) => { if (event.target === event.currentTarget && !busy) setDeleting(null); }}>
+    {deleting && <ModalPortal><div className="service-type-modal-overlay" onMouseDown={(event) => { if (event.target === event.currentTarget && !busy) setDeleting(null); }}>
       <Surface tone="raised" className="service-type-modal service-type-delete-modal" role="dialog" aria-modal="true">
         <Button className="service-type-modal-close" variant="ghost" size="sm" iconOnly type="button" onClick={() => setDeleting(null)} disabled={busy} aria-label="Fechar"><X size={19} /></Button>
         <span className="ui-eyebrow">EXCLUIR ATENDIMENTO</span>
@@ -357,6 +358,6 @@ export function ServiceTypeSettings({ onChanged }: { onChanged: () => void }) {
           <Button className="danger-action-button" variant="secondary" type="button" loading={busy} onClick={() => void confirmDelete()}>Excluir</Button>
         </div>
       </Surface>
-    </div>}
+    </div></ModalPortal>}
   </section>;
 }
