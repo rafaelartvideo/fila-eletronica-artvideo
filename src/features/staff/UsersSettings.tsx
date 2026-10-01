@@ -1,6 +1,7 @@
 import { useEffect, useState, type FormEvent } from 'react';
 import { Pause, Pencil, Play, Plus, UserRound, X } from 'lucide-react';
 import { Badge, Button, Checkbox, EmptyState, Notice, SectionHeader, SelectField, Surface, TextField } from '../../components/ui';
+import { ModalPortal } from '../../components/ModalPortal';
 import type { QueueRole, QueueUser } from '../../lib/supabase/queue-api';
 import { listQueueRoles, listQueueUsers, saveQueueUser } from '../../lib/supabase/queue-api';
 import { normalizeUsername } from '../auth/username';
@@ -134,7 +135,7 @@ export function UsersSettings() {
       {users.length === 0 && <EmptyState icon={<UserRound size={18} />}>Nenhum usuário cadastrado.</EmptyState>}
     </div>
 
-    {open && <div className="service-type-modal-overlay" onMouseDown={(event) => { if (event.target === event.currentTarget && !busy) setOpen(false); }}>
+    {open && <ModalPortal><div className="service-type-modal-overlay" onMouseDown={(event) => { if (event.target === event.currentTarget && !busy) setOpen(false); }}>
       <Surface tone="raised" className="service-type-modal user-modal" role="dialog" aria-modal="true">
         <Button className="service-type-modal-close" variant="ghost" size="sm" iconOnly type="button" onClick={() => setOpen(false)} disabled={busy} aria-label="Fechar"><X size={19} /></Button>
         <span className="ui-eyebrow">{editing ? 'EDITAR USUÁRIO' : 'NOVO USUÁRIO'}</span>
@@ -166,6 +167,6 @@ export function UsersSettings() {
           </div>
         </form>
       </Surface>
-    </div>}
+    </div></ModalPortal>}
   </section>;
 }
