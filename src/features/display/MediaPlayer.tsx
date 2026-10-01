@@ -90,12 +90,19 @@ function YouTubeVideo({
   useEffect(() => {
     let disposed = false;
     let player: YouTubePlayer | null = null;
+    const host = hostRef.current;
+    if (!host) return;
+
+    const mountPoint = document.createElement('div');
+    mountPoint.style.width = '100%';
+    mountPoint.style.height = '100%';
+    host.replaceChildren(mountPoint);
 
     void loadYouTubeApi()
       .then((youtube) => {
-        if (disposed || !hostRef.current) return;
+        if (disposed) return;
 
-        player = new youtube.Player(hostRef.current, {
+        player = new youtube.Player(mountPoint, {
           width: '100%',
           height: '100%',
           videoId,
@@ -148,6 +155,7 @@ function YouTubeVideo({
       } catch {
         // The YouTube player may already have disposed its iframe.
       }
+      host.replaceChildren();
     };
   }, [videoId, title, repeat, onEnded, onError]);
 
