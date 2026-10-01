@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState, type FormEvent } from 'react';
 import { LockKeyhole, Pencil, Plus, ShieldCheck, X } from 'lucide-react';
 import { Badge, Button, Checkbox, Notice, SectionHeader, Surface, TextField } from '../../components/ui';
+import { ModalPortal } from '../../components/ModalPortal';
 import type { QueuePermission, QueueRole } from '../../lib/supabase/queue-api';
 import { listQueuePermissions, listQueueRoles, saveQueueRole } from '../../lib/supabase/queue-api';
 import { useAuth } from '../auth/AuthProvider';
@@ -108,7 +109,7 @@ export function RolesSettings() {
       </Surface>)}
     </div>
 
-    {open && <div className="service-type-modal-overlay" onMouseDown={(event) => { if (event.target === event.currentTarget && !busy) setOpen(false); }}>
+    {open && <ModalPortal><div className="service-type-modal-overlay" onMouseDown={(event) => { if (event.target === event.currentTarget && !busy) setOpen(false); }}>
       <Surface tone="raised" className="service-type-modal role-modal" role="dialog" aria-modal="true">
         <Button className="service-type-modal-close" variant="ghost" size="sm" iconOnly type="button" onClick={() => setOpen(false)} disabled={busy} aria-label="Fechar"><X size={19} /></Button>
         <span className="ui-eyebrow">{editing ? 'EDITAR CARGO' : 'NOVO CARGO'}</span>
@@ -139,6 +140,6 @@ export function RolesSettings() {
           </div>
         </form>
       </Surface>
-    </div>}
+    </div></ModalPortal>}
   </section>;
 }
