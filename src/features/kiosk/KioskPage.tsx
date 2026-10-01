@@ -1,12 +1,37 @@
 import { useCallback, useEffect, useState } from 'react';
-import { ArrowLeft, ArrowRight, CircleHelp, Phone, Ticket } from 'lucide-react';
+import { ArrowLeft, ArrowRight, CircleHelp, Phone, Ticket, X } from 'lucide-react';
 import { Link } from 'react-router';
 import { Button, EmptyState, Notice, Surface, TextField } from '../../components/ui';
-import { ServiceTypeIcon } from '../../components/ServiceTypeIcon';
+import { ServiceTypeIcon, serviceTypeExtraIconLabel } from '../../components/ServiceTypeIcon';
+import { ModalPortal } from '../../components/ModalPortal';
 import type { QueueTicket, TicketType } from '../../domain/queue';
 import { issueTicket, listTicketTypes, subscribeToQueueChanges } from '../../lib/supabase/queue-api';
 import { TicketConfirmation } from './TicketConfirmation';
 import { formatBrazilianPhone } from '../../domain/whatsapp';
+
+type ExtraIconInfo = { icon: string; title: string; description: string };
+
+function ServiceExtraIconButtons({ type, onOpen }: { type: TicketType; onOpen: (info: ExtraIconInfo) => void }) {
+  const icons = type.extraIcons ?? [];
+  if (icons.length === 0) return null;
+
+  return <span className="kiosk-service-extra-icons" aria-label="Informações adicionais do atendimento">
+    {icons.map((extraIcon, index) => <button
+      key={`${extraIcon}-${index}`}
+      type="button"
+      className="kiosk-service-extra-icon-button"
+      aria-label={`Saiba mais: ${serviceTypeExtraIconLabel(extraIcon)}`}
+      title={serviceTypeExtraIconLabel(extraIcon)}
+      onClick={() => onOpen({
+        icon: extraIcon,
+        title: serviceTypeExtraIconLabel(extraIcon),
+        description: type.extraIconDescriptions?.[extraIcon]?.trim() || 'Descrição ainda não configurada.',
+      })}
+    >
+      <ServiceTypeIcon name={extraIcon} size={17} />
+    </button>)}
+  </span>;
+}
 
 export function KioskPage({ showPanelBack = true }: { showPanelBack?: boolean }) {
   const [types, setTypes] = useState<TicketType[]>([]);
@@ -16,6 +41,7 @@ export function KioskPage({ showPanelBack = true }: { showPanelBack?: boolean })
   const [loading, setLoading] = useState(true);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState('');
+  const [extraIconInfo, setExtraIconInfo] = useState<ExtraIconInfo | null>(null);
 
   const loadTypes = useCallback(async (showLoading = false) => {
     if (showLoading) setLoading(true);
@@ -117,9 +143,7 @@ export function KioskPage({ showPanelBack = true }: { showPanelBack?: boolean })
             <div className="selected-service-copy">
               <small>ATENDIMENTO</small>
               <strong>{selectedType.name}</strong>
-              {(selectedType.extraIcons?.length ?? 0) > 0 && <span className="kiosk-service-extra-icons">
-                {(selectedType.extraIcons ?? []).map((extraIcon, index) => <span key={`${extraIcon}-${index}`}><ServiceTypeIcon name={extraIcon} size={17} /></span>)}
-              </span>}
+              <ServiceExtraIconButtons type={selectedType} onOpen={setExtraIconInfo} />
             </div>
             <Button variant="ghost" size="sm" onClick={() => { setSelectedType(null); setError(''); }}>Alterar</Button>
           </div>
@@ -142,22 +166,21 @@ export function KioskPage({ showPanelBack = true }: { showPanelBack?: boolean })
           </Button>
         </Surface> : types.length === 0 ? <EmptyState>Nenhum atendimento está disponível neste momento. Por favor, chame nossa equipe.</EmptyState> :
           <div className="kiosk-service-grid">
-            {types.map((type) => <button
-              key={type.id}
-              type="button"
-              className="kiosk-service-card"
-              onClick={() => { setSelectedType(type); setError(''); }}
-            >
-              <span className="kiosk-service-icon"><ServiceTypeIcon name={type.icon} size={22} /></span>
-              <span className="kiosk-service-copy">
-                <strong>{type.name}</strong>
-                <small>{type.description || 'Retire uma senha'}</small>
-                {(type.extraIcons?.length ?? 0) > 0 && <span className="kiosk-service-extra-icons">
-                  {(type.extraIcons ?? []).map((extraIcon, index) => <span key={`${extraIcon}-${index}`}><ServiceTypeIcon name={extraIcon} size={17} /></span>)}
-                </span>}
-              </span>
-              <ArrowRight className="kiosk-service-arrow" size={19} />
-            </button>)}
+            {types.map((type) => <div key={type.id} className="kiosk-service-card">
+              <button
+                type="button"
+                className="kiosk-service-card-main"
+                onClick={() => { setSelectedType(type); setError(''); }}
+              >
+                <span className="kiosk-service-icon"><ServiceTypeIcon name={type.icon} size={22} /></span>
+                <span className="kiosk-service-copy">
+                  <strong>{type.name}</strong>
+                  <small>{type.description || 'Retire uma senha'}</small>
+                </span>
+                <ArrowRight className="kiosk-service-arrow" size={19} />
+              </button>
+              <ServiceExtraIconButtons type={type} onOpen={setExtraIconInfo} />
+            </div>)}
           </div>
         }
 
@@ -166,5 +189,20 @@ export function KioskPage({ showPanelBack = true }: { showPanelBack?: boolean })
     </div>
 
     <footer className="system-footer no-print">• Senhas do dia reiniciam automaticamente às 00h em São Paulo.</footer>
+
+    {extraIconInfo && <ModalPortal><div className="service-type-modal-overlay kiosk-icon-info-overlay" onMouseDown={(event) => { if (event.target === event.currentTarget) setExtraIconInfo(null); }}>
+      <Surface tone="raised" className="service-type-modal kiosk-icon-info-modal" role="dialog" aria-modal="true" aria-labelledby="kiosk-icon-info-title">
+        <Button className="service-type-modal-close" variant="ghost" size="sm" iconOnly type="button" aria-label="Fechar" onClick={() => setExtraIconInfo(null)}><X size={19} /></Button>
+        <div className="kiosk-icon-info-body">
+          <span className="kiosk-icon-info-symbol"><ServiceTypeIcon name={extraIconInfo.icon} size={46} /></span>
+          <span className="ui-eyebrow">INFORMAÇÃO DO ATENDIMENTO</span>
+          <h2 id="kiosk-icon-info-title">{extraIconInfo.title}</h2>
+          <p>{extraIconInfo.description}</p>
+        </div>
+        <div className="ui-modal-actions">
+          <Button variant="primary" type="button" onClick={() => setExtraIconInfo(null)}>Entendi</Button>
+        </div>
+      </Surface>
+    </div></ModalPortal>}
   </main>;
 }
