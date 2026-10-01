@@ -2,6 +2,7 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 import { Activity, CalendarDays, Clapperboard, History, LogOut, Megaphone, MessageCircle, Moon, Printer, Settings2, ShieldCheck, Sun, TicketCheck, TicketPlus, Users, Wrench, X } from 'lucide-react';
 import { Link } from 'react-router';
 import { Button, Notice, Surface, TabButton, Tabs, TextField } from '../../components/ui';
+import { ModalPortal } from '../../components/ModalPortal';
 import type { QueueTicket, TicketStatus, TicketType } from '../../domain/queue';
 import { ticketWhatsAppUrl } from '../../domain/whatsapp';
 import { callNextTicket, callTicketById, completeTicket, issueTicket, listQueueTickets, listTicketTypes, repeatTicketCall, subscribeToQueueChanges, transitionTicket } from '../../lib/supabase/queue-api';
@@ -349,7 +350,7 @@ export function StaffPage() {
       onCancel={() => void changeTicketStatus(currentTicket.id, 'cancelled')}
     />}
 
-    {issueType && canIssue && <div className="issue-overlay" onMouseDown={(event) => { if (event.target === event.currentTarget) closeIssue(); }}>
+    {issueType && canIssue && <ModalPortal><div className="issue-overlay" onMouseDown={(event) => { if (event.target === event.currentTarget) closeIssue(); }}>
       <Surface tone="raised" className="issue-dialog" role="dialog" aria-modal="true" aria-labelledby="issue-title">
         <Button className="issue-close" variant="ghost" size="sm" iconOnly aria-label="Fechar" onClick={closeIssue}><X size={20} /></Button>
         <span className="ui-eyebrow">GERAR SENHA</span>
@@ -378,7 +379,7 @@ export function StaffPage() {
           </div>
         </>}
       </Surface>
-    </div>}
+    </div></ModalPortal>}
 
     <footer className="system-footer">• Senhas do dia reiniciam automaticamente às 00h em São Paulo.</footer>
   </main>;
