@@ -69,7 +69,7 @@ export function ServiceTypeSettings({ onChanged }: { onChanged: () => void }) {
     setPrefix(type.prefix);
     setDescription(type.description ?? '');
     setIcon(type.icon || 'clipboard');
-    setExtraIcons(type.extraIcons.slice(0, 4));
+    setExtraIcons(type.extraIcons?.slice(0, 4) ?? []);
     setExtraIconUrl('');
     setPriority(type.priority);
     setQuick(type.isQuick);
@@ -144,7 +144,7 @@ export function ServiceTypeSettings({ onChanged }: { onChanged: () => void }) {
         prefix: type.prefix,
         description: type.description,
         icon: type.icon,
-        extraIcons: type.extraIcons,
+        extraIcons: type.extraIcons ?? [],
         priority: type.priority,
         isQuick: type.isQuick,
         isPinned: type.isPinned,
@@ -248,8 +248,8 @@ export function ServiceTypeSettings({ onChanged }: { onChanged: () => void }) {
               {type.isPinned && <Pin size={14} aria-label="Fixado" />}
             </div>
             <small>{type.description || `Prefixo ${type.prefix}`}</small>
-            {type.extraIcons.length > 0 && <div className="service-type-extra-icons" aria-label="Ícones adicionais">
-              {type.extraIcons.map((extraIcon, index) => <span key={`${extraIcon}-${index}`} title={serviceTypeExtraIconOptions.find((option) => option.value === extraIcon)?.label || 'Ícone adicional'}>
+            {(type.extraIcons?.length ?? 0) > 0 && <div className="service-type-extra-icons" aria-label="Ícones adicionais">
+              {(type.extraIcons ?? []).map((extraIcon, index) => <span key={`${extraIcon}-${index}`} title={serviceTypeExtraIconOptions.find((option) => option.value === extraIcon)?.label || 'Ícone adicional'}>
                 <ServiceTypeIcon name={extraIcon} size={17} />
               </span>)}
             </div>}

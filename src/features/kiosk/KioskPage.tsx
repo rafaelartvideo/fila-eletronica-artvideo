@@ -117,8 +117,8 @@ export function KioskPage({ showPanelBack = true }: { showPanelBack?: boolean })
             <div className="selected-service-copy">
               <small>ATENDIMENTO</small>
               <strong>{selectedType.name}</strong>
-              {selectedType.extraIcons.length > 0 && <span className="kiosk-service-extra-icons">
-                {selectedType.extraIcons.map((extraIcon, index) => <span key={`${extraIcon}-${index}`}><ServiceTypeIcon name={extraIcon} size={17} /></span>)}
+              {(selectedType.extraIcons?.length ?? 0) > 0 && <span className="kiosk-service-extra-icons">
+                {(selectedType.extraIcons ?? []).map((extraIcon, index) => <span key={`${extraIcon}-${index}`}><ServiceTypeIcon name={extraIcon} size={17} /></span>)}
               </span>}
             </div>
             <Button variant="ghost" size="sm" onClick={() => { setSelectedType(null); setError(''); }}>Alterar</Button>
@@ -152,8 +152,8 @@ export function KioskPage({ showPanelBack = true }: { showPanelBack?: boolean })
               <span className="kiosk-service-copy">
                 <strong>{type.name}</strong>
                 <small>{type.description || 'Retire uma senha'}</small>
-                {type.extraIcons.length > 0 && <span className="kiosk-service-extra-icons">
-                  {type.extraIcons.map((extraIcon, index) => <span key={`${extraIcon}-${index}`}><ServiceTypeIcon name={extraIcon} size={17} /></span>)}
+                {(type.extraIcons?.length ?? 0) > 0 && <span className="kiosk-service-extra-icons">
+                  {(type.extraIcons ?? []).map((extraIcon, index) => <span key={`${extraIcon}-${index}`}><ServiceTypeIcon name={extraIcon} size={17} /></span>)}
                 </span>}
               </span>
               <ArrowRight className="kiosk-service-arrow" size={19} />
