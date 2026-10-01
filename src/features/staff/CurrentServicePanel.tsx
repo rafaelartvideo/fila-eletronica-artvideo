@@ -84,36 +84,38 @@ export function CurrentServicePanel({
         </Button>
       </header>
 
-      <div className="service-session-hero">
-        <strong id="service-session-title">{ticket.ticketNumber}</strong>
-        <span>{ticket.serviceTypeName}</span>
-      </div>
+      <div className="service-session-body">
+        <div className="service-session-hero">
+          <strong id="service-session-title">{ticket.ticketNumber}</strong>
+          <span>{ticket.serviceTypeName}</span>
+        </div>
 
-      <div className="service-session-details">
-        <div><small>Balcão</small><strong>{ticket.counterLabel ?? 'Balcão 1'}</strong></div>
-        <div><small>Chegada</small><strong>{formatTime(ticket.createdAt)}</strong></div>
-        <div><small>Chamada</small><strong>{formatTime(ticket.calledAt)}</strong></div>
-        <div><small>Prioridade</small><strong><span className={`priority-badge ${ticket.servicePriority}`}>{ticketPriorityLabel(ticket.servicePriority)}</span></strong></div>
-        {ticket.customerName && <div><small>Cliente</small><strong><UserRound size={14} /> {ticket.customerName}</strong></div>}
-      </div>
+        <div className="service-session-details">
+          <div><small>Balcão</small><strong>{ticket.counterLabel ?? 'Balcão 1'}</strong></div>
+          <div><small>Chegada</small><strong>{formatTime(ticket.createdAt)}</strong></div>
+          <div><small>Chamada</small><strong>{formatTime(ticket.calledAt)}</strong></div>
+          <div><small>Prioridade</small><strong><span className={`priority-badge ${ticket.servicePriority}`}>{ticketPriorityLabel(ticket.servicePriority)}</span></strong></div>
+          {ticket.customerName && <div><small>Cliente</small><strong><UserRound size={14} /> {ticket.customerName}</strong></div>}
+        </div>
 
-      {!isCalled && canServe && <div className="service-customer-request">
-        <TextAreaField
-          label="O que o cliente queria *"
-          value={request}
-          onChange={(event) => {
-            setRequest(event.target.value);
-            if (event.target.value.trim()) setRequestError('');
-          }}
-          placeholder="Descreva de forma objetiva o que o cliente solicitou."
-          maxLength={1000}
-          rows={4}
-          required
-          aria-invalid={Boolean(requestError)}
-          error={requestError || undefined}
-          hint={`${request.length}/1000 · obrigatório para encerrar`}
-        />
-      </div>}
+        {!isCalled && canServe && <div className="service-customer-request">
+          <TextAreaField
+            label="O que o cliente queria *"
+            value={request}
+            onChange={(event) => {
+              setRequest(event.target.value);
+              if (event.target.value.trim()) setRequestError('');
+            }}
+            placeholder="Descreva de forma objetiva o que o cliente solicitou."
+            maxLength={1000}
+            rows={4}
+            required
+            aria-invalid={Boolean(requestError)}
+            error={requestError || undefined}
+            hint={`${request.length}/1000 · obrigatório para encerrar`}
+          />
+        </div>}
+      </div>
 
       <footer className="service-session-actions">
         {isCalled && canCall && <Button variant="secondary" disabled={busy} onClick={onRepeat} startIcon={<RotateCcw size={17} />}>Repetir chamada</Button>}
