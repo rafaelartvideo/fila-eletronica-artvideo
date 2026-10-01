@@ -2673,3 +2673,40 @@ html[data-theme='light'] .user-active-toggle.play {
   .service-type-form-row { grid-template-columns: 1fr; }
   .service-type-card { grid-template-columns: auto auto minmax(0, 1fr); }
 }
+
+
+/* Display settings: flat sections with dividers instead of card borders. */
+.display-content-settings > .display-settings-block {
+  border: 0;
+  border-top: 1px solid #263b54;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+  padding: 22px 0 0;
+}
+.display-content-settings > .display-settings-block:first-of-type {
+  border-top: 0;
+  padding-top: 0;
+}
+.display-content-settings .settings-list {
+  gap: 0;
+}
+.display-content-settings .settings-list .setting-row {
+  border: 0;
+  border-bottom: 1px solid #263b54;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+}
+.display-content-settings .settings-list .setting-row:last-child {
+  border-bottom: 0;
+}
+
+html[data-theme='light'] .display-content-settings > .display-settings-block {
+  border-color: #e3e9f1;
+  background: transparent;
+}
+html[data-theme='light'] .display-content-settings .settings-list .setting-row {
+  border-color: #e3e9f1;
+  background: transparent;
+}
