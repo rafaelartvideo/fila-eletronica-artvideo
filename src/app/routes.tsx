@@ -6,6 +6,13 @@ import { TrackingPage } from '../features/tracking/TrackingPage';
 import { StaffPage } from '../features/staff/StaffPage';
 import { RequireAdmin, RequirePanelAccess, RequirePermission } from '../features/auth/RequireAdmin';
 import { SignInPage } from '../features/auth/SignInPage';
+import { useAuth } from '../features/auth/AuthProvider';
+import { canAccessPanel } from '../features/auth/access-rules';
+
+function KioskRoute() {
+  const { hasPermission } = useAuth();
+  return <KioskPage showPanelBack={canAccessPanel(hasPermission)} />;
+}
 
 export function AppRoutes() {
   return (
@@ -13,7 +20,7 @@ export function AppRoutes() {
       <Route path="/" element={<HomePage />} />
       <Route path="/painel/login" element={<SignInPage />} />
       <Route path="/painel" element={<RequireAdmin><RequirePanelAccess><StaffPage /></RequirePanelAccess></RequireAdmin>} />
-      <Route path="/totem" element={<RequireAdmin><RequirePermission permission="queue.issue"><KioskPage /></RequirePermission></RequireAdmin>} />
+      <Route path="/totem" element={<RequireAdmin><RequirePermission permission="queue.issue"><KioskRoute /></RequirePermission></RequireAdmin>} />
       <Route path="/display" element={<DisplayPage />} />
       <Route path="/acompanhar/:token" element={<TrackingPage />} />
       <Route path="*" element={<HomePage />} />
