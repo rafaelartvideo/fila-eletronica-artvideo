@@ -52,6 +52,12 @@ Deno.serve(async (req) => {
     const body = await req.json();
     const action = String(body?.action ?? "").trim();
 
+    if (action === "usage") {
+      const { data, error } = await admin.rpc("crm_queue_usage_snapshot_v1");
+      if (error) throw error;
+      return json({ ok: true, usage: data });
+    }
+
     if (action === "reserve") {
       const code = validFourDigitCode(body?.code);
       if (!code) return json({ error: "Informe um código de 4 dígitos." }, 400);
