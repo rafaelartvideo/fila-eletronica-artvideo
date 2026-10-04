@@ -59,13 +59,15 @@ describe('staff panel', () => {
   it('lets staff issue a ticket and prepare a WhatsApp message', async () => {
     authState.session = {};
     authState.isAdmin = true;
-    issueTicket.mockResolvedValue({ ticketNumber: 'C002', serviceTypeName: 'Conserto' });
+    issueTicket.mockResolvedValue({ ticketNumber: 'C002', serviceTypeName: 'Conserto', osAccessCode: '4821' });
     render(<MemoryRouter><StaffPage /></MemoryRouter>);
     fireEvent.click(await screen.findByRole('button', { name: /gerar senha/i }));
     fireEvent.change(screen.getByLabelText(/WhatsApp/i), { target: { value: '11912345678' } });
     fireEvent.click(screen.getByRole('button', { name: /confirmar e gerar/i }));
     await waitFor(() => expect(issueTicket).toHaveBeenCalledWith({ typeId: 'service-1' }));
     expect(await screen.findByRole('link', { name: /Enviar pelo WhatsApp/i })).toHaveAttribute('href', expect.stringContaining('C002'));
+    expect(screen.getByText('4821')).toBeInTheDocument();
+    expect(screen.getByText(/Código para abrir a OS/i)).toBeInTheDocument();
   });
 
   it('reloads the queue after midnight in São Paulo', async () => {
