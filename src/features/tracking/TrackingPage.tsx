@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { BellRing, CheckCircle2, Clock3, MapPin, TicketCheck, Volume2 } from 'lucide-react';
+import { BellRing, CheckCircle2, Clock3, KeyRound, MapPin, TicketCheck, Volume2 } from 'lucide-react';
 import { Button, Notice, Surface } from '../../components/ui';
 import { useParams } from 'react-router';
 import { getTicketTracking, type TicketTracking } from '../../lib/supabase/queue-api';
@@ -114,6 +114,15 @@ export function TrackingPage() {
           <strong>{tracking.ticketNumber}</strong>
           <span>{tracking.serviceTypeName}</span>
         </Surface>
+
+        {tracking.osAccessCode && <Surface tone="soft" className="tracking-os-code">
+          <span className="tracking-os-code-icon"><KeyRound size={20} /></span>
+          <div>
+            <small>CÓDIGO PARA ABRIR A OS</small>
+            <strong>{tracking.osAccessCode}</strong>
+            <p>Use este código no CRM ao abrir a ordem de serviço.</p>
+          </div>
+        </Surface>}
 
         {tracking.status === 'waiting' && <Surface tone="soft" className="tracking-position">
           <span>{tracking.queueAhead}</span>
