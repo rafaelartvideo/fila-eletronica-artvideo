@@ -6,7 +6,7 @@ type QueueRow = {
   id: string; business_date: string; service_type_id: string; sequence_number: number;
   ticket_number: string; customer_name: string | null; status: TicketStatus; counter_label: string | null;
   created_at: string; called_at: string | null; started_at: string | null; completed_at: string | null;
-  cancelled_at: string | null; tracking_token?: string | null; customer_request?: string | null; ticket_types?: { name: string; priority?: string } | null;
+  cancelled_at: string | null; tracking_token?: string | null; os_access_code?: string | null; customer_request?: string | null; ticket_types?: { name: string; priority?: string } | null;
 };
 type ApiRow = Record<string, unknown>;
 export type QueueRealtimeResource = 'tickets' | 'ticket_types' | 'display_media';
@@ -216,6 +216,7 @@ function mapTicket(row: QueueRow, serviceTypeName = row.ticket_types?.name ?? ''
     businessDate: row.business_date, serviceTypeId: row.service_type_id, serviceTypeName,
     servicePriority: normalizePriority(row.ticket_types?.priority), customerName: row.customer_name,
     customerRequest: row.customer_request ?? null, trackingToken: row.tracking_token ?? null,
+    osAccessCode: row.os_access_code ?? null,
     status: row.status, counterLabel: row.counter_label,
     createdAt: row.created_at, calledAt: row.called_at, servingAt: row.started_at,
     completedAt: row.completed_at, cancelledAt: row.cancelled_at,
@@ -234,7 +235,10 @@ export async function issueTicket(input: { typeId: string; customerName?: string
     throw new Error('Entre no painel da equipe para gerar uma senha.');
   }
   const params = { p_type_id: input.typeId, p_customer_name: input.customerName?.trim() || null };
-  let result = await client.rpc('issue_ticket_v2', params);
+  let result = await client.rpc('issue_ticket_v3', params);
+  if (result.error && /issue_ticket_v3|PGRST202|could not find the function/i.test(result.error.message)) {
+    result = await client.rpc('issue_ticket_v2', params);
+  }
   if (result.error && /issue_ticket_v2|PGRST202|could not find the function/i.test(result.error.message)) {
     result = await client.rpc('issue_ticket', params);
   }
@@ -244,6 +248,7 @@ export async function issueTicket(input: { typeId: string; customerName?: string
     customer_name: null,
     customer_request: null,
     tracking_token: row.tracking_token ? String(row.tracking_token) : null,
+    os_access_code: row.os_access_code ? String(row.os_access_code) : null,
     ticket_types: {
       name: String(row.service_type_name),
       priority: row.service_priority ? String(row.service_priority) : 'normal',
