@@ -20,7 +20,7 @@ function openKiosk() {
 describe('customer kiosk', () => {
   beforeEach(() => {
     listTicketTypes.mockReset().mockResolvedValue(types);
-    issueTicket.mockReset().mockResolvedValue({ id: 'ticket-8', ticketNumber: 'C008', sequenceNumber: 8, serviceTypeName: 'Conserto', createdAt: '2026-09-29T14:00:00-03:00' });
+    issueTicket.mockReset().mockResolvedValue({ id: 'ticket-8', ticketNumber: 'C008', sequenceNumber: 8, serviceTypeName: 'Conserto', createdAt: '2026-09-29T14:00:00-03:00', osAccessCode: '4821', trackingToken: '11111111-1111-4111-8111-111111111111' });
     subscribeToQueueChanges.mockReset().mockReturnValue({ unsubscribe: vi.fn() });
     requestTicketPrint.mockReset().mockResolvedValue({ id: 'print-1', status: 'pending' });
     getPrintJobStatus.mockReset().mockResolvedValue({ id: 'print-1', status: 'printed', errorMessage: null, completedAt: '2026-09-29T14:00:01-03:00' });
@@ -36,6 +36,8 @@ describe('customer kiosk', () => {
     expect(await screen.findByText('C008')).toBeInTheDocument();
     expect(issueTicket).toHaveBeenCalledWith({ typeId: 'repair' });
     expect(screen.getByText('Conserto')).toBeInTheDocument();
+    expect(screen.getByText('4821')).toBeInTheDocument();
+    expect(screen.getByText(/Código para abrir a OS/i)).toBeInTheDocument();
   });
 
   it('accepts an optional phone to prepare a WhatsApp message after issue', async () => {
