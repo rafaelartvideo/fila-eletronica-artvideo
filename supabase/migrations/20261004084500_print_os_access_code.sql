@@ -90,7 +90,9 @@ begin
 end
 $$;
 
-create or replace function public.claim_next_print_job(
+drop function if exists public.claim_next_print_job(text, text);
+
+create function public.claim_next_print_job(
   p_agent_slug text,
   p_agent_token text
 )
