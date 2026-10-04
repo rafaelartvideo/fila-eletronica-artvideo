@@ -4,8 +4,23 @@ import { Button, EmptyState, Notice, SectionHeader, Surface, TextField } from '.
 import { getPublicSupabaseConfig } from '../../lib/supabase/client';
 import { createPrintAgent, listPrintAgents, type CreatedPrintAgent, type PrintAgent } from '../../lib/supabase/queue-api';
 
+function inPrinterOperatingHours(): boolean {
+  const hour = Number(new Intl.DateTimeFormat('en-US', {
+    timeZone: 'America/Sao_Paulo',
+    hour: '2-digit',
+    hourCycle: 'h23',
+  }).format(new Date()));
+  return hour >= 7 && hour < 20;
+}
+
 function agentOnline(lastSeenAt: string | null): boolean {
   return Boolean(lastSeenAt && Date.now() - new Date(lastSeenAt).getTime() < 45_000);
+}
+
+function agentStatus(lastSeenAt: string | null): string {
+  if (!inPrinterOperatingHours()) return 'Fora do horário · retoma às 07:00';
+  if (agentOnline(lastSeenAt)) return 'Conectado';
+  return lastSeenAt ? 'Offline' : 'Ainda não conectado';
 }
 
 export function PrinterSettings() {
@@ -55,6 +70,9 @@ export function PrinterSettings() {
       agentToken: created.token,
       printerName: 'ELGIN i9',
       pollIntervalMs: 1000,
+      idlePollIntervalMs: 10000,
+      operatingStartHour: 7,
+      operatingEndHour: 20,
       feedLines: 13,
     };
     const blob = new Blob([JSON.stringify(config, null, 2)], { type: 'application/json' });
@@ -98,7 +116,7 @@ export function PrinterSettings() {
     <div className="settings-list printer-agent-list">
       {agents.map((agent) => <Surface tone="soft" as="article" key={agent.id} className="setting-row">
         <div className={`printer-status-dot ${agentOnline(agent.lastSeenAt) ? 'online' : ''}`}><Printer size={16} /></div>
-        <div><strong>{agent.name}</strong><small>{agent.slug} · {agentOnline(agent.lastSeenAt) ? 'Conectado' : agent.lastSeenAt ? 'Offline' : 'Ainda não conectado'}</small></div>
+        <div><strong>{agent.name}</strong><small>{agent.slug} · {agentStatus(agent.lastSeenAt)}</small></div>
       </Surface>)}
       {agents.length === 0 && <EmptyState icon={<Printer size={18} />}>Nenhum agente configurado.</EmptyState>}
     </div>
