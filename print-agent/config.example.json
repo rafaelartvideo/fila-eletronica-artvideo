@@ -5,5 +5,8 @@
   "agentToken": "GERADO_NO_PAINEL",
   "printerName": "ELGIN i9",
   "pollIntervalMs": 1000,
-  "feedLines": 13
+  "feedLines": 13,
+  "idlePollIntervalMs": 10000,
+  "operatingStartHour": 7,
+  "operatingEndHour": 20
 }
