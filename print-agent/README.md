@@ -18,8 +18,15 @@ Depois disso, qualquer celular, tablet ou PC que use o sistema pode clicar em Im
 ## Ajustes
 
 No config.json:
-- feedLines: quantidade de linhas avançadas até a serrilha para destaque manual; o padrão é 3 e o agente limita a no máximo 3.
-- pollIntervalMs: intervalo de consulta; o padrão é 1000 ms.
+- `feedLines`: quantidade de linhas avançadas até a serrilha; o padrão atual é 13.
+- `pollIntervalMs`: intervalo rápido usado logo após atividade; padrão de 1000 ms.
+- `idlePollIntervalMs`: intervalo máximo quando a fila de impressão fica ociosa; padrão de 10000 ms.
+- `operatingStartHour`: hora em que o agente começa a consultar o Supabase; padrão 7.
+- `operatingEndHour`: hora em que o agente para de consultar o Supabase; padrão 20.
+
+O polling é adaptativo: começa rápido e, se não houver trabalho, desacelera gradualmente até `idlePollIntervalMs`. Quando imprime algo, volta imediatamente ao intervalo rápido.
+
+Entre 20:00 e 07:00, por padrão, o processo continua aberto no Windows, mas não faz consultas ao Supabase. Ele apenas aguarda localmente e retoma sozinho no início do horário de operação.
 
 A impressora configurada não usa guilhotina, por isso o agente não envia comandos ESC/POS de corte.
 
