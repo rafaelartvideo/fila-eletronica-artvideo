@@ -44,7 +44,11 @@ export function TicketConfirmation({ ticket, phone = '', onNewTicket }: { ticket
       <span className="print-service-label">{ticket.serviceTypeName}</span>
       <strong className="print-ticket-number">{ticket.ticketNumber}</strong>
       <span className="print-ticket-date">Senha emitida · {new Intl.DateTimeFormat('pt-BR', { timeZone: 'America/Sao_Paulo', dateStyle: 'short', timeStyle: 'short' }).format(new Date(ticket.createdAt || Date.now()))}</span>
-      {ticket.osAccessCode && <div className="print-ticket-message"><strong>Código para abrir OS: {ticket.osAccessCode}</strong></div>}
+      {ticket.osAccessCode && <div className="os-access-code-card" aria-label="Código para abrir OS">
+        <span>CÓDIGO PARA ABRIR A OS</span>
+        <strong>{ticket.osAccessCode}</strong>
+        <small>Informe este código no CRM ao abrir a ordem de serviço.</small>
+      </div>}
       <div className="print-ticket-message">Aguarde sua chamada na tela.</div>
       <div className="print-feed-spacer" aria-hidden="true" />
     </article>
