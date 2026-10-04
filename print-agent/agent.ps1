@@ -20,6 +20,9 @@ foreach ($required in @('supabaseUrl','supabaseKey','agentSlug','agentToken','pr
 }
 
 $pollMs = if ($config.pollIntervalMs) { [Math]::Max(500, [int]$config.pollIntervalMs) } else { 1000 }
+$idlePollMs = if ($config.idlePollIntervalMs) { [Math]::Max($pollMs, [int]$config.idlePollIntervalMs) } else { 10000 }
+$operatingStartHour = if ($null -ne $config.operatingStartHour) { [Math]::Max(0, [Math]::Min(23, [int]$config.operatingStartHour)) } else { 7 }
+$operatingEndHour = if ($null -ne $config.operatingEndHour) { [Math]::Max(0, [Math]::Min(23, [int]$config.operatingEndHour)) } else { 20 }
 $configuredFeedLines = if ($null -ne $config.feedLines) { [int]$config.feedLines } else { 13 }
 $feedLines = if ($configuredFeedLines -le 10) { 13 } else { [Math]::Max(11, [Math]::Min(18, $configuredFeedLines)) }
 
@@ -167,9 +170,54 @@ function Complete-Job([string]$JobId, [bool]$Success, [string]$ErrorMessage = $n
   })
 }
 
+function Test-OperatingHours([DateTime]$Now) {
+  $hour = $Now.Hour
+  if ($operatingStartHour -eq $operatingEndHour) { return $true }
+  if ($operatingStartHour -lt $operatingEndHour) {
+    return $hour -ge $operatingStartHour -and $hour -lt $operatingEndHour
+  }
+  return $hour -ge $operatingStartHour -or $hour -lt $operatingEndHour
+}
+
+function Get-NextOperatingStart([DateTime]$Now) {
+  $todayStart = $Now.Date.AddHours($operatingStartHour)
+  if ($Now -lt $todayStart) { return $todayStart }
+  return $todayStart.AddDays(1)
+}
+
+function Get-AdaptivePollMs([int]$EmptyPolls) {
+  if ($EmptyPolls -lt 3) { return $pollMs }
+  if ($EmptyPolls -lt 6) { return [Math]::Min($idlePollMs, [Math]::Max($pollMs, 2500)) }
+  if ($EmptyPolls -lt 10) { return [Math]::Min($idlePollMs, [Math]::Max($pollMs, 5000)) }
+  return $idlePollMs
+}
+
 Write-AgentLog "Artvideo Print iniciado. Impressora: $($config.printerName)"
+Write-AgentLog ("Horário de operação: {0:00}:00 às {1:00}:00. Polling ativo: {2} ms; ocioso: até {3} ms." -f $operatingStartHour, $operatingEndHour, $pollMs, $idlePollMs)
+
+$emptyPolls = 0
+$wasSleepingOutsideHours = $false
 
 while ($true) {
+  $now = Get-Date
+  if (-not (Test-OperatingHours $now)) {
+    if (-not $wasSleepingOutsideHours) {
+      $nextStart = Get-NextOperatingStart $now
+      Write-AgentLog ("Fora do horário de operação. Consultas ao Supabase pausadas até {0:dd/MM HH:mm}." -f $nextStart)
+      $wasSleepingOutsideHours = $true
+    }
+
+    $nextStart = Get-NextOperatingStart $now
+    $sleepSeconds = [Math]::Max(1, [Math]::Ceiling(($nextStart - $now).TotalSeconds))
+    Start-Sleep -Seconds ([Math]::Min($sleepSeconds, 3600))
+    continue
+  }
+
+  if ($wasSleepingOutsideHours) {
+    Write-AgentLog "Horário de operação iniciado. Consultas ao Supabase retomadas."
+    $wasSleepingOutsideHours = $false
+    $emptyPolls = 0
+  }
   try {
     $result = Rpc 'claim_next_print_job' @{
       p_agent_slug = [string]$config.agentSlug
@@ -183,6 +231,7 @@ while ($true) {
         $payload = Build-TicketBytes $job
         [RawPrinter.Artvideo]::Send([string]$config.printerName, $payload)
         Complete-Job ([string]$job.job_id) $true
+        $emptyPolls = 0
         Write-AgentLog "Impresso: $($job.ticket_number)"
       } catch {
         $message = $_.Exception.Message
@@ -191,9 +240,12 @@ while ($true) {
       }
       continue
     }
+
+    $emptyPolls += 1
   } catch {
     Write-AgentLog "Conexão/consulta: $($_.Exception.Message)"
+    $emptyPolls = [Math]::Max($emptyPolls, 6)
   }
 
-  Start-Sleep -Milliseconds $pollMs
+  Start-Sleep -Milliseconds (Get-AdaptivePollMs $emptyPolls)
 }
