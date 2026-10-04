@@ -420,3 +420,7 @@ verify_jwt = false
 
 [functions.queue-user-admin]
 verify_jwt = true
+
+
+[functions.crm-os-code]
+verify_jwt = false
