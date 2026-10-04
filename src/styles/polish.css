@@ -3322,3 +3322,114 @@ html[data-theme='light']:has(.kiosk-page) .kiosk-icon-info-modal > .ui-modal-act
   border-color: #2d435b;
   background: #10233a;
 }
+
+
+/* OS access code: strong visual emphasis on kiosk confirmation and tracking. */
+.os-access-code-card {
+  width: 100%;
+  display: grid;
+  justify-items: center;
+  gap: 5px;
+  margin-top: 18px;
+  padding: 15px 14px 16px;
+  border: 1px solid #4e6f94;
+  border-radius: 14px;
+  background: linear-gradient(180deg, #153451 0%, #10283f 100%);
+  box-shadow: inset 0 0 0 1px rgb(255 255 255 / 3%), 0 10px 24px rgb(0 0 0 / 15%);
+  text-align: center;
+}
+.os-access-code-card > span {
+  color: #a9c9e9;
+  font-size: 10px;
+  font-weight: 850;
+  letter-spacing: .14em;
+}
+.os-access-code-card > strong {
+  color: #ffd05f;
+  font-size: clamp(42px, 11vw, 58px);
+  font-weight: 900;
+  line-height: 1;
+  letter-spacing: .16em;
+  text-indent: .16em;
+  font-variant-numeric: tabular-nums;
+}
+.os-access-code-card > small {
+  max-width: 300px;
+  color: #b6c6d6;
+  font-size: 10px;
+  line-height: 1.45;
+}
+
+.tracking-os-code {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  align-items: center;
+  gap: 14px;
+  margin: 0 0 16px;
+  padding: 17px 18px;
+  border: 1px solid #4e6f94;
+  border-radius: 15px;
+  background: linear-gradient(145deg, #102c47, #0c2137);
+  box-shadow: 0 12px 30px rgb(0 0 0 / 13%);
+}
+.tracking-os-code-icon {
+  width: 46px;
+  height: 46px;
+  display: grid;
+  place-items: center;
+  border-radius: 13px;
+  color: #ffd05f;
+  background: rgb(255 208 95 / 10%);
+}
+.tracking-os-code > div {
+  min-width: 0;
+  display: grid;
+  gap: 3px;
+}
+.tracking-os-code small {
+  color: #91afd0;
+  font-size: 9px;
+  font-weight: 850;
+  letter-spacing: .13em;
+}
+.tracking-os-code strong {
+  color: #ffd05f;
+  font-size: 34px;
+  font-weight: 900;
+  line-height: 1;
+  letter-spacing: .14em;
+  font-variant-numeric: tabular-nums;
+}
+.tracking-os-code p {
+  margin: 2px 0 0;
+  color: #aebfd0;
+  font-size: 10px;
+  line-height: 1.45;
+}
+
+@media print {
+  .os-access-code-card {
+    border: 2px solid #000 !important;
+    background: #fff !important;
+    box-shadow: none !important;
+  }
+  .os-access-code-card > span,
+  .os-access-code-card > strong,
+  .os-access-code-card > small {
+    color: #000 !important;
+  }
+  .os-access-code-card > strong {
+    font-size: 30pt !important;
+  }
+}
+
+@media (max-width: 520px) {
+  .tracking-os-code {
+    grid-template-columns: 1fr;
+    justify-items: center;
+    text-align: center;
+  }
+  .tracking-os-code > div {
+    justify-items: center;
+  }
+}
