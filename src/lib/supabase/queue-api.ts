@@ -24,6 +24,7 @@ export type TicketTracking = {
   calledAt: string | null;
   updatedAt: string;
   queueAhead: number;
+  osAccessCode: string | null;
 };
 
 export type QueuePermission = {
@@ -392,6 +393,7 @@ export async function getTicketTracking(token: string): Promise<TicketTracking> 
     calledAt: row.called_at ? String(row.called_at) : null,
     updatedAt: String(row.updated_at),
     queueAhead: Number(row.queue_ahead ?? 0),
+    osAccessCode: row.os_access_code ? String(row.os_access_code) : null,
   };
 }
 
