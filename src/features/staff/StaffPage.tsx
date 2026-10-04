@@ -359,8 +359,13 @@ export function StaffPage() {
         {issuedTicket ? <>
           <div className="issue-dialog-body">
             <strong className="issue-result">{issuedTicket.ticketNumber}</strong>
+            {issuedTicket.osAccessCode && <div className="issue-os-access-code" aria-label="Código para abrir OS">
+              <span>CÓDIGO PARA ABRIR A OS</span>
+              <strong>{issuedTicket.osAccessCode}</strong>
+              <small>Informe este código no CRM ao abrir a ordem de serviço.</small>
+            </div>}
             {issuedTicket.trackingToken && <TicketTrackingQr token={issuedTicket.trackingToken} compact />}
-            <p>Entregue ou informe a senha ao cliente.</p>
+            <p>Entregue ou informe a senha e o código da OS ao cliente.</p>
             {issuePhone && !ticketWhatsAppUrl(issuePhone, issuedTicket) && <Notice tone="warning">Número inválido. Use DDD + número brasileiro.</Notice>}
           </div>
           <div className="issue-dialog-actions">
