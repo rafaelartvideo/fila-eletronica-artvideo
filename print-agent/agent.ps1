@@ -139,6 +139,16 @@ function Build-TicketBytes($Job) {
   Add-Line ("Emitida em {0:dd/MM/yyyy HH:mm}" -f $issued)
   Add-Bytes ([byte[]](0x1D,0x21,0x00))
 
+  if ($Job.os_access_code) {
+    Add-Line ''
+    Add-Bytes ([byte[]](0x1B,0x45,0x01))
+    Add-Line 'CODIGO PARA ABRIR OS'
+    Add-Bytes ([byte[]](0x1D,0x21,0x22))
+    Add-Line ([string]$Job.os_access_code)
+    Add-Bytes ([byte[]](0x1D,0x21,0x00))
+    Add-Bytes ([byte[]](0x1B,0x45,0x00))
+  }
+
   # Avanço final para levar toda a senha além da serrilha de destaque manual.
   # Esta impressora não possui guilhotina; não enviamos comandos ESC/POS de corte.
   for ($i = 0; $i -lt $feedLines; $i++) {
