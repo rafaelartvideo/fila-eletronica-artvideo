@@ -44,6 +44,7 @@ export function TicketConfirmation({ ticket, phone = '', onNewTicket }: { ticket
       <span className="print-service-label">{ticket.serviceTypeName}</span>
       <strong className="print-ticket-number">{ticket.ticketNumber}</strong>
       <span className="print-ticket-date">Senha emitida · {new Intl.DateTimeFormat('pt-BR', { timeZone: 'America/Sao_Paulo', dateStyle: 'short', timeStyle: 'short' }).format(new Date(ticket.createdAt || Date.now()))}</span>
+      {ticket.osAccessCode && <div className="print-ticket-message"><strong>Código para abrir OS: {ticket.osAccessCode}</strong></div>}
       <div className="print-ticket-message">Aguarde sua chamada na tela.</div>
       <div className="print-feed-spacer" aria-hidden="true" />
     </article>
