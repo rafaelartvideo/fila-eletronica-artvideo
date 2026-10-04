@@ -11,9 +11,9 @@ describe('queue API', () => {
   });
 
   it('maps issue ticket inputs to the database RPC contract', async () => {
-    rpc.mockResolvedValue({ data: [{ id: 't1', sequence_number: 8, ticket_number: 'C-008', service_type_id: 'type1', service_type_name: 'Conserto', status: 'waiting', created_at: '2026-01-01T12:00:00Z' }], error: null });
-    await expect(issueTicket({ typeId: 'type1', customerName: 'João' })).resolves.toMatchObject({ ticketNumber: 'C-008', customerName: null });
-    expect(rpc).toHaveBeenCalledWith('issue_ticket_v2', { p_type_id: 'type1', p_customer_name: 'João' });
+    rpc.mockResolvedValue({ data: [{ id: 't1', sequence_number: 8, ticket_number: 'C-008', service_type_id: 'type1', service_type_name: 'Conserto', status: 'waiting', created_at: '2026-01-01T12:00:00Z', os_access_code: '4821' }], error: null });
+    await expect(issueTicket({ typeId: 'type1', customerName: 'João' })).resolves.toMatchObject({ ticketNumber: 'C-008', customerName: null, osAccessCode: '4821' });
+    expect(rpc).toHaveBeenCalledWith('issue_ticket_v3', { p_type_id: 'type1', p_customer_name: 'João' });
   });
 
   it('blocks ticket issuance without a staff session', async () => {
