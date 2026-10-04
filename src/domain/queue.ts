@@ -38,6 +38,7 @@ export interface QueueTicket {
   customerName: string | null;
   customerRequest: string | null;
   trackingToken: string | null;
+  osAccessCode: string | null;
   status: TicketStatus;
   counterLabel: string | null;
   createdAt: string;
