@@ -112,4 +112,4 @@ O arquivo `public/.htaccess` configura o fallback de rotas do React para `index.
 
 Cliente ou atendente pode informar um celular brasileiro com DDD ao gerar a senha. Depois da emissão, o botão **Enviar pelo WhatsApp** abre uma conversa com a mensagem preenchida; alguém precisa confirmar o envio no WhatsApp do aparelho. O telefone não é salvo no Supabase. Para envio automático sem interação, seria necessária uma integração futura com a WhatsApp Business Platform.
 
-<!-- deploy trigger: authenticated ticket generator -->
+<!-- deploy trigger: fila.unionworld.com.br -->
