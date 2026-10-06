@@ -96,8 +96,11 @@ export function SignInPage() {
         <small>Acesso exclusivo para usuários autorizados.</small>
       </Surface>
       <footer className="system-footer">
-        <span className="system-footer-product">Produto</span>
-        <img className="system-footer-logo" src="/assets/logo/Logo%20Union%20World%20em%203D.png" alt="Union World" />
+        <span className="system-footer-note">• Senhas do dia reiniciam automaticamente às 00h em São Paulo.</span>
+        <span className="system-footer-brand">
+          <span className="system-footer-product">Produto</span>
+          <img className="system-footer-logo" src="/assets/logo/Logo%20Union%20World%20em%203D.png" alt="Union World" />
+        </span>
       </footer>
     </main>
   );
