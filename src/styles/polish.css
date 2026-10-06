@@ -3468,3 +3468,75 @@ html[data-theme='light']:has(.kiosk-page) .kiosk-icon-info-modal > .ui-modal-act
   font-size: 10px;
   line-height: 1.45;
 }
+
+
+/* Union Fila branding */
+.system-footer {
+  justify-content: flex-end;
+  gap: 9px;
+  text-align: right;
+}
+.system-footer-product {
+  color: #9fb2c8;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: .04em;
+}
+.system-footer-logo {
+  display: block;
+  width: auto;
+  height: 24px;
+  max-width: 118px;
+  object-fit: contain;
+}
+.staff-brand-logo {
+  display: block;
+  width: 38px;
+  height: 38px;
+  flex: 0 0 38px;
+  object-fit: contain;
+}
+.auth-logo.auth-brand-logo {
+  width: min(300px, 100%);
+  height: 82px;
+  min-height: 0;
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  margin-bottom: 24px;
+  border-radius: 0;
+  color: inherit;
+  background: transparent;
+  box-shadow: none;
+}
+.auth-logo.auth-brand-logo img {
+  display: block;
+  width: auto;
+  max-width: 100%;
+  height: auto;
+  max-height: 82px;
+  object-fit: contain;
+}
+html[data-theme='light'] .auth-logo.auth-brand-logo {
+  background: transparent;
+}
+@media (max-width: 760px) {
+  .system-footer {
+    padding-inline: 14px;
+  }
+  .system-footer-logo {
+    height: 21px;
+    max-width: 104px;
+  }
+  .staff-brand-logo {
+    width: 34px;
+    height: 34px;
+    flex-basis: 34px;
+  }
+  .auth-logo.auth-brand-logo {
+    height: 70px;
+  }
+  .auth-logo.auth-brand-logo img {
+    max-height: 70px;
+  }
+}
