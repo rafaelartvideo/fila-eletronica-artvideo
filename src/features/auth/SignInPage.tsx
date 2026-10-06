@@ -45,7 +45,7 @@ export function SignInPage() {
     <main className="auth-page">
       <Link to="/" className="auth-back"><ArrowLeft size={16} /> Voltar ao início</Link>
       <Surface tone="raised" className="auth-card">
-        <div className="auth-logo"><LockKeyhole size={24} /></div>
+        <div className="auth-logo auth-brand-logo"><img src="/assets/logo/Logotipo-UnionFilaw.webp" alt="Union Fila" /></div>
         <span className="ui-eyebrow">ÁREA RESTRITA</span>
         <h1>Bem-vindo de volta</h1>
         <p>Entre com seu usuário e senha para acessar o sistema de atendimento.</p>
@@ -95,7 +95,10 @@ export function SignInPage() {
         </form>
         <small>Acesso exclusivo para usuários autorizados.</small>
       </Surface>
-      <footer className="system-footer">• Senhas do dia reiniciam automaticamente às 00h em São Paulo.</footer>
+      <footer className="system-footer">
+        <span className="system-footer-product">Produto</span>
+        <img className="system-footer-logo" src="/assets/logo/Logo%20Union%20World%20em%203D.png" alt="Union World" />
+      </footer>
     </main>
   );
 }
