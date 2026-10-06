@@ -266,7 +266,7 @@ export function StaffPage() {
   return <main className="staff-app">
     <header className="staff-topbar">
       <Link to="/" className="staff-brand" aria-label="Página inicial">
-        <span className="staff-brand-icon"><TicketCheck size={19} /></span>
+        <img className="staff-brand-logo" src="/assets/logo/logofilaw.webp" alt="Union Fila" />
         <span><strong>PAINEL DE ATENDIMENTO</strong><small>{userName || 'EQUIPE'} · {roleName || 'USUÁRIO'}</small></span>
       </Link>
       <div className="staff-top-actions">
@@ -386,6 +386,9 @@ export function StaffPage() {
       </Surface>
     </div></ModalPortal>}
 
-    <footer className="system-footer">• Senhas do dia reiniciam automaticamente às 00h em São Paulo.</footer>
+    <footer className="system-footer">
+        <span className="system-footer-product">Produto</span>
+        <img className="system-footer-logo" src="/assets/logo/Logo%20Union%20World%20em%203D.png" alt="Union World" />
+      </footer>
   </main>;
 }
