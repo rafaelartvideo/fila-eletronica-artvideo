@@ -8,7 +8,7 @@ import { normalizeUsername } from '../auth/username';
 import { useAuth } from '../auth/AuthProvider';
 
 export function UsersSettings() {
-  const { hasPermission } = useAuth();
+  const { hasPermission, access, refresh: refreshAuth } = useAuth();
   const canManage = hasPermission('users.manage');
   const [users, setUsers] = useState<QueueUser[]>([]);
   const [roles, setRoles] = useState<QueueRole[]>([]);
@@ -62,6 +62,7 @@ export function UsersSettings() {
     setBusy(true);
     setError('');
     try {
+      const changesCurrentPassword = Boolean(editing?.userId && editing.userId === access?.userId && password);
       await saveQueueUser({
         userId: editing?.userId,
         fullName,
@@ -71,6 +72,10 @@ export function UsersSettings() {
         isActive: active,
       });
       setOpen(false);
+      if (changesCurrentPassword) {
+        await refreshAuth();
+        return;
+      }
       await load();
     } catch (cause) {
       setError(cause instanceof Error ? cause.message : 'Não foi possível salvar o usuário.');
