@@ -26,7 +26,20 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const verifyAccess = useCallback(async (current: Session | null) => {
     if (!current) { setAccess(null); return; }
-    try { setAccess(await getCurrentQueueAccess()); } catch { setAccess(null); }
+    try {
+      const client = requireSupabase();
+      const { data, error } = await client.auth.getUser(current.access_token);
+      if (error || !data.user || data.user.id !== current.user.id) {
+        sessionUserIdRef.current = null;
+        setSession(null);
+        setAccess(null);
+        try { await client.auth.signOut({ scope: 'local' }); } catch {}
+        return;
+      }
+      setAccess(await getCurrentQueueAccess());
+    } catch {
+      setAccess(null);
+    }
   }, []);
 
   useEffect(() => {
@@ -80,6 +93,27 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
     void bootstrap();
     return () => { active = false; subscription.unsubscribe(); };
+  }, [verifyAccess]);
+
+  useEffect(() => {
+    if (!supabase) return;
+    const client = supabase;
+
+    const revalidate = () => {
+      void client.auth.getSession().then(({ data }) => {
+        if (data.session) void verifyAccess(data.session);
+      });
+    };
+    const handleVisibility = () => {
+      if (document.visibilityState === 'visible') revalidate();
+    };
+
+    window.addEventListener('focus', revalidate);
+    document.addEventListener('visibilitychange', handleVisibility);
+    return () => {
+      window.removeEventListener('focus', revalidate);
+      document.removeEventListener('visibilitychange', handleVisibility);
+    };
   }, [verifyAccess]);
 
   const signOut = useCallback(async () => {
