@@ -623,14 +623,36 @@ export async function getPrintJobStatus(jobId: string): Promise<{ id: string; st
 }
 
 
+async function ensureActiveSession(): Promise<void> {
+  const client = requireSupabase();
+  const { data, error } = await client.auth.getUser();
+  if (!error && data.user) return;
+  try { await client.auth.signOut({ scope: 'local' }); } catch {}
+  throw new Error('Sua sessão expirou. Entre novamente para continuar.');
+}
+
 async function edgeFunctionError(error: unknown, fallback: string): Promise<Error> {
+  let detail = '';
+  let status = 0;
+
   if (error instanceof FunctionsHttpError) {
+    status = error.context.status;
     try {
       const payload = await error.context.json();
-      if (typeof payload?.error === 'string' && payload.error.trim()) return new Error(payload.error.trim());
+      detail = typeof payload?.error === 'string' ? payload.error.trim() : '';
     } catch {}
   }
-  return new Error(fallback);
+
+  if (status === 401 || status === 403) {
+    const client = requireSupabase();
+    const auth = await client.auth.getUser();
+    if (auth.error || !auth.data.user) {
+      try { await client.auth.signOut({ scope: 'local' }); } catch {}
+      return new Error('Sua sessão expirou. Entre novamente para continuar.');
+    }
+  }
+
+  return new Error(detail || fallback);
 }
 
 export async function listAttendanceHistory(from: string, to: string): Promise<AttendanceRecord[]> {
@@ -726,6 +748,7 @@ export async function saveQueueUser(input: {
   password?: string;
   isActive: boolean;
 }): Promise<void> {
+  await ensureActiveSession();
   const result = await requireSupabase().functions.invoke('queue-user-admin', {
     body: {
       action: input.userId ? 'update' : 'create',
