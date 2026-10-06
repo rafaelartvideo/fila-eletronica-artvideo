@@ -54,7 +54,10 @@ export function HomePage() {
           </div>
         </section>
       </main>
-      <footer className="system-footer">• Senhas do dia reiniciam automaticamente às 00h em São Paulo.</footer>
+      <footer className="system-footer">
+        <span className="system-footer-product">Produto</span>
+        <img className="system-footer-logo" src="/assets/logo/Logo%20Union%20World%20em%203D.png" alt="Union World" />
+      </footer>
     </div>
   );
 }
