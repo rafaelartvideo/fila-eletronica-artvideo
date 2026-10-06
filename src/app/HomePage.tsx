@@ -10,9 +10,8 @@ export function HomePage() {
   return (
     <div className="home-page">
       <header className="topbar">
-        <Link className="brand" to="/" aria-label="Página inicial">
-          <span className="brand-mark"><TicketCheck size={20} /></span>
-          <span className="brand-copy"><strong>FILA DE ATENDIMENTO</strong><small>SISTEMA DE SENHAS</small></span>
+        <Link className="brand home-brand" to="/" aria-label="Página inicial">
+          <img className="home-brand-logo" src="/assets/logo/Logotipo-UnionFilaw.webp" alt="Union Fila" />
         </Link>
         <span className="system-chip"><span /> Sistema de atendimento</span>
       </header>
@@ -55,8 +54,11 @@ export function HomePage() {
         </section>
       </main>
       <footer className="system-footer">
-        <span className="system-footer-product">Produto</span>
-        <img className="system-footer-logo" src="/assets/logo/Logo%20Union%20World%20em%203D.png" alt="Union World" />
+        <span className="system-footer-note">• Senhas do dia reiniciam automaticamente às 00h em São Paulo.</span>
+        <span className="system-footer-brand">
+          <span className="system-footer-product">Produto</span>
+          <img className="system-footer-logo" src="/assets/logo/Logo%20Union%20World%20em%203D.png" alt="Union World" />
+        </span>
       </footer>
     </div>
   );
