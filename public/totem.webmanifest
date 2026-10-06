@@ -1,8 +1,8 @@
 {
   "id": "/totem",
-  "name": "Fila Union World - Gerar senha",
-  "short_name": "Fila Union",
-  "description": "Emissão de senhas do sistema de atendimento Union World.",
+  "name": "Union Fila - Gerar senha",
+  "short_name": "Union Fila",
+  "description": "Emissão de senhas do sistema de atendimento Union Fila.",
   "start_url": "/totem",
   "scope": "/",
   "display": "standalone",

@@ -1,4 +1,4 @@
-# Union World Print Agent
+# Union Fila Print Agent
 
 Agente gratuito para Windows que recebe trabalhos do sistema de filas e envia ESC/POS RAW diretamente para a Elgin i9.
 

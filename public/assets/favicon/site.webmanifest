@@ -1,8 +1,8 @@
 {
   "id": "/",
-  "name": "Fila Union World",
-  "short_name": "Fila Union",
-  "description": "Sistema de fila e atendimento da Union World.",
+  "name": "Union Fila",
+  "short_name": "Union Fila",
+  "description": "Sistema de fila e atendimento Union Fila.",
   "start_url": "/",
   "scope": "/",
   "display": "standalone",

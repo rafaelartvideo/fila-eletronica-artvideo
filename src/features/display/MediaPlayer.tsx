@@ -195,7 +195,7 @@ export function MediaPlayer({ items }: { items: MediaItem[] }) {
     : '';
 
   return <section className="display-media" aria-label="Vídeos da loja">
-    <div className="display-media-heading"><span><Clapperboard size={15} /> UNION WORLD</span>{usable.length > 1 && <Button variant="ghost" size="sm" iconOnly aria-label="Próximo vídeo" onClick={advance}><SkipForward size={15} /></Button>}</div>
+    <div className="display-media-heading"><span><Clapperboard size={15} /> UNION FILA</span>{usable.length > 1 && <Button variant="ghost" size="sm" iconOnly aria-label="Próximo vídeo" onClick={advance}><SkipForward size={15} /></Button>}</div>
     <div className="display-media-frame">
       {source?.kind === 'direct-video' && <video key={current?.id} src={source.url} title={current?.title ?? 'Vídeo'} autoPlay muted playsInline loop={usable.length === 1} onEnded={usable.length > 1 ? advance : undefined} onError={failCurrent} />}
       {source?.kind === 'youtube' && youtubeVideoId && <YouTubeVideo key={current?.id} videoId={youtubeVideoId} title={current?.title ?? 'YouTube'} repeat={usable.length === 1} onEnded={advance} onError={failCurrent} />}

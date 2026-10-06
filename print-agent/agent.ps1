@@ -26,13 +26,13 @@ $operatingEndHour = if ($null -ne $config.operatingEndHour) { [Math]::Max(0, [Ma
 $configuredFeedLines = if ($null -ne $config.feedLines) { [int]$config.feedLines } else { 13 }
 $feedLines = if ($configuredFeedLines -le 10) { 13 } else { [Math]::Max(11, [Math]::Min(18, $configuredFeedLines)) }
 
-if (-not ('RawPrinter.UnionWorld' -as [type])) {
+if (-not ('RawPrinter.UnionFila' -as [type])) {
 Add-Type -TypeDefinition @"
 using System;
 using System.Runtime.InteropServices;
 
 namespace RawPrinter {
-  public static class UnionWorld {
+  public static class UnionFila {
     [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Ansi)]
     public class DOCINFOA {
       [MarshalAs(UnmanagedType.LPStr)] public string pDocName;
@@ -60,7 +60,7 @@ namespace RawPrinter {
       if (!OpenPrinter(printerName, out printer, IntPtr.Zero))
         throw new Exception("Não foi possível abrir a impressora. Erro " + Marshal.GetLastWin32Error());
       try {
-        var doc = new DOCINFOA { pDocName = "Senha Union World", pDataType = "RAW" };
+        var doc = new DOCINFOA { pDocName = "Senha Union Fila", pDataType = "RAW" };
         if (!StartDocPrinter(printer, 1, doc))
           throw new Exception("Não foi possível iniciar o documento RAW. Erro " + Marshal.GetLastWin32Error());
         try {
@@ -202,7 +202,7 @@ function Get-AdaptivePollMs([int]$EmptyPolls) {
   return $idlePollMs
 }
 
-Write-AgentLog "Union World Print iniciado. Impressora: $($config.printerName)"
+Write-AgentLog "Union Fila Print iniciado. Impressora: $($config.printerName)"
 Write-AgentLog ("Horário de operação: {0:00}:00 às {1:00}:00. Polling ativo: {2} ms; ocioso: até {3} ms." -f $operatingStartHour, $operatingEndHour, $pollMs, $idlePollMs)
 
 $emptyPolls = 0
@@ -239,7 +239,7 @@ while ($true) {
       try {
         Write-AgentLog "Imprimindo $($job.ticket_number)..."
         $payload = Build-TicketBytes $job
-        [RawPrinter.UnionWorld]::Send([string]$config.printerName, $payload)
+        [RawPrinter.UnionFila]::Send([string]$config.printerName, $payload)
         Complete-Job ([string]$job.job_id) $true
         $emptyPolls = 0
         Write-AgentLog "Impresso: $($job.ticket_number)"
