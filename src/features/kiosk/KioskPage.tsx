@@ -63,7 +63,7 @@ export function KioskPage({ showPanelBack = true }: { showPanelBack?: boolean })
     const manifest = existingManifest ?? document.createElement('link');
     const previousManifestHref = existingManifest?.getAttribute('href') ?? null;
 
-    document.title = 'Gerar senha | Fila Artvideo';
+    document.title = 'Gerar senha | Fila Union World';
 
     if (!existingManifest) {
       manifest.rel = 'manifest';

@@ -90,7 +90,7 @@ export function PrinterSettings() {
       title="Agente da impressora"
       description="Conecte a Elgin i9 ao PC da recepção para imprimir senhas diretamente, sem abrir a janela do navegador."
       actions={<>
-        <a className="ui-button ui-button--secondary ui-button--md" href="/print-agent/artvideo-print-agent.zip" download><Download size={15} /> <span className="ui-button__label">Baixar agente atualizado</span></a>
+        <a className="ui-button ui-button--secondary ui-button--md" href="/print-agent/unionworld-print-agent.zip" download><Download size={15} /> <span className="ui-button__label">Baixar agente atualizado</span></a>
         <Button variant="secondary" onClick={() => void refresh()} startIcon={<RefreshCw size={15} />}>Atualizar</Button>
       </>}
     />

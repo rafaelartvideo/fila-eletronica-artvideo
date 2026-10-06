@@ -73,7 +73,7 @@ export type AttendanceRecord = {
   attendantUsername: string | null;
 };
 
-const displayNoticeUrlPrefix = 'https://ticker.artvideo.local/';
+const displayNoticeUrlPrefix = 'https://ticker.unionworld.local/';
 
 const queueSyncTopic = 'queue-system-sync';
 const tableByResource: Record<QueueRealtimeResource, string> = {

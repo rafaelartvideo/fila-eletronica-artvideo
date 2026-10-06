@@ -1,4 +1,4 @@
-name: Deploy Fila Artvideo
+name: Deploy Fila Union World
 
 on:
   push:
@@ -10,7 +10,7 @@ permissions:
   contents: read
 
 concurrency:
-  group: deploy-fila-artvideo
+  group: deploy-fila-unionworld
   cancel-in-progress: false
 
 jobs:
@@ -51,7 +51,7 @@ jobs:
           cp print-agent/setup.ps1 dist/print-agent/setup.ps1
           cp print-agent/config.example.json dist/print-agent/config.example.json
           cp print-agent/README.md dist/print-agent/README.md
-          zip -j dist/print-agent/artvideo-print-agent.zip print-agent/agent.ps1 print-agent/setup.ps1 print-agent/config.example.json print-agent/README.md
+          zip -j dist/print-agent/unionworld-print-agent.zip print-agent/agent.ps1 print-agent/setup.ps1 print-agent/config.example.json print-agent/README.md
 
       - name: Deploy dist to HostGator over FTPS
         uses: SamKirkland/FTP-Deploy-Action@v4.4.0

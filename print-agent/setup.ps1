@@ -4,7 +4,7 @@ $configPath = Join-Path $root 'config.json'
 $agentPath = Join-Path $root 'agent.ps1'
 
 Write-Host ''
-Write-Host '=== Artvideo Print - configuração ===' -ForegroundColor Cyan
+Write-Host '=== Union World Print - configuração ===' -ForegroundColor Cyan
 
 if (-not (Test-Path -LiteralPath $configPath)) {
   Write-Host 'config.json não encontrado.' -ForegroundColor Yellow
@@ -55,7 +55,7 @@ if ($currentIndex -lt 0) {
 }
 
 $startup = [Environment]::GetFolderPath('Startup')
-$launcher = Join-Path $startup 'Artvideo Print Agent.cmd'
+$launcher = Join-Path $startup 'Union World Print Agent.cmd'
 $nl = [Environment]::NewLine
 $launcherBody = '@echo off' + $nl + 'start "" /min powershell.exe -NoProfile -ExecutionPolicy Bypass -WindowStyle Hidden -File "' + $agentPath + '"' + $nl
 Set-Content -LiteralPath $launcher -Value $launcherBody -Encoding ASCII

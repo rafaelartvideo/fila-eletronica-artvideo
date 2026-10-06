@@ -99,7 +99,7 @@ export function TrackingPage() {
   return <main className="tracking-page">
     <header className="tracking-header">
       <span><TicketCheck size={20} /></span>
-      <div><strong>ACOMPANHAMENTO DA FILA</strong><small>Eletrônica Artvideo</small></div>
+      <div><strong>ACOMPANHAMENTO DA FILA</strong><small>Union World</small></div>
     </header>
 
     <section className="tracking-shell">
