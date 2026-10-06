@@ -59,7 +59,10 @@ Deno.serve(async (req) => {
 
   try {
     const current = await caller(req);
-    if (!current || !await canManageUsers(current.id)) {
+    if (!current) {
+      return json({ error: "Sua sessão expirou. Entre novamente para continuar.", code: "session_invalid" }, 401);
+    }
+    if (!await canManageUsers(current.id)) {
       return json({ error: "Você não possui permissão para gerenciar usuários." }, 403);
     }
 
