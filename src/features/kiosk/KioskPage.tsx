@@ -188,7 +188,10 @@ export function KioskPage({ showPanelBack = true }: { showPanelBack?: boolean })
       </>}
     </div>
 
-    <footer className="system-footer no-print">• Senhas do dia reiniciam automaticamente às 00h em São Paulo.</footer>
+    <footer className="system-footer no-print">
+      <span className="system-footer-product">Produto</span>
+      <img className="system-footer-logo" src="/assets/logo/Logo%20Union%20World%20em%203D.png" alt="Union World" />
+    </footer>
 
     {extraIconInfo && <ModalPortal><div className="service-type-modal-overlay kiosk-icon-info-overlay" onMouseDown={(event) => { if (event.target === event.currentTarget) setExtraIconInfo(null); }}>
       <Surface tone="raised" className="service-type-modal kiosk-icon-info-modal" role="dialog" aria-modal="true" aria-labelledby="kiosk-icon-info-title">
